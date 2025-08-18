@@ -1,12 +1,12 @@
 CC = gcc
-CFLAGS = $(shell pkg-config --cflags gtk+-3.0)
-LIBS = $(shell pkg-config --libs gtk+-3.0)
-TARGET = main
+CFLAGS = $(shell pkg-config --cflags gtk+-3.0 gtksourceview-3.0)
+LIBS = $(shell pkg-config --libs gtk+-3.0 gtksourceview-3.0)
+TARGET = javalang
 
 all: $(TARGET)
 
-$(TARGET): main.c
-	$(CC) $(CFLAGS) -o $(TARGET) main.c $(LIBS)
+$(TARGET): main.c gui.c
+	$(CC) $(CFLAGS) -o $(TARGET) main.c gui.c $(LIBS)
 
 clean:
 	rm -f $(TARGET)
