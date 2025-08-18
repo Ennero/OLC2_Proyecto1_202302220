@@ -20,7 +20,8 @@
                 "/usr/include/x86_64-linux-gnu",
                 "/usr/include/webp",
                 "/usr/include/gio-unix-2.0",
-                "/usr/include/atk-1.0"  // Añadido para incluir atk
+                "/usr/include/atk-1.0",  // Añadido para incluir atk
+                "/usr/include/gtksourceview-3.0"  // Añadido para GtkSourceView
             ],
             "defines": [],
             "cStandard": "c17",
