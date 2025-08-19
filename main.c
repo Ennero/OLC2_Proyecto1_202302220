@@ -1,6 +1,5 @@
 #include <gtk/gtk.h>
-
-void init_gui(GtkApplication *app, gpointer user_data);  // Declaración de la función en gui.c
+#include "gui/gui.h"  // Nueva inclusión con la ruta relativa
 
 int main(int argc, char **argv) {
     GtkApplication *app = gtk_application_new("org.example.javalang", G_APPLICATION_DEFAULT_FLAGS);
