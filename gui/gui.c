@@ -1,4 +1,5 @@
 #include "gui.h"  // Incluir el encabezado de la GUI
+#include "../lang/lang.h"   /* <-- añadir al inicio del archivo (o al top) */
 
 // Implementación de las funciones de callback ----------------------------------------------------------------------------------------------------
 // Función para abrir archivos
@@ -90,17 +91,39 @@ static void on_save_as(GtkWidget *widget, AppWidgets *data) {
     gtk_widget_destroy(dialog);
 }
 
-// Función para ejecutar el código
+/* Función para ejecutar el código (reemplaza el placeholder) */
 static void on_run(GtkWidget *widget, AppWidgets *data) {
-    //TODO Placeholder: Aquí integra tu intérprete (Flex/Bison) para ejecutar el código
-    gtk_text_buffer_set_text(data->output_buffer, 
-        "🚀 Ejecutando código JavaLang...\n"
-        "═══════════════════════════════\n"
-        "Estado: Iniciando intérprete\n"
-        "Análisis léxico: En progreso...\n"
-        "Análisis sintáctico: Pendiente...\n"
-        "Ejecución: Pendiente...\n\n"
-        "⚠️  Nota: Integrar lógica del intérprete (Flex/Bison)\n", -1);
+    GtkTextIter start, end;
+    gtk_text_buffer_get_bounds(data->editor_buffer, &start, &end);
+    gchar *text = gtk_text_buffer_get_text(data->editor_buffer, &start, &end, FALSE);
+
+    if (!text || strlen(text) == 0) {
+        gtk_text_buffer_set_text(data->output_buffer, "⚠️  Editor vacío.\n", -1);
+        g_free(text);
+        return;
+    }
+
+    /* La calculadora espera una expresión terminada en ';' */
+    /* Si el usuario no puso ';' al final, lo añadimos para conveniencia. */
+    char *input = NULL;
+    if (text[strlen(text)-1] != ';') {
+        input = g_strdup_printf("%s;", text);
+    } else {
+        input = g_strdup(text);
+    }
+
+    char outbuf[1024];
+    int rc = jl_run(input, outbuf, sizeof(outbuf));
+    if (rc == 0) {
+        /* resultado OK */
+        gtk_text_buffer_set_text(data->output_buffer, outbuf, -1);
+    } else {
+        /* error léxico/sintáctico */
+        gtk_text_buffer_set_text(data->output_buffer, outbuf, -1);
+    }
+
+    g_free(input);
+    g_free(text);
 }
 
 // Función para generar el AST
