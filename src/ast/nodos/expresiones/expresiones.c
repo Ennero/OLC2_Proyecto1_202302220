@@ -1,0 +1,55 @@
+#include "ast/AbstractExpresion.h"
+#include "ast/nodos/builders.h"
+#include "context/context.h"
+#include "context/result.h"
+
+#include <stdlib.h>
+#include <stdio.h>
+
+typedef struct {
+    AbstractExpresion base;
+    char op; /* '+', '-', '*', '/' */
+} ExpresionLenguaje;
+
+
+Result interpretExpresionLenguaje(AbstractExpresion* self, Context* context) {
+    ExpresionLenguaje* nodo = (ExpresionLenguaje*) self;
+    Result resultado1;
+    Result resultado2;
+
+    if (nodo->base.numHijos > 0) {
+        resultado1 = nodo->base.hijos[0]->interpret(nodo->base.hijos[0], context);
+    }
+
+    if (nodo->base.numHijos > 1) {
+        resultado2 = nodo->base.hijos[1]->interpret(nodo->base.hijos[1], context);
+    }
+    switch (nodo->op) {
+        case '+':
+            if (resultado1.tipo == resultado2.tipo && resultado1.tipo == 'I') {
+                //return &nuevoResultado(Resultado1->valor + Resultado2->valor, 'F')
+            }
+            fprintf(stderr, "Unknown operator %c\n", nodo->op);
+            return nuevoValorResultadoVacio();
+        
+        default:
+            fprintf(stderr, "Unknown operator %c\n", nodo->op);
+            return nuevoValorResultadoVacio();
+    }
+}
+
+AbstractExpresion* nuevoExpresionLenguaje(char op, AbstractExpresion* izquierda, AbstractExpresion* derecha) {
+    // reservar el espacio en memoria y obtener el puntero a este
+    ExpresionLenguaje* nodo = malloc(sizeof(ExpresionLenguaje));
+    if (!nodo) return NULL;
+
+    //asignar valores
+    buildAbstractExpresion(&nodo->base, interpretExpresionLenguaje);
+    nodo->op = op;
+
+    //guardar los punteros en lo hijos de este arbol a los lados de la expresion
+    if (izquierda) agregarHijo((AbstractExpresion*) nodo, izquierda);
+    if (derecha) agregarHijo((AbstractExpresion*) nodo, derecha);
+    
+    return (AbstractExpresion*) nodo;
+}

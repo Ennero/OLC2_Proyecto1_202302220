@@ -1,0 +1,8 @@
+{
+    "files.associations": {
+        "instrucciones.h": "c",
+        "context.h": "c",
+        "abstractexpresion.h": "c",
+        "result.h": "c"
+    }
+}
