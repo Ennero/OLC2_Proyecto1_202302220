@@ -13,7 +13,6 @@
 /* Esto va al parser.tab.h */
 %code requires {
     #include "ast/nodos/builders.h"
-    #include "ast/nodos/instrucciones/instrucciones.h"
 }
 
 /* Seguimiento de ubicaciones */
@@ -23,13 +22,17 @@
 
 /* Unión de tipos semánticos */
 %union {
-  char* string;
-  AbstractExpresion* nodo;
+    char* string;
+    AbstractExpresion* nodo;
 }
 
-/* Tokens tipados */
-%token <string> TOKEN_IF TOKEN_ELSE TOKEN_PRINT TOKEN_DINT TOKEN_DFLOAT 
-TOKEN_DSTRING TOKEN_MAYOR TOKEN_MENOR TOKEN_NEGACION TOKEN_IGUAL TOKEN_UNSIGNED_INTEGER TOKEN_REAL TOKEN_STRING TOKEN_IDENTIFIER
+
+/* MODIFICADO: Se indica que estos tokens llevan un valor de tipo 'string' */
+%token <string> TOKEN_UNSIGNED_INTEGER TOKEN_REAL TOKEN_STRING TOKEN_IDENTIFIER
+
+%token  TOKEN_IF TOKEN_ELSE TOKEN_PRINT TOKEN_DINT TOKEN_DFLOAT 
+TOKEN_DSTRING TOKEN_MAYOR TOKEN_MENOR TOKEN_NEGACION TOKEN_IGUAL
+
 
 /* Tipo de los no-terminales que llevan valor */
 %type <nodo> s lSentencia sentencia expr imprimir lista_Expr bloque declaracion_var asignacion_var primitivo
@@ -44,12 +47,11 @@ TOKEN_DSTRING TOKEN_MAYOR TOKEN_MENOR TOKEN_NEGACION TOKEN_IGUAL TOKEN_UNSIGNED_
 
 %start s;
 
-s: lSentencia  { ast_root = $1; }
+s: lSentencia  { ast_root = $1; $$ = $1; }
     //| error '\n'  { yyerrok; }
     ;
 //                                               Padre, hijo;
-lSentencia: lSentencia sentencia ';' { agregarHijo($1, $2); $$ = $1; InstruccionesExpresion* bloque = (InstruccionesExpresion*) $1;
-            printf("en parser %ld \n", bloque->base.numHijos); }
+lSentencia: lSentencia sentencia ';' { agregarHijo($1, $2); $$ = $1;}
     | sentencia ';' {
                         AbstractExpresion* b = nuevoInstruccionesExpresion();
                         agregarHijo(b, $1);
@@ -111,7 +113,7 @@ primitivo: TOKEN_UNSIGNED_INTEGER { $$ =  nuevoPrimitivoExpresion($1, 'I'); }
 /* definición de yyerror, usa el yylloc global para ubicación */
 void yyerror(const char *s) {
     fprintf(stderr,
-            "Illegal input %s en %d:%d\n",
+            "Error: %s en linea %d, columna %d\n",
             s,
             yylloc.first_line,
             yylloc.first_column);
