@@ -4,13 +4,17 @@ BUILD   := build
 CC      := gcc
 BISON   := bison
 FLEX    := flex
-CFLAGS  := -I$(SRC) -Wall -Wextra
+# Añadir flags para GTK3 usando pkg-config
+GTK_CFLAGS := $(shell pkg-config --cflags gtk+-3.0)
+GTK_LIBS   := $(shell pkg-config --libs gtk+-3.0)
+CFLAGS  := -I$(SRC) -Wall -Wextra $(GTK_CFLAGS)
+LDFLAGS := $(GTK_LIBS)
 RM      := rm -rf $(BUILD)
 MKDIR   := mkdir -p $(BUILD)
 
 .DEFAULT_GOAL := all
 
-# Buscar todos los .c en src (excepto parser.y y lexer.l)
+# Buscar todos los .c en src
 SRC_FILES := $(shell find $(SRC) -name '*.c')
 
 # Archivos generados por Bison y Flex
@@ -50,7 +54,7 @@ $(BUILD)/lex.yy.o: $(LEX_C)
 
 # Enlazar todo
 $(BUILD)/calc: $(OBJ_ALL)
-	$(CC) $(CFLAGS) -o $@ $^
+	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
 
 clean:
 	$(RM)
