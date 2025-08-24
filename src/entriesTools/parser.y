@@ -23,13 +23,19 @@
 
 /* Unión de tipos semánticos */
 %union {
-  char* string;
-  AbstractExpresion* nodo;
+    char* string;
+    AbstractExpresion* nodo;
 }
 
-/* Tokens tipados */
-%token <string> TOKEN_IF TOKEN_ELSE TOKEN_PRINT TOKEN_DINT TOKEN_DFLOAT 
-TOKEN_DSTRING TOKEN_MAYOR TOKEN_MENOR TOKEN_NEGACION TOKEN_IGUAL TOKEN_UNSIGNED_INTEGER TOKEN_REAL TOKEN_STRING TOKEN_IDENTIFIER
+/* 1. Tokens SIN valor */
+%token RW_INT RW_FLOAT RW_STRING RW_BOOLEAN RW_CHAR
+%token RW_IF RW_ELSE RW_PRINT
+%token RW_MAYOR RW_MENOR RW_NEGACION RW_IGUAL
+
+/* 2. Tokens CON valor <string> */
+%token <string> TK_INTEGER TK_REAL TK_STRING TK_IDENTIFIER
+%token <string> TK_CHAR TK_BOOLEAN TK_NULL
+
 
 /* Tipo de los no-terminales que llevan valor */
 %type <nodo> s lSentencia sentencia expr imprimir lista_Expr bloque declaracion_var asignacion_var primitivo
@@ -70,7 +76,7 @@ lista_Expr: lista_Expr ','  expr { agregarHijo($1, $3); $$ = $1; }
             }
     ;
 
-imprimir: TOKEN_PRINT '(' lista_Expr ')' { $$ =  nuevoPrintExpresion($3); }
+imprimir: RW_PRINT '(' lista_Expr ')' { $$ =  nuevoPrintExpresion($3); }
     ;
 
 bloque: '{' lSentencia '}' { AbstractExpresion* b = nuevoInstruccionesExpresion();
@@ -108,9 +114,9 @@ expr: expr '+' expr   { $$ =  nuevoSumaExpresion($1, $3);  }
     | primitivo { $$ = $1; }
     ;
 
-primitivo: TOKEN_UNSIGNED_INTEGER { $$ =  nuevoPrimitivoExpresion($1, INT); }
-    | TOKEN_STRING { $$ =  nuevoPrimitivoExpresion($1, STRING); }
-    | TOKEN_REAL { $$ =  nuevoPrimitivoExpresion($1, FLOAT); }
+primitivo: TK_INTEGER { $$ =  nuevoPrimitivoExpresion($1, INT); }
+    | TK_STRING { $$ =  nuevoPrimitivoExpresion($1, STRING); }
+    | TK_REAL { $$ =  nuevoPrimitivoExpresion($1, FLOAT); }
     ;
 %%
 
