@@ -4,8 +4,7 @@ BUILD   := build
 CC      := gcc
 BISON   := bison
 FLEX    := flex
-CFLAGS  := -I$(SRC) -Wall -Wextra `pkg-config --cflags gtk+-3.0`
-LDFLAGS := `pkg-config --libs gtk+-3.0`
+CFLAGS  := -I$(SRC) -Wall -Wextra
 RM      := rm -rf $(BUILD)
 MKDIR   := mkdir -p $(BUILD)
 
@@ -51,14 +50,9 @@ $(BUILD)/lex.yy.o: $(LEX_C)
 
 # Enlazar todo
 $(BUILD)/calc: $(OBJ_ALL)
-	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
+	$(CC) $(CFLAGS) -o $@ $^
 
 clean:
 	$(RM)
-	rm -f temp_input.txt temp_output.txt
 
-install-deps:
-	sudo apt-get update
-	sudo apt-get install libgtk-3-dev
-
-.PHONY: all clean install-deps
+.PHONY: all clean

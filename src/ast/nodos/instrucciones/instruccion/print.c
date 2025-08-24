@@ -3,53 +3,41 @@
 #include "context/context.h"
 #include "context/result.h"
 #include "print.h"
-#include <stdio.h>
+
 #include <stdlib.h>
+#include <stdio.h>
+
 
 Result interpretPrintExpresion(AbstractExpresion* self, Context* context) {
+    // interpretar la lista de expresiones
+    // recorremos  cada expresion y lo que nos devuelva imprimimos el valor
     AbstractExpresion* listaExpresiones = self->hijos[0];
-
     for (size_t i = 0; i < listaExpresiones->numHijos; ++i) {
         Result result = listaExpresiones->hijos[i]->interpret(listaExpresiones->hijos[i], context);
-        
-        char buffer_temp[100]; // Buffer temporal para formatear números
-
         switch (result.tipo) {
-            case 'S':
-                agregarAlOutput(context, (char*) result.valor);
+            case STRING:
+                printf("%s\n", (char*) result.valor);
                 break;
-            case 'I':
-                sprintf(buffer_temp, "%d", *(int*)result.valor);
-                agregarAlOutput(context, buffer_temp);
+            case INT:
+                printf("%d\n", *(int*)result.valor);
                 break;
-            case 'F':
-                sprintf(buffer_temp, "%f", *(double*)result.valor);
-                agregarAlOutput(context, buffer_temp);
+            case FLOAT:
+                printf("%f\n", *(float*)result.valor);
                 break;
             default:
-                agregarAlOutput(context, "Tipo de dato desconocido");
-                break;
-        }
-
-        // Liberar la memoria del valor obtenido tras imprimirlo
-        if (result.valor != NULL) {
-            free(result.valor);
-        }
-
-        // Añadir un espacio entre valores, excepto para el último
-        if (i < listaExpresiones->numHijos - 1) {
-            agregarAlOutput(context, " ");
+                printf("Tipo no implementado\n");
         }
     }
-
-    agregarAlOutput(context, "\n"); // Salto de línea al final de cada print
     return nuevoValorResultadoVacio();
 }
 
 AbstractExpresion* nuevoPrintExpresion(AbstractExpresion* listaExpresiones) {
+    //reservar el espacio en memoria y obtener el puntero a este
     PrintExpresion* nodo = malloc(sizeof(PrintExpresion));
     if (!nodo) return NULL;
+    //asignar valores
     buildAbstractExpresion(&nodo->base, interpretPrintExpresion);
+
     if (listaExpresiones) agregarHijo((AbstractExpresion*) nodo, listaExpresiones);
     return (AbstractExpresion*) nodo;
 }

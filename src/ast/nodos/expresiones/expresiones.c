@@ -3,60 +3,60 @@
 #include "context/context.h"
 #include "context/result.h"
 #include "expresiones.h"
-#include <stdio.h>
+
 #include <stdlib.h>
+#include <stdio.h>
 
 Result interpretExpresionLenguaje(AbstractExpresion* self, Context* context) {
     ExpresionLenguaje* nodo = (ExpresionLenguaje*) self;
+    calcularResultados(nodo, context);
     
-    Result resultado1 = nodo->base.hijos[0]->interpret(nodo->base.hijos[0], context);
-    Result resultado2 = nodo->base.hijos[1]->interpret(nodo->base.hijos[1], context);
-    
-    switch (nodo->op) {
-        case '+':
-            if (resultado1.tipo == 'I' && resultado2.tipo == 'I') {
-                // MODIFICADO: Asignar memoria para el resultado final
-                int* valorFinal = malloc(sizeof(int));
-                *valorFinal = *((int*) resultado1.valor) + *((int*) resultado2.valor);
-                
-                // Liberar la memoria de los operandos que ya no se usan
-                free(resultado1.valor);
-                free(resultado2.valor);
-                
-                return nuevoValorResultado((void*) valorFinal, 'I');
-            }
-            break; // No olvides el break
-        case '-':
-            if (resultado1.tipo == 'I' && resultado2.tipo == 'I') {
-                // NUEVO: Lógica para la resta
-                int* valorFinal = malloc(sizeof(int));
-                *valorFinal = *((int*) resultado1.valor) - *((int*) resultado2.valor);
-                
-                free(resultado1.valor);
-                free(resultado2.valor);
-                
-                return nuevoValorResultado((void*) valorFinal, 'I');
-            }
-            break;
-        default:
-            fprintf(stderr, "Operador desconocido %c\n", nodo->op);
-            // Liberar memoria si no se pudo operar
-            free(resultado1.valor);
-            free(resultado2.valor);
+    Operacion op = (*nodo->tablaOperaciones)[nodo->izquierda.tipo][nodo->derecha.tipo];
+    if (op == NULL) {
+        printf("Operación no soportada para los tipos %s, %s\n", 
+            labelTipoDato[nodo->izquierda.tipo], labelTipoDato[nodo->derecha.tipo]);
             return nuevoValorResultadoVacio();
     }
-    // Si los tipos no coinciden, liberar y retornar vacío
-    free(resultado1.valor);
-    free(resultado2.valor);
-    return nuevoValorResultadoVacio();
+    return op(nodo);
 }
 
-AbstractExpresion* nuevoExpresionLenguaje(char op, AbstractExpresion* izquierda, AbstractExpresion* derecha) {
+Result interpretUnarioLenguaje(AbstractExpresion* self, Context* context) {
+    ExpresionLenguaje* nodo = (ExpresionLenguaje*) self;
+    calcularResultadoIzquierdo(nodo, context);
+
+    Operacion op = (*nodo->tablaOperaciones)[nodo->izquierda.tipo][NULO];
+    if (op == NULL) {
+        printf("Operación no soportada para el tipo %s\n", 
+            labelTipoDato[nodo->izquierda.tipo]);
+        return nuevoValorResultadoVacio();
+    }
+    return op(nodo);
+}
+
+ExpresionLenguaje* nuevoExpresionLenguaje(Interpret funcionEspecifica, AbstractExpresion* izquierda, AbstractExpresion* derecha) {
+    // reservar el espacio en memoria y obtener el puntero a este
     ExpresionLenguaje* nodo = malloc(sizeof(ExpresionLenguaje));
     if (!nodo) return NULL;
-    buildAbstractExpresion(&nodo->base, interpretExpresionLenguaje);
-    nodo->op = op;
+
+    //asignar valores
+    buildAbstractExpresion(&nodo->base, funcionEspecifica);
+
+    //guardar los punteros en lo hijos de este arbol a los lados de la expresion
     if (izquierda) agregarHijo((AbstractExpresion*) nodo, izquierda);
     if (derecha) agregarHijo((AbstractExpresion*) nodo, derecha);
-    return (AbstractExpresion*) nodo;
+    
+    return nodo;
+}
+
+void calcularResultadoIzquierdo(ExpresionLenguaje* self, Context* context) {
+    self->izquierda = self->base.hijos[0]->interpret(self->base.hijos[0], context);
+}
+
+void calcularResultadoDerecho(ExpresionLenguaje* self, Context* context) {
+    self->derecha = self->base.hijos[1]->interpret(self->base.hijos[1], context);
+}
+
+void calcularResultados(ExpresionLenguaje* self, Context* context) {
+    calcularResultadoIzquierdo(self, context);
+    calcularResultadoDerecho(self, context);
 }

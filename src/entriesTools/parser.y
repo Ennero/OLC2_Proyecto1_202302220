@@ -13,6 +13,7 @@
 /* Esto va al parser.tab.h */
 %code requires {
     #include "ast/nodos/builders.h"
+    #include "context/result.h"
 }
 
 /* Seguimiento de ubicaciones */
@@ -22,17 +23,13 @@
 
 /* Unión de tipos semánticos */
 %union {
-    char* string;
-    AbstractExpresion* nodo;
+  char* string;
+  AbstractExpresion* nodo;
 }
 
-
-/* MODIFICADO: Se indica que estos tokens llevan un valor de tipo 'string' */
-%token <string> TOKEN_UNSIGNED_INTEGER TOKEN_REAL TOKEN_STRING TOKEN_IDENTIFIER
-
-%token  TOKEN_IF TOKEN_ELSE TOKEN_PRINT TOKEN_DINT TOKEN_DFLOAT 
-TOKEN_DSTRING TOKEN_MAYOR TOKEN_MENOR TOKEN_NEGACION TOKEN_IGUAL
-
+/* Tokens tipados */
+%token <string> TOKEN_IF TOKEN_ELSE TOKEN_PRINT TOKEN_DINT TOKEN_DFLOAT 
+TOKEN_DSTRING TOKEN_MAYOR TOKEN_MENOR TOKEN_NEGACION TOKEN_IGUAL TOKEN_UNSIGNED_INTEGER TOKEN_REAL TOKEN_STRING TOKEN_IDENTIFIER
 
 /* Tipo de los no-terminales que llevan valor */
 %type <nodo> s lSentencia sentencia expr imprimir lista_Expr bloque declaracion_var asignacion_var primitivo
@@ -94,26 +91,33 @@ asignacion_var: TOKEN_IDENTIFIER '=' expr   {
     ; */
 
 
-    
-expr: expr '+' expr   { $$ =  nuevoExpresionLenguaje('+', $1, $3);  }
+//TODO: para mejorar la legibilidad en lugar de guardar la operacion por incumplir el principio de responsabilidad única y también el Principio de abierto/cerrado (SOLID)
+// la accion semantica fungirá como factoría abstracta y cada expresión tendra su método interpret para hacer la operación además de utilizar otros métodos "heredados".
+/* expr: expr '+' expr   { $$ =  nuevoExpresionLenguaje('+', $1, $3);  }
     | expr '-' expr { $$ =  nuevoExpresionLenguaje('-', $1, $3); }
     | '(' expr ')' { $$ = $2; }
     | '-' expr %prec NEG  { $$ =  nuevoExpresionLenguaje('U', $2, NULL);  }
-    | primitivo { $$ = $1; } 
+    | primitivo { $$ = $1; }
     //| TOKEN_IDENTIFIER { $$ =  nuevoExpresionLenguaje('I', $1, $3); }
-    //| TOKEN_STRING { $$ = NodoTipoA_init($1);  }
+    ; */
+
+expr: expr '+' expr   { $$ =  nuevoSumaExpresion($1, $3);  }
+    | expr '-' expr { $$ =  nuevoRestaExpresion($1, $3); }
+    | '(' expr ')' { $$ = $2; }
+    | '-' expr %prec NEG  { $$ =  nuevoUnarioExpresion($2);  }
+    | primitivo { $$ = $1; }
     ;
 
-primitivo: TOKEN_UNSIGNED_INTEGER { $$ =  nuevoPrimitivoExpresion($1, 'I'); }
-    | TOKEN_STRING { $$ =  nuevoPrimitivoExpresion($1, 'S'); }
-    | TOKEN_REAL { $$ =  nuevoPrimitivoExpresion($1, 'F'); }
+primitivo: TOKEN_UNSIGNED_INTEGER { $$ =  nuevoPrimitivoExpresion($1, INT); }
+    | TOKEN_STRING { $$ =  nuevoPrimitivoExpresion($1, STRING); }
+    | TOKEN_REAL { $$ =  nuevoPrimitivoExpresion($1, FLOAT); }
     ;
 %%
 
 /* definición de yyerror, usa el yylloc global para ubicación */
 void yyerror(const char *s) {
     fprintf(stderr,
-            "Error: %s en linea %d, columna %d\n",
+            "Illegal input %s en %d:%d\n",
             s,
             yylloc.first_line,
             yylloc.first_column);
