@@ -139,7 +139,8 @@ i                 {int}
 real              ({i}\.{i}?|{i}?\.{i}){exponent}?
 string            \"([^\\\"\n]|\\.)*\"
 bad_string        \"([^"\n]|\"\")+
-char              \'([^\n\\']|\\[^\n]|\\u{hex_digit}{4})\'
+char              \'([^\\']|\\.)\' 
+
 
 %%
 "//"                        BEGIN(COMMENTLINEA);
