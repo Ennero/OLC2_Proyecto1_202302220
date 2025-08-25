@@ -35,23 +35,44 @@ char* unescape_string(const char* s) {
 }
 
 
+char* hex_to_decimal_string(const char* hex_str) {
+    // strtol convierte un string en base 16 a un número long.
+    // Automáticamente maneja el prefijo "0x" o "0X".
+    long decimal_value = strtol(hex_str, NULL, 16);
+    
+    // Ahora convertimos ese número de vuelta a un string en base 10.
+    // Primero calculamos el tamaño necesario.
+    int len = snprintf(NULL, 0, "%ld", decimal_value);
+    char* dec_str = (char*)malloc(len + 1);
+    if (!dec_str) {
+        yyerror("Fallo de memoria");
+        exit(1);
+    }
+    sprintf(dec_str, "%ld", decimal_value);
+    return dec_str;
+}
+
+
+
+
+// Reemplaza tu función unescape_char con esta versión corregida
 char* unescape_char(const char* s) {
     char final_char;
-    // El contenido del char está en s[1]
     if (s[1] == '\\') {
-        // Es una secuencia de escape
         switch (s[2]) {
             case 'n': final_char = '\n'; break;
             case 't': final_char = '\t'; break;
             case 'r': final_char = '\r'; break;
             case '\\': final_char = '\\'; break;
             case '\'': final_char = '\''; break;
-            case 'u': { 
-                if (strlen(s) < 8) { // Debe ser '\uXXXX'
-                    yyerror("Secuencia de escape Unicode mal formada");
-                    final_char = '?';
+            case 'u': {
+                // --- CORRECCIÓN CRÍTICA ---
+                // La longitud total DEBE ser exactamente 8: '\uXXXX'
+                if (strlen(s) != 8) {
+                    yyerror("Secuencia de escape Unicode mal formada. Se esperaba '\\uXXXX'.");
+                    final_char = '?'; // Asigna un carácter de error seguro
                 } else {
-                    // Extraemos los 4 dígitos hexadecimales
+                    // Ahora sí es seguro copiar los 4 dígitos
                     char hex_code[5];
                     strncpy(hex_code, s + 3, 4);
                     hex_code[4] = '\0';
@@ -60,14 +81,12 @@ char* unescape_char(const char* s) {
                 }
                 break;
             }
-            default: final_char = s[2]; break; // Escapes desconocidos
+            default: final_char = s[2]; break;
         }
     } else {
-        // Es un carácter normal
         final_char = s[1];
     }
     
-    // El parser espera un char*, así que creamos una cadena de 1 carácter
     char* result = (char*)malloc(2);
     if (!result) {
         yyerror("Fallo de memoria");
@@ -111,17 +130,16 @@ white_space       [ \t]*
 digit             [0-9]
 alpha             [A-Za-z_]
 alpha_num         ({alpha}|{digit})
-hex_digit         [0-9A-F]
+hex_digit         [0-9a-fA-F]  
 identifier        {alpha}{alpha_num}*
 int               {digit}+
-hex_integer       ${hex_digit}{hex_digit}*
+hex               0[xX]{hex_digit}+ 
 exponent          e[+-]?{digit}+
 i                 {int}
 real              ({i}\.{i}?|{i}?\.{i}){exponent}?
 string            \"([^\\\"\n]|\\.)*\"
 bad_string        \"([^"\n]|\"\")+
-char      \'([^\\']|\\.)\' 
-
+char              \'([^\n\\']|\\[^\n]|\\u{hex_digit}{4})\'
 
 %%
 "//"                        BEGIN(COMMENTLINEA);
@@ -137,6 +155,7 @@ char      \'([^\\']|\\.)\'
 <COMMENT2>[*/]
 
 
+
 int                         return(RW_INT);
 float                       return(RW_FLOAT);
 String                      return(RW_STRING);
@@ -145,15 +164,64 @@ char                        return(RW_CHAR);
 
 if                          return(RW_IF);
 else                        return(RW_ELSE);
-print                       return(RW_PRINT);
+for                         return(RW_FOR);
+while                       return(RW_WHILE);
+do                          return(RW_DO);
+switch                      return(RW_SWITCH);
+case                        return(RW_CASE);
+default                     return(RW_DEFAULT);
 
+break                       return(RW_BREAK);
+continue                    return(RW_CONTINUE);
+return                      return(RW_RETURN);
 
+print                       return(RW_PRINT); 
+final                       return(RW_FINAL);
+public                      return(RW_PUBLIC);
+static                      return(RW_STATIC);
+
+"&&"                        return(RW_AND);
+"||"                        return(RW_OR);
+"=="                        return(RW_IGUAL);
+"!="                        return(RW_NO_IGUAL);
+">="                        return(RW_MAYOR_IGUAL);
+"<="                        return(RW_MENOR_IGUAL);
+
+"+="                        return(RW_MAS_IGUAL);
+"++"                        return(RW_INCREMENTO);
+"--"                        return(RW_DECREMENTO);
+"-="                        return(RW_MENOS_IGUAL);
+"/="                        return(RW_DIVISION_IGUAL);
+"*="                        return(RW_MULTIPLICACION_IGUAL);
+"%="                        return(RW_MODULO_IGUAL);
+"&="                        return(RW_Y_LOGICO_IGUAL);
+"|="                        return(RW_O_LOGICO_IGUAL);
+"^="                        return(RW_EXP_IGUAL);
+"<<="                       return(RW_DESPLAZAMIENTO_IZQUIERDO_IGUAL);
+">>="                       return(RW_DESPLAZAMIENTO_DERECHO_IGUAL);
+"="                         return(RW_IGUALAR);
+
+";"                         return(RW_PUNTO_Y_COMA);
+","                         return(RW_COMA);
+"."                         return(RW_PUNTO);
+":"                         return(RW_DOS_PUNTOS);
+"("                         return(RW_ABRE_PARENTESIS);
+")"                         return(RW_CIERRA_PARENTESIS);
+"["                         return(RW_ABRE_CORCHETE);
+"]"                         return(RW_CIERRA_CORCHETE);
+"{"                         return(RW_ABRE_LLAVE);
+"}"                         return(RW_CIERRA_LLAVE);
+"="                         return(RW_IGUALAR);
 ">"                         return(RW_MAYOR);
 "<"                         return(RW_MENOR);
 "!"                         return(RW_NEGACION);
-"="                         return(RW_IGUAL);
+"+"                         return(RW_MAS);
+"-"                         return(RW_MENOS);
+"*"                         return(RW_MULTIPLICACION);
+"/"                         return(RW_DIVISION);
+"%"                         return(RW_MODULO);
 
-
+{hex}                { yylval.string = hex_to_decimal_string(yytext); return TK_INTEGER; }
 {int}                { yylval.string = strdup(yytext); return(TK_INTEGER);}
 {real}               { yylval.string = strdup(yytext); return(TK_REAL);}
 {string}             { yylval.string = unescape_string(yytext); return(TK_STRING); }
@@ -168,7 +236,6 @@ print                       return(RW_PRINT);
 
 {identifier}         { yylval.string = strdup(yytext); return TK_IDENTIFIER; }
 
-[*/+\-,^()\[\]\{\}\;]      return(yytext[0]);
 
 {white_space}        /* do nothing */
 [\n\r]               yylineno += 1;
