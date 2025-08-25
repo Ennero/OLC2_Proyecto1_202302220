@@ -27,16 +27,6 @@ Result interpretPrimitivoExpresion(AbstractExpresion* self, Context* context) {
             return nuevoValorResultado((void*) valorfloat, nodo->tipo);
         case STRING:
             return nuevoValorResultado((void*) nodo->valor, nodo->tipo);
-        case CHAR:
-            char* valorchar = malloc(sizeof(char));
-            *valorchar = nodo->valor[0]; // Asumiendo que el valor es un string de un solo caracter
-            free(nodo->valor);
-            return nuevoValorResultado((void*) valorchar, nodo->tipo);
-        case BOOLEAN:
-            int* valorboolean = malloc(sizeof(int));
-            *valorboolean = (strcmp(nodo->valor, "true") == 0) ? 1 : 0; // Comparar con "true" y "false"
-            free(nodo->valor);
-            return nuevoValorResultado((void*) valorboolean, nodo->tipo);
         default:
             printf("Tipo de dato primitivo no implementado");
     }

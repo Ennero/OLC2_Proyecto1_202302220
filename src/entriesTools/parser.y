@@ -162,12 +162,9 @@ expr: expr RW_MAS expr                { $$ = nuevoSumaExpresion($1, $3); }
     | RW_ABRE_PARENTESIS expr RW_CIERRA_PARENTESIS { $$ = $2; }
     ;
 
-primitivo: TK_INTEGER { $$ =  nuevoPrimitivoExpresion($1, INT); } |
-            TK_REAL { $$ =  nuevoPrimitivoExpresion($1, FLOAT); } |
-            TK_CHAR { $$ =  nuevoPrimitivoExpresion($1, CHAR); } |
-            TK_STRING { $$ =  nuevoPrimitivoExpresion($1, STRING); } |
-            TK_BOOLEAN { $$ =  nuevoPrimitivoExpresion($1, BOOLEAN); } |
-            TK_NULL { $$ =  nuevoPrimitivoExpresion($1, NULL); }
+primitivo: TK_INTEGER { $$ =  nuevoPrimitivoExpresion($1, INT); }
+    | TK_STRING { $$ =  nuevoPrimitivoExpresion($1, STRING); }
+    | TK_REAL { $$ =  nuevoPrimitivoExpresion($1, FLOAT); }
     ;
 %%
 
