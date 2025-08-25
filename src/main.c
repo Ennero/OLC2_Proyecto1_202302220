@@ -57,7 +57,7 @@ void on_text_changed(GtkTextBuffer *buffer, gpointer user_data)
 {
     (void)buffer;    // Suprimir warning de parámetro no usado
     (void)user_data; // Suprimir warning de parámetro no usado
-    
+
     if (!file_modified)
     {
         file_modified = TRUE;
@@ -211,7 +211,7 @@ static void execute_code(GtkWidget *widget, gpointer data)
 {
     (void)widget; // Suprimir warning
     (void)data;   // Suprimir warning
-    
+
     GtkTextIter start, end;
     gtk_text_buffer_get_start_iter(input_buffer, &start);
     gtk_text_buffer_get_end_iter(input_buffer, &end);
@@ -232,7 +232,7 @@ static void new_file(GtkWidget *widget, gpointer data)
 {
     (void)widget; // Suprimir warning
     (void)data;   // Suprimir warning
-    
+
     // TODO: Verificar si hay cambios sin guardar
     gtk_text_buffer_set_text(input_buffer, "", -1);
     if (current_filename)
@@ -250,7 +250,7 @@ static void open_file(GtkWidget *widget, gpointer data)
 {
     (void)widget; // Suprimir warning
     (void)data;   // Suprimir warning
-    
+
     GtkWidget *dialog;
     GtkFileChooserAction action = GTK_FILE_CHOOSER_ACTION_OPEN;
     gint res;
@@ -315,7 +315,7 @@ static void save_file_as(GtkWidget *widget, gpointer data)
 {
     (void)widget; // Suprimir warning
     (void)data;   // Suprimir warning
-    
+
     GtkWidget *dialog;
     GtkFileChooserAction action = GTK_FILE_CHOOSER_ACTION_SAVE;
     gint res;
@@ -560,7 +560,7 @@ GtkWidget *create_reports_notebook()
 static void activate(GtkApplication *app, gpointer user_data)
 {
     (void)user_data; // Suprimir warning
-    
+
     GtkWidget *vbox;
     GtkWidget *menu_bar;
     GtkWidget *toolbar;
@@ -649,7 +649,7 @@ gboolean on_window_delete_event(GtkWidget *widget, GdkEvent *event, gpointer dat
     (void)widget; // Suprimir warning
     (void)event;  // Suprimir warning
     (void)data;   // Suprimir warning
-    
+
     if (file_modified)
     {
         GtkWidget *dialog = gtk_message_dialog_new(GTK_WINDOW(main_window),
@@ -673,7 +673,7 @@ static void action_new(GSimpleAction *action, GVariant *parameter, gpointer user
     (void)action;    // Suprimir warning
     (void)parameter; // Suprimir warning
     (void)user_data; // Suprimir warning
-    
+
     new_file(NULL, NULL);
 }
 
@@ -682,7 +682,7 @@ static void action_open(GSimpleAction *action, GVariant *parameter, gpointer use
     (void)action;    // Suprimir warning
     (void)parameter; // Suprimir warning
     (void)user_data; // Suprimir warning
-    
+
     open_file(NULL, NULL);
 }
 
@@ -691,7 +691,7 @@ static void action_save(GSimpleAction *action, GVariant *parameter, gpointer use
     (void)action;    // Suprimir warning
     (void)parameter; // Suprimir warning
     (void)user_data; // Suprimir warning
-    
+
     save_file(NULL, NULL);
 }
 
@@ -700,7 +700,7 @@ static void action_save_as(GSimpleAction *action, GVariant *parameter, gpointer 
     (void)action;    // Suprimir warning
     (void)parameter; // Suprimir warning
     (void)user_data; // Suprimir warning
-    
+
     save_file_as(NULL, NULL);
 }
 
@@ -709,7 +709,7 @@ static void action_execute(GSimpleAction *action, GVariant *parameter, gpointer 
     (void)action;    // Suprimir warning
     (void)parameter; // Suprimir warning
     (void)user_data; // Suprimir warning
-    
+
     execute_code(NULL, NULL);
 }
 
@@ -717,7 +717,7 @@ static void action_quit(GSimpleAction *action, GVariant *parameter, gpointer use
 {
     (void)action;    // Suprimir warning
     (void)parameter; // Suprimir warning
-    
+
     if (on_window_delete_event(NULL, NULL, NULL) == FALSE)
     {
         g_application_quit(G_APPLICATION(user_data));
