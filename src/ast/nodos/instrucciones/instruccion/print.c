@@ -24,11 +24,8 @@ Result interpretPrintExpresion(AbstractExpresion* self, Context* context) {
             case FLOAT:
                 printf("%f\n", *(float*)result.valor);
                 break;
-            case CHAR:
-                printf("%c\n", *(char*)result.valor);
-                break;
-            case BOOLEAN:
-                printf("%s\n", (*(int*)result.valor) ? "true" : "false");
+            case NULO:
+                printf("NULL\n");
                 break;
             default:
                 printf("Tipo no implementado\n");
