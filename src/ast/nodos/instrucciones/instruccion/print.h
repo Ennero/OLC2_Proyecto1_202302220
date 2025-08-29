@@ -4,6 +4,7 @@
 #include "ast/AbstractExpresion.h"
 #include "context/context.h"
 #include "context/result.h"
+#include "output_buffer.h"
 
 typedef struct {
     AbstractExpresion base;
