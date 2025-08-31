@@ -7,7 +7,7 @@
     extern AbstractExpresion* ast_root;
     void yyerror(const char *s);
 
-    extern char* yylasttext;
+    extern char* yylasttext; 
 %}
 
 /* Inclusión de headers necesarios para las acciones semánticas */
@@ -21,7 +21,7 @@
 /* Habilitar el seguimiento de ubicaciones (línea/columna) */
 %locations
 
-/* Unión de tipos semánticos que pueden devolver los tokens y no-terminales */
+/* Unión de tipos semánticos */
 %union {
     char* string;
     AbstractExpresion* nodo;
@@ -41,7 +41,7 @@
 %type <nodo> s lSentencia sentencia expr imprimir lista_Expr bloque declaracion_var primitivo
 %type <tipoDato> tipoPrimitivo
 
-/* --- Precedencia y Asociatividad de Operadores (de menor a mayor) --- */
+/* --- Precedencia y Asociatividad de Operadores --- */
 %right '='
 %left TOKEN_OR
 %left TOKEN_AND
@@ -49,7 +49,7 @@
 %left '<' '>' TOKEN_MAYOR_IGUAL TOKEN_MENOR_IGUAL
 %left '+' '-'
 %left '*' '/' '%'
-%right '!' NEG // Operadores unarios
+%right '!' NEG
 
 %%
 
@@ -58,17 +58,35 @@
 s: lSentencia  { ast_root = $1; $$ = $1; }
     ;
 
-lSentencia: lSentencia sentencia { agregarHijo($1, $2); $$ = $1;}
+lSentencia: lSentencia sentencia { 
+        // <<<<< CAMBIO CLAVE #1: Si la sentencia fue un error, $2 será NULL. >>>>>
+        // Esta comprobación evita que un error corrompa el AST.
+        if ($2 != NULL) {
+            agregarHijo($1, $2);
+        }
+        $$ = $1;
+    }
     | sentencia {
         AbstractExpresion* b = nuevoInstruccionesExpresion();
-        agregarHijo(b, $1);
+        // También se comprueba aquí para la primera sentencia.
+        if ($1 != NULL) {
+            agregarHijo(b, $1);
+        }
         $$ = b;
     }
     ;
 
-sentencia: imprimir ';' {$$ = $1; }
-    | bloque {$$ = $1;}
-    | declaracion_var ';' {$$ = $1;}
+sentencia: imprimir ';'        { $$ = $1; }
+    | bloque               { $$ = $1; }
+    | declaracion_var ';'  { $$ = $1; }
+    // <<<<< CAMBIO CLAVE #2: La regla de recuperación de errores >>>>>
+    // Si se encuentra un error, se consume hasta el siguiente ';'
+    // y se devuelve NULL. Esto aísla el error en esta sentencia
+    // y permite que 'lSentencia' continúe con la siguiente.
+    | error ';' { 
+        yyerrok; 
+        $$ = NULL; 
+    }
     ;
 
 lista_Expr: lista_Expr ',' expr { agregarHijo($1, $3); $$ = $1; }
@@ -83,7 +101,7 @@ imprimir: TOKEN_PRINT '(' lista_Expr ')' { $$ = nuevoPrintExpresion($3); }
     ;
 
 bloque: '{' lSentencia '}' { $$ = nuevoBloqueExpresion($2); }
-    | '{' '}' { $$ = nuevoBloqueExpresion(NULL); } // Bloque vacío
+    | '{' '}' { $$ = nuevoBloqueExpresion(NULL); }
     ;
 
 declaracion_var: tipoPrimitivo TOKEN_IDENTIFIER { $$ = nuevoDeclaracionVariables($1, $2, NULL, @2.first_line, @2.first_column); }
@@ -92,35 +110,35 @@ declaracion_var: tipoPrimitivo TOKEN_IDENTIFIER { $$ = nuevoDeclaracionVariables
 
 expr: expr '+' expr   { $$ = nuevoSumaExpresion($1, $3); }
     | expr '-' expr { $$ = nuevoRestaExpresion($1, $3); }
-    | expr '*' expr { $$ = nuevoMultiplicacionExpresion($1, $3); }
-    | expr '/' expr { $$ = nuevoDivisionExpresion($1, $3); }
-    | expr '%' expr { $$ = nuevoModuloExpresion($1, $3); }
+    | expr '*' expr   { $$ = nuevoMultiplicacionExpresion($1, $3); }
+    | expr '/' expr   { $$ = nuevoDivisionExpresion($1, $3); }
+    | expr '%' expr   { $$ = nuevoModuloExpresion($1, $3); }
     | '(' expr ')' { $$ = $2; }
     | '-' expr %prec NEG  { $$ = nuevoUnarioExpresion($2); }
     | primitivo { $$ = $1; }
     | TOKEN_IDENTIFIER { $$ = nuevoIdentificadorExpresion($1); }
     ;
 
-primitivo: TOKEN_INTEGER { $$ = nuevoPrimitivoExpresion($1, INT); }
-    | TOKEN_HEX_INTEGER { $$ = nuevoPrimitivoExpresion($1, INT); }
-    | TOKEN_DOUBLE_LIT { $$ = nuevoPrimitivoExpresion($1, FLOAT); }
+primitivo: TOKEN_INTEGER        { $$ = nuevoPrimitivoExpresion($1, INT); }
+    | TOKEN_HEX_INTEGER    { $$ = nuevoPrimitivoExpresion($1, INT); }
+    | TOKEN_DOUBLE_LIT     { $$ = nuevoPrimitivoExpresion($1, FLOAT); }
     | TOKEN_STRING_LITERAL { $$ = nuevoPrimitivoExpresion($1, STRING); }
-    | TOKEN_CHAR_LITERAL { $$ = nuevoPrimitivoExpresion($1, CHAR); }
-    | TOKEN_TRUE { $$ = nuevoPrimitivoExpresion($1, BOOLEAN); }
-    | TOKEN_FALSE { $$ = nuevoPrimitivoExpresion($1, BOOLEAN); }
+    | TOKEN_CHAR_LITERAL   { $$ = nuevoPrimitivoExpresion($1, CHAR); }
+    | TOKEN_TRUE           { $$ = nuevoPrimitivoExpresion($1, BOOLEAN); }
+    | TOKEN_FALSE          { $$ = nuevoPrimitivoExpresion($1, BOOLEAN); }
     ;
 
-tipoPrimitivo: TOKEN_DINT { $$ = INT; }
-    | TOKEN_DDOUBLE { $$ = FLOAT; }
-    | TOKEN_DSTRING { $$ = STRING; }
-    | TOKEN_DCHAR { $$ = CHAR; }
+tipoPrimitivo: TOKEN_DINT     { $$ = INT; }
+    | TOKEN_DDOUBLE  { $$ = FLOAT; }
+    | TOKEN_DSTRING  { $$ = STRING; }
+    | TOKEN_DCHAR    { $$ = CHAR; }
     | TOKEN_DBOOLEAN { $$ = BOOLEAN; }
     ;
 
 %%
 
 void yyerror(const char *s) {
-    char description[256];
-    snprintf(description, sizeof(description), "Error de sintaxis: %s", s);
+    // El mensaje de error 's' de bison a veces es genérico ("syntax error"),
+    // por lo que podemos crear uno más descriptivo si lo deseamos.
     add_error_to_report("Sintáctico", yylasttext, s, yylloc.first_line, yylloc.first_column);
 }

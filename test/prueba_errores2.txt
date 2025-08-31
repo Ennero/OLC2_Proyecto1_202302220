@@ -1,0 +1,39 @@
+// -----------------------------------------------------------------
+// Archivo de Prueba para Recuperación de Errores
+// -----------------------------------------------------------------
+// Objetivo: Demostrar cómo el parser actual se recupera (o no)
+// de múltiples errores de sintaxis.
+
+// --- Prueba 1: Error Léxico y Sintáctico en la misma línea ---
+// Predicción: Se deben reportar AMBOS errores. El '#' es léxico,
+// y la estructura "int = int int ;" es sintáctico.
+// La recuperación con ';' debería funcionar bien aquí.
+int a = 10 # 5;
+
+// --- Prueba 2: Sentencia Válida ---
+// Predicción: Esta línea debe ser analizada correctamente sin errores.
+int c = 100;
+
+// --- Prueba 3: Falta de Punto y Coma ---
+// ESTA ES LA PRUEBA CLAVE.
+// Predicción con el parser actual:
+// 1. Se detectará un error de sintaxis al ver "print" en lugar de ";".
+// 2. El parser entrará en pánico y descartará tokens hasta el siguiente ";".
+// 3. Descartará: "print", "(", "(", "5", "+", "3", ")".
+// 4. Se calmará al encontrar el ";" de la línea del print.
+// 5. CONCLUSIÓN: El error del paréntesis faltante en la línea del print NUNCA será detectado.
+int b = 20
+
+// --- Prueba 4: Sentencia con error interno ---
+// El parser ya se recuperó en el ';', por lo que esta línea no se analiza.
+print( (5 + 3 );
+
+// --- Prueba 5: Sentencia Válida Post-Error ---
+// Esta línea tampoco se analizará porque el pánico anterior
+// probablemente la afectó.
+int d = 200;
+
+// --- Prueba 6: Comentario sin cerrar ---
+// Predicción: El lexer detectará que el archivo termina
+// dentro de un comentario y reportará un error léxico.
+/* Este es el último error

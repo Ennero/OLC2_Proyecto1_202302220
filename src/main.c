@@ -343,7 +343,7 @@ int main(int argc, char** argv) {
     g_free(widgets);
     free_output_buffer();
     free_symbol_report(); 
-    free_error_report(); // <<<<< CAMBIO: Liberar memoria del reportero de errores
+    free_error_report(); 
     yylex_destroy();
 
     return status;
