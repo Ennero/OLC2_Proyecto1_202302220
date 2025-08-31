@@ -2,12 +2,17 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include <stdbool.h> 
+
 
 // Punteros a la cabeza y la cola de la lista para inserción eficiente
 static ErrorInfo* error_list_head = NULL;
 static ErrorInfo* error_list_tail = NULL;
 // Contador estático para el ID correlativo de los errores
 static int error_id_counter = 0;
+
+// Bandera para indicar si se ha encontrado un error semántico
+static bool semantic_error_found = false;
 
 // Inicializa o reinicia el reportero de errores
 void init_error_report() {
@@ -18,6 +23,7 @@ void init_error_report() {
     error_list_head = NULL;
     error_list_tail = NULL;
     error_id_counter = 0;
+    semantic_error_found = false;
 }
 
 // Libera toda la memoria utilizada por la lista de errores
@@ -38,6 +44,7 @@ void clear_error_report() {
     error_list_head = NULL;
     error_list_tail = NULL;
     error_id_counter = 0;
+    semantic_error_found = false;
 }
 
 // Función de conveniencia para liberar la memoria al final del programa
@@ -47,6 +54,10 @@ void free_error_report() {
 
 // Añade un nuevo error al final de la lista
 void add_error_to_report(const char* type, const char* lexeme, const char* description, int line, int column) {
+
+    if (strcmp(type, "Semántico") == 0) {
+        semantic_error_found = true;
+    }
     // 1. Reservar memoria para el nuevo nodo de error
     ErrorInfo* new_info = (ErrorInfo*) malloc(sizeof(ErrorInfo));
     if (!new_info) return; // Fallo de asignación de memoria
@@ -78,3 +89,9 @@ const ErrorInfo* get_error_list() {
     return error_list_head;
 }
 
+
+
+// <<<< AÑADIR: La implementación de la nueva función >>>>
+bool has_semantic_error_been_found() {
+    return semantic_error_found;
+}

@@ -1,29 +1,50 @@
 #include "context.h"
 #include "symbol_reporter.h"
+#include "error_reporter.h" // Se incluye para poder reportar errores
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 
-// La función ahora construye el nombre completo del contexto
-Context* nuevoContext(Context* anterior, const char* tipo_contexto) {
+// ... (nuevoContext, buscarSymbol, buscarTablaSimbolos sin cambios) ...
+Context* nuevoContext(Context* anterior, const char* nombre_contexto) {
     Context* nuevo = malloc(sizeof(Context));
+    if (!nuevo) return NULL;
+
     nuevo->anterior = anterior;
     nuevo->ultimoSymbol = NULL;
 
     if (anterior && anterior->nombre_completo) {
-        // Concatenar: nombre_padre + "_" + tipo_contexto
-        size_t len = strlen(anterior->nombre_completo) + strlen(tipo_contexto) + 2; // +2 para '_' y '\0'
-        nuevo->nombre_completo = malloc(len);
-        snprintf(nuevo->nombre_completo, len, "%s_%s", anterior->nombre_completo, tipo_contexto);
+        // Concatenar nombre del padre + "_" + nombre del nuevo contexto
+        size_t len_padre = strlen(anterior->nombre_completo);
+        size_t len_nuevo = strlen(nombre_contexto);
+        nuevo->nombre_completo = malloc(len_padre + len_nuevo + 2); // +2 para '_' y '\0'
+        if (nuevo->nombre_completo) {
+            sprintf(nuevo->nombre_completo, "%s_%s", anterior->nombre_completo, nombre_contexto);
+        }
     } else {
-        // Si es el primer contexto (global)
-        nuevo->nombre_completo = strdup(tipo_contexto);
+        // Si no hay padre, este es el contexto raíz (global)
+        nuevo->nombre_completo = strdup(nombre_contexto);
     }
-
+    
     return nuevo;
 }
 
-// ... (nuevoVariable no cambia) ...
+void liberarContext(Context* context) {
+    if (!context) return;
+
+    Symbol* actual = context->ultimoSymbol;
+    while(actual) {
+        Symbol* temp = actual->anterior;
+        // Aquí se debería liberar la memoria del valor si fue asignado con malloc
+        // Por ahora, solo liberamos la estructura del símbolo
+        free(actual);
+        actual = temp;
+    }
+
+    free(context->nombre_completo);
+    free(context);
+}
+
 Symbol* nuevoVariable(char* nombre, void* valor, TipoDato tipo) {
     Symbol* nuevo = malloc(sizeof(Symbol));
     nuevo->nombre = nombre;
@@ -35,25 +56,6 @@ Symbol* nuevoVariable(char* nombre, void* valor, TipoDato tipo) {
     return nuevo;
 }
 
-
-// Se actualiza la llamada al reportero para pasar el nombre del contexto
-void agregarSymbol(Context* actual, Symbol* symbol, int line, int column) {
-    if (buscarSymbol(actual->ultimoSymbol, symbol->nombre)) {
-        printf("La variable de nombre '%s' ya existe.\n", symbol->nombre);
-        return;
-    }
-    
-    symbol->line = line;
-    symbol->column = column;
-
-    // <<<<<<< CAMBIO: Pasamos el nombre completo del contexto actual
-    add_symbol_to_report(symbol, actual->nombre_completo);
-
-    symbol->anterior = actual->ultimoSymbol;
-    actual->ultimoSymbol = symbol;
-}
-
-// ... (buscarSymbol y buscarTablaSimbolos no cambian) ...
 Symbol* buscarSymbol(Symbol* actual, char* nombre) {
     while (actual) {
         if (strcmp(actual->nombre, nombre) == 0) {
@@ -73,4 +75,30 @@ Symbol* buscarTablaSimbolos(Context* actual, char* nombre) {
         actual = actual->anterior;
     }
     return NULL;
+}
+
+
+// <<<<< LÓGICA SEMÁNTICA CLAVE >>>>>
+void agregarSymbol(Context* actual, Symbol* symbol, int line, int column) {
+    // buscarSymbol solo busca en el ámbito (contexto) actual.
+    if (buscarSymbol(actual->ultimoSymbol, symbol->nombre)) {
+        char description[256];
+        snprintf(description, sizeof(description), "La variable '%s' ya ha sido declarada en este ámbito.", symbol->nombre);
+        
+        // En lugar de printf, se reporta un error semántico formal.
+        add_error_to_report("Semántico", symbol->nombre, description, line, column);
+        
+        // Se libera la memoria del símbolo recién creado que no se usará.
+        // NO se libera symbol->nombre porque el AST todavía lo posee.
+        free(symbol);
+        return;
+    }
+
+    symbol->line = line;
+    symbol->column = column;
+
+    add_symbol_to_report(symbol, actual->nombre_completo);
+
+    symbol->anterior = actual->ultimoSymbol;
+    actual->ultimoSymbol = symbol;
 }

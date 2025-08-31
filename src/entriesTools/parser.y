@@ -59,7 +59,7 @@ s: lSentencia  { ast_root = $1; $$ = $1; }
     ;
 
 lSentencia: lSentencia sentencia { 
-        // <<<<< CAMBIO CLAVE #1: Si la sentencia fue un error, $2 será NULL. >>>>>
+        // Si la sentencia fue un error, $2 será NULL.
         // Esta comprobación evita que un error corrompa el AST.
         if ($2 != NULL) {
             agregarHijo($1, $2);
@@ -79,10 +79,8 @@ lSentencia: lSentencia sentencia {
 sentencia: imprimir ';'        { $$ = $1; }
     | bloque               { $$ = $1; }
     | declaracion_var ';'  { $$ = $1; }
-    // <<<<< CAMBIO CLAVE #2: La regla de recuperación de errores >>>>>
-    // Si se encuentra un error, se consume hasta el siguiente ';'
-    // y se devuelve NULL. Esto aísla el error en esta sentencia
-    // y permite que 'lSentencia' continúe con la siguiente.
+    // Regla de recuperación de errores:
+    // Consume hasta el siguiente ';' y devuelve NULL para aislar el error.
     | error ';' { 
         yyerrok; 
         $$ = NULL; 
@@ -116,7 +114,7 @@ expr: expr '+' expr   { $$ = nuevoSumaExpresion($1, $3); }
     | '(' expr ')' { $$ = $2; }
     | '-' expr %prec NEG  { $$ = nuevoUnarioExpresion($2); }
     | primitivo { $$ = $1; }
-    | TOKEN_IDENTIFIER { $$ = nuevoIdentificadorExpresion($1); }
+    | TOKEN_IDENTIFIER { $$ = nuevoIdentificadorExpresion($1, @1.first_line, @1.first_column); }
     ;
 
 primitivo: TOKEN_INTEGER        { $$ = nuevoPrimitivoExpresion($1, INT); }
@@ -138,7 +136,5 @@ tipoPrimitivo: TOKEN_DINT     { $$ = INT; }
 %%
 
 void yyerror(const char *s) {
-    // El mensaje de error 's' de bison a veces es genérico ("syntax error"),
-    // por lo que podemos crear uno más descriptivo si lo deseamos.
     add_error_to_report("Sintáctico", yylasttext, s, yylloc.first_line, yylloc.first_column);
 }

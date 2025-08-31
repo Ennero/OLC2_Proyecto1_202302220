@@ -8,14 +8,8 @@ extern void yyerror(const char *s);
 int yycolumn = 1;
 char* yylasttext = NULL;
 
-// Prototipo para la nueva función yywrap
 int yywrap(void);
 
-/*
-   <<<<< CAMBIO CLAVE: Se mueve la macro YY_USER_ACTION aquí >>>>>
-   La definición de la macro ahora está en el bloque de declaraciones C,
-   fuera de la función yylex(), que es la ubicación correcta.
-*/
 #define YY_USER_ACTION                                   \
     yylloc.first_line   = yylineno;                      \
     yylloc.first_column = yycolumn;                      \

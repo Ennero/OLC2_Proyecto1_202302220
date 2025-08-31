@@ -1,0 +1,26 @@
+// -----------------------------------------------------------------
+// Archivo de Prueba para Errores Semánticos
+// -----------------------------------------------------------------
+// Objetivo: Probar la detección de errores lógicos en código
+// que es sintácticamente correcto.
+
+// --- Prueba 1: Uso de variable no declarada ---
+// Este es el error semántico más común.
+// 'x' no ha sido declarada antes de ser usada.
+// Predicción:
+// 1. El análisis léxico y sintáctico pasarán sin errores.
+// 2. Durante la FASE DE INTERPRETACIÓN, el nodo para 'x'
+//    no la encontrará en la tabla de símbolos.
+// 3. Se reportará 1 error de tipo "Semántico".
+// 4. La ejecución se detendrá. La línea "print(a);" no se ejecutará.
+
+int a = 10;
+print(x); // ERROR: 'x' no existe.
+print(a); // Esta línea no debería ejecutarse.
+
+// --- Prueba 2: Uso correcto después de un error ---
+// Si se corrigiera el error anterior (declarando 'int x = 5;'),
+// este código debería funcionar perfectamente.
+
+int y = 20;
+print(y);
