@@ -1,7 +1,7 @@
 %{
 #include "parser.tab.h"
-
 #include <stdio.h>
+#include "error_reporter.h" 
 #include <string.h>
 
 extern void yyerror(const char *s);
@@ -9,13 +9,18 @@ extern void yyerror(const char *s);
 /* Contador de columna */
 int yycolumn = 1;
 
+/* Texto de la última coincidencia */
+char* yylasttext = NULL;
+
 /* Se ejecuta antes de cada accion, actualiza yylloc y columna */
 #define YY_USER_ACTION                                   \
     yylloc.first_line   = yylineno;                      \
     yylloc.first_column = yycolumn;                      \
     yylloc.last_line    = yylineno;                      \
     yylloc.last_column  = yycolumn + yyleng - 1;         \
-    yycolumn += yyleng;
+    yycolumn += yyleng;                                  \
+    if (yylasttext) free(yylasttext);                    \
+    yylasttext = strdup(yytext);
 %}
 
 /* Opciones de Flex */
@@ -100,7 +105,7 @@ newline           \n
 
 [+\-*/%<>()\[\]{};,=.!] { return yytext[0]; }
 
-.                  { yyerror("Caracter ilegal"); }
+.                  { add_error_to_report("Léxico", yytext, "Caracter ilegal no reconocido.", yylineno, yycolumn); }
 
 %%
 

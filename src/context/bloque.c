@@ -1,4 +1,5 @@
 #include "bloque.h"
+#include <stdlib.h>
 #include "ast/nodos/builders.h"
 
 // La función de interpretación ahora crea un contexto con nombre

@@ -6,6 +6,8 @@
     extern int yylex(void);
     extern AbstractExpresion* ast_root;
     void yyerror(const char *s);
+
+    extern char* yylasttext;
 %}
 
 /* Inclusión de headers necesarios para las acciones semánticas */
@@ -13,6 +15,7 @@
     #include "ast/nodos/builders.h"
     #include "context/result.h"
     #include "context/bloque.h"
+    #include "error_reporter.h"
 }
 
 /* Habilitar el seguimiento de ubicaciones (línea/columna) */
@@ -117,9 +120,7 @@ tipoPrimitivo: TOKEN_DINT { $$ = INT; }
 %%
 
 void yyerror(const char *s) {
-    fprintf(stderr,
-            "Error de sintaxis: %s en linea %d, columna %d\n",
-            s,
-            yylloc.first_line,
-            yylloc.first_column);
+    char description[256];
+    snprintf(description, sizeof(description), "Error de sintaxis: %s", s);
+    add_error_to_report("Sintáctico", yylasttext, s, yylloc.first_line, yylloc.first_column);
 }

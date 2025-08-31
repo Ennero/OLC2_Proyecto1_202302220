@@ -1,9 +1,38 @@
-print(1+1, 6-3, 55);
-print(2);
+// --- Ejemplo 1: Prueba de Tipos y Comentarios ---
+// Este ejemplo prueba la declaración de todos los nuevos tipos de datos,
+// los comentarios y la capacidad de impresión de los mismos.
 
-(*
-asdfkasfñlkajdf //asdfaf
-*)
+/*
+Bloque de comentario
+multilínea.
+*/
+int numero_entero = 100;
+double numero_decimal = 3.14159;
+boolean es_correcto = true;
+char inicial = 'E';
+String saludo = "Hola, Compiladores 2!";
+int numero_hex = 0xFF; // Esto es 255 en decimal
 
-//falso
-print(2);
+print(saludo);
+print(numero_entero);
+print(numero_decimal);
+print(es_correcto);
+print(inicial);
+print(numero_hex);
+
+// --- Ejemplo 2: Expresiones y Ámbitos ---
+// Prueba la aritmética simple y cómo la tabla de símbolos
+// maneja variables con el mismo nombre en distintos ámbitos.
+
+int x = 10;
+print(x); // Debería imprimir 10
+
+{
+// Entramos en un nuevo ámbito (Nivel 1)
+int y = 20;
+int x = 50 + y; // x local "oculta" a la x global. Vale 70
+print(x); // Debería imprimir 70
+print(y); // Debería imprimir 20
+}
+
+print(x); // Debería imprimir 10 de nuevo, la x local ya no existe.
