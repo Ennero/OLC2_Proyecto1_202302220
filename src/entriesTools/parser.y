@@ -38,7 +38,7 @@
 %token TOKEN_AND TOKEN_OR TOKEN_INCREMENTO TOKEN_DECREMENTO
 
 /* --- Tipos para No-Terminales --- */
-%type <nodo> s lSentencia sentencia expr imprimir lista_Expr bloque declaracion_var primitivo
+%type <nodo> s lSentencia sentencia expr imprimir lista_Expr bloque declaracion_var primitivo reasignacion_var
 %type <tipoDato> tipoPrimitivo
 
 /* --- Precedencia y Asociatividad de Operadores --- */
@@ -79,8 +79,7 @@ lSentencia: lSentencia sentencia {
 sentencia: imprimir ';'        { $$ = $1; }
     | bloque               { $$ = $1; }
     | declaracion_var ';'  { $$ = $1; }
-    // Regla de recuperación de errores:
-    // Consume hasta el siguiente ';' y devuelve NULL para aislar el error.
+    | reasignacion_var ';'  { $$ = $1; }
     | error ';' { 
         yyerrok; 
         $$ = NULL; 
@@ -104,6 +103,9 @@ bloque: '{' lSentencia '}' { $$ = nuevoBloqueExpresion($2); }
 
 declaracion_var: tipoPrimitivo TOKEN_IDENTIFIER { $$ = nuevoDeclaracionVariables($1, $2, NULL, @2.first_line, @2.first_column); }
     | tipoPrimitivo TOKEN_IDENTIFIER '=' expr { $$ = nuevoDeclaracionVariables($1, $2, $4, @2.first_line, @2.first_column); }
+    ;
+
+reasignacion_var: TOKEN_IDENTIFIER '=' expr { $$ = nuevoReasignacionExpresion($1, $3, @1.first_line, @1.first_column); }
     ;
 
 expr: expr '+' expr   { $$ = nuevoSumaExpresion($1, $3); }

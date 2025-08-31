@@ -15,6 +15,9 @@ AbstractExpresion* nuevoInstruccionesExpresion(void);
 AbstractExpresion* nuevoPrintExpresion(AbstractExpresion* listaExpresiones);
 AbstractExpresion* nuevoListaExpresiones(void);
 AbstractExpresion* nuevoDeclaracionVariables(TipoDato tipo, char* nombre, AbstractExpresion* expresion, int line, int column);
+AbstractExpresion* nuevoReasignacionExpresion(char* nombre, AbstractExpresion* expresion, int line, int column);
+
+
 // <<<< NUEVO: Se añade la declaración que faltaba >>>>
 AbstractExpresion* nuevoBloqueExpresion(AbstractExpresion* lSentencia);
 
