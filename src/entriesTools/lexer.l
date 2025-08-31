@@ -18,63 +18,89 @@ int yycolumn = 1;
     yycolumn += yyleng;
 %}
 
-/* Opciones de Flex 
- * yylineno:  mantenga el numero de la linea actual
- leida desde su entrada en la variable global yylineno.
- * noyywrap:  hace que el analizador no llame a yywrap() hasta el fin-de-fichero, 
- pero simplemente asume que no hay mas ficheros que analizar.
-*/
+/* Opciones de Flex */
 %option noyywrap yylineno nounput noinput
 
-/* Condiciones de arranque */
-%x COMMENT2 COMMENTLINEA
+/* Condiciones de arranque para comentarios anidados */
+%x COMMENT
 
-/* definiciones */
-white_space       [ \t]*
+/* --- Definiciones de Expresiones Regulares --- */
 digit             [0-9]
-alpha             [A-Za-z_]
+hex_digit         [0-9a-fA-F]
+alpha             [a-zA-Z_]
 alpha_num         ({alpha}|{digit})
-/* hex_digit         [0-9A-F] */
+
 identifier        {alpha}{alpha_num}*
-unsigned_integer  {digit}+
-/* hex_integer       ${hex_digit}{hex_digit}* */
-exponent          e[+-]?{digit}+
-i                 {unsigned_integer}
-real              ({i}\.{i}?|{i}?\.{i}){exponent}?
-string            \"([^"\n]|\"\")+\"
-bad_string        \"([^"\n]|\"\")+
+
+integer           {digit}+
+hex_integer       0[xX]{hex_digit}+
+
+exponent          [eE][+-]?{digit}+
+double_lit        ({digit}+\.{digit}*({exponent})?|\.{digit}+({exponent})?|{digit}+{exponent})
+
+char_lit          \'([^'\\]|\\.)\'
+string_lit        \"([^"\\]|\\.)*\"
+
+line_comment      "//".*
+block_comment     "/*"
+
+white_space       [ \t\r]+
+newline           \n
 
 %%
-"//"                     BEGIN(COMMENTLINEA);
-<COMMENTLINEA>[^\n\r]+ 
-<COMMENTLINEA><<EOF>>    yyerror("EOF in comment");
-<COMMENTLINEA>[\n\r]     {yycolumn=1; BEGIN(INITIAL);}
 
-"(*"                 BEGIN(COMMENT2);
-<COMMENT2>[^)*\n\r]+
-<COMMENT2>[\n\r]     {yycolumn=1;}
-<COMMENT2><<EOF>>    yyerror("EOF in comment");
-<COMMENT2>"*)"       BEGIN(INITIAL);
-<COMMENT2>[*)]
+{white_space}      { /* Ignorar espacios en blanco */ }
+{newline}          { yycolumn = 1; }
+{line_comment}     { /* Ignorar comentarios de línea */ }
 
-if                  /* return(TOKEN_IF); */
-else                /* return(TOKEN_ELSE); */
-print               return(TOKEN_PRINT);
-int                 return(TOKEN_DINT);
-float               return(TOKEN_DFLOAT);
-String              return(TOKEN_DSTRING);
+{block_comment}    { BEGIN(COMMENT); }
+<COMMENT>"*/"      { BEGIN(INITIAL); }
+<COMMENT>.         { /* Ignorar contenido del comentario */ }
+<COMMENT>\n        { yycolumn = 1; }
+<COMMENT><<EOF>>   { yyerror("EOF in comment"); BEGIN(INITIAL); }
 
-{unsigned_integer}   {yylval.string = strdup(yytext); return(TOKEN_UNSIGNED_INTEGER);}
-{real}               {yylval.string = strdup(yytext); return(TOKEN_REAL);}
-{string}             {yylval.string = malloc(yyleng); strncpy(yylval.string, &yytext[1], yyleng - 2); return(TOKEN_STRING);}
-{bad_string}         yyerror("Unterminated string");
+"if"               return TOKEN_IF;
+"else"             return TOKEN_ELSE;
+"while"            return TOKEN_WHILE;
+"for"              return TOKEN_FOR;
+"switch"           return TOKEN_SWITCH;
+"case"             return TOKEN_CASE;
+"break"            return TOKEN_BREAK;
+"continue"         return TOKEN_CONTINUE;
+"return"           return TOKEN_RETURN;
+"print"            return TOKEN_PRINT;
+"main"             return TOKEN_MAIN;
+"class"            return TOKEN_CLASS;
 
-{identifier}         {yylval.string = strdup(yytext); return(TOKEN_IDENTIFIER);}
+"int"              return TOKEN_DINT;
+"double"           return TOKEN_DDOUBLE;
+"boolean"          return TOKEN_DBOOLEAN;
+"char"             return TOKEN_DCHAR;
+"String"           return TOKEN_DSTRING;
 
-[*/+\-,^()\[\]\{\}\;=\>\<!]      return(yytext[0]);
+"true"             { yylval.string = strdup(yytext); return TOKEN_TRUE; }
+"false"            { yylval.string = strdup(yytext); return TOKEN_FALSE; }
 
-{white_space}        /* do nothing */
-[\n\r]               {yycolumn=1;}
-.                    yyerror("Illegal input");
+{integer}          { yylval.string = strdup(yytext); return TOKEN_INTEGER; }
+{hex_integer}      { yylval.string = strdup(yytext); return TOKEN_HEX_INTEGER; }
+{double_lit}       { yylval.string = strdup(yytext); return TOKEN_DOUBLE_LIT; }
+{char_lit}         { yylval.string = strdup(yytext); return TOKEN_CHAR_LITERAL; }
+{string_lit}       { yylval.string = strdup(yytext); return TOKEN_STRING_LITERAL; }
+
+{identifier}       { yylval.string = strdup(yytext); return TOKEN_IDENTIFIER; }
+
+"=="               return TOKEN_IGUAL_IGUAL;
+"!="               return TOKEN_DIFERENTE;
+">="               return TOKEN_MAYOR_IGUAL;
+"<="               return TOKEN_MENOR_IGUAL;
+"&&"               return TOKEN_AND;
+"||"               return TOKEN_OR;
+"++"               return TOKEN_INCREMENTO;
+"--"               return TOKEN_DECREMENTO;
+
+[+\-*/%<>()\[\]{};,=.!] { return yytext[0]; }
+
+.                  { yyerror("Caracter ilegal"); }
 
 %%
+

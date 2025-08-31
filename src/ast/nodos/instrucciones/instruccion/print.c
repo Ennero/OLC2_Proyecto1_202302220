@@ -7,15 +7,13 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdbool.h> // Para el tipo 'bool'
 
-// Interpreta una expresión de impresión
 Result interpretPrintExpresion(AbstractExpresion* self, Context* context) {
-    // recorremos  cada expresion y lo que nos devuelva imprimimos el valor
     AbstractExpresion* listaExpresiones = self->hijos[0];
     for (size_t i = 0; i < listaExpresiones->numHijos; ++i) {
         Result result = listaExpresiones->hijos[i]->interpret(listaExpresiones->hijos[i], context);
 
-        // Formatear el resultado en un buffer
         char buffer[256];
 
         switch (result.tipo) {
@@ -28,26 +26,28 @@ Result interpretPrintExpresion(AbstractExpresion* self, Context* context) {
             case FLOAT:
                 sprintf(buffer, "%f\n", *(float*)result.valor);
                 break;
+            case CHAR: // NUEVO
+                sprintf(buffer, "%c\n", *(char*)result.valor);
+                break;
+            case BOOLEAN: // NUEVO
+                sprintf(buffer, "%s\n", *(bool*)result.valor ? "true" : "false");
+                break;
             case NULO:
                 sprintf(buffer, "NULL\n");
                 break;
             default:
-                sprintf(buffer, "Tipo no implementado\n");
+                sprintf(buffer, "Tipo no implementado para print\n");
         }
 
-        // Agregar el buffer al output
         append_to_output(buffer);
     }
     return nuevoValorResultadoVacio();
 }
 
 AbstractExpresion* nuevoPrintExpresion(AbstractExpresion* listaExpresiones) {
-    //reservar el espacio en memoria y obtener el puntero a este
     PrintExpresion* nodo = malloc(sizeof(PrintExpresion));
     if (!nodo) return NULL;
-    //asignar valores
     buildAbstractExpresion(&nodo->base, interpretPrintExpresion);
-
     if (listaExpresiones) agregarHijo((AbstractExpresion*) nodo, listaExpresiones);
     return (AbstractExpresion*) nodo;
 }

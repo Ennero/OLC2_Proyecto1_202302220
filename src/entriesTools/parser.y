@@ -3,123 +3,122 @@
     #include <stdlib.h>
     #include "ast/AbstractExpresion.h"
 
-    /* Prototipo del scanner */
     extern int yylex(void);
     extern AbstractExpresion* ast_root;
-    /* yyerror con firma estándar */
     void yyerror(const char *s);
 %}
 
-/* Esto va al parser.tab.h */
+/* Inclusión de headers necesarios para las acciones semánticas */
 %code requires {
     #include "ast/nodos/builders.h"
     #include "context/result.h"
+    #include "context/bloque.h"
 }
 
-/* Seguimiento de ubicaciones */
+/* Habilitar el seguimiento de ubicaciones (línea/columna) */
 %locations
-/* Mensajes de error más detallados */
-//%define parse.error verbose
 
-/* Unión de tipos semánticos */
+/* Unión de tipos semánticos que pueden devolver los tokens y no-terminales */
 %union {
-  char* string;
-  AbstractExpresion* nodo;
-  TipoDato tipoDato;
+    char* string;
+    AbstractExpresion* nodo;
+    TipoDato tipoDato;
 }
 
-/* Tokens tipados */
-%token <string> TOKEN_PRINT TOKEN_DINT TOKEN_DFLOAT 
-TOKEN_DSTRING TOKEN_UNSIGNED_INTEGER TOKEN_REAL TOKEN_STRING TOKEN_IDENTIFIER
+/* --- Declaración de Tokens --- */
+%token TOKEN_IF TOKEN_ELSE TOKEN_WHILE TOKEN_FOR TOKEN_SWITCH TOKEN_CASE
+%token TOKEN_BREAK TOKEN_CONTINUE TOKEN_RETURN TOKEN_PRINT TOKEN_MAIN TOKEN_CLASS
+%token TOKEN_DINT TOKEN_DDOUBLE TOKEN_DBOOLEAN TOKEN_DCHAR TOKEN_DSTRING
+%token <string> TOKEN_IDENTIFIER TOKEN_INTEGER TOKEN_HEX_INTEGER TOKEN_DOUBLE_LIT
+%token <string> TOKEN_CHAR_LITERAL TOKEN_STRING_LITERAL TOKEN_TRUE TOKEN_FALSE
+%token TOKEN_IGUAL_IGUAL TOKEN_DIFERENTE TOKEN_MAYOR_IGUAL TOKEN_MENOR_IGUAL
+%token TOKEN_AND TOKEN_OR TOKEN_INCREMENTO TOKEN_DECREMENTO
 
-/* Tipo de los no-terminales que llevan valor */
+/* --- Tipos para No-Terminales --- */
 %type <nodo> s lSentencia sentencia expr imprimir lista_Expr bloque declaracion_var primitivo
-
 %type <tipoDato> tipoPrimitivo
 
-// precedencia menor a mayor
-//%left NUMERO
-%left '+' '-' //menos -
-%left '*' '/' //más
-%left NEG
+/* --- Precedencia y Asociatividad de Operadores (de menor a mayor) --- */
+%right '='
+%left TOKEN_OR
+%left TOKEN_AND
+%left TOKEN_IGUAL_IGUAL TOKEN_DIFERENTE
+%left '<' '>' TOKEN_MAYOR_IGUAL TOKEN_MENOR_IGUAL
+%left '+' '-'
+%left '*' '/' '%'
+%right '!' NEG // Operadores unarios
 
 %%
 
 %start s;
 
 s: lSentencia  { ast_root = $1; $$ = $1; }
-    //| error '\n'  { yyerrok; }
-    ;
-//                                               Padre, hijo;
-lSentencia: lSentencia sentencia ';' { agregarHijo($1, $2); $$ = $1;}
-    | sentencia ';' {
-                        AbstractExpresion* b = nuevoInstruccionesExpresion();
-                        agregarHijo(b, $1);
-                        $$ =  b;
-                    }
     ;
 
-sentencia: imprimir {$$ = $1; }
+lSentencia: lSentencia sentencia { agregarHijo($1, $2); $$ = $1;}
+    | sentencia {
+        AbstractExpresion* b = nuevoInstruccionesExpresion();
+        agregarHijo(b, $1);
+        $$ = b;
+    }
+    ;
+
+sentencia: imprimir ';' {$$ = $1; }
     | bloque {$$ = $1;}
-    | declaracion_var {$$ = $1;}
+    | declaracion_var ';' {$$ = $1;}
     ;
 
-lista_Expr: lista_Expr ','  expr { agregarHijo($1, $3); $$ = $1; }
+lista_Expr: lista_Expr ',' expr { agregarHijo($1, $3); $$ = $1; }
     | expr { 
-                AbstractExpresion* b = nuevoListaExpresiones();
-                agregarHijo(b, $1);
-                $$ =  b;
-            }
+        AbstractExpresion* b = nuevoListaExpresiones();
+        agregarHijo(b, $1);
+        $$ = b;
+    }
     ;
 
-imprimir: TOKEN_PRINT '(' lista_Expr ')' { $$ =  nuevoPrintExpresion($3); }
+imprimir: TOKEN_PRINT '(' lista_Expr ')' { $$ = nuevoPrintExpresion($3); }
     ;
 
-bloque: '{' lSentencia '}' { AbstractExpresion* b = nuevoInstruccionesExpresion();
-                        agregarHijo(b, $2);
-                        $$ =  b; }
-
-declaracion_var: tipoPrimitivo TOKEN_IDENTIFIER { $$ = nuevoDeclaracionVariables($1, $2, NULL); }
-    | tipoPrimitivo TOKEN_IDENTIFIER '=' expr { $$ = nuevoDeclaracionVariables($1, $2, $4); }
+bloque: '{' lSentencia '}' { $$ = nuevoBloqueExpresion($2); }
+    | '{' '}' { $$ = nuevoBloqueExpresion(NULL); } // Bloque vacío
     ;
 
-/* 
-TODO: para mejorar la legibilidad en lugar de guardar la operacion por incumplir
-el principio de responsabilidad única y también el Principio de abierto/cerrado (SOLID)
-la accion semantica fungirá como factoría abstracta y cada expresión tendra su método interpret
-para hacer la operación además de utilizar otros métodos "heredados".
+declaracion_var: tipoPrimitivo TOKEN_IDENTIFIER { $$ = nuevoDeclaracionVariables($1, $2, NULL, @2.first_line, @2.first_column); }
+    | tipoPrimitivo TOKEN_IDENTIFIER '=' expr { $$ = nuevoDeclaracionVariables($1, $2, $4, @2.first_line, @2.first_column); }
+    ;
 
-expr: expr '+' expr   { $$ =  nuevoExpresionLenguaje('+', $1, $3);  }
-    | expr '-' expr { $$ =  nuevoExpresionLenguaje('-', $1, $3); }
+expr: expr '+' expr   { $$ = nuevoSumaExpresion($1, $3); }
+    | expr '-' expr { $$ = nuevoRestaExpresion($1, $3); }
+    | expr '*' expr { $$ = nuevoMultiplicacionExpresion($1, $3); }
+    | expr '/' expr { $$ = nuevoDivisionExpresion($1, $3); }
+    | expr '%' expr { $$ = nuevoModuloExpresion($1, $3); }
     | '(' expr ')' { $$ = $2; }
-    | '-' expr %prec NEG  { $$ =  nuevoExpresionLenguaje('U', $2, NULL);  }
-    | primitivo { $$ = $1; }
-    ; 
-*/
-
-expr: expr '+' expr   { $$ =  nuevoSumaExpresion($1, $3);  }
-    | expr '-' expr { $$ =  nuevoRestaExpresion($1, $3); }
-    | '(' expr ')' { $$ = $2; }
-    | '-' expr %prec NEG  { $$ =  nuevoUnarioExpresion($2);  }
+    | '-' expr %prec NEG  { $$ = nuevoUnarioExpresion($2); }
     | primitivo { $$ = $1; }
     | TOKEN_IDENTIFIER { $$ = nuevoIdentificadorExpresion($1); }
     ;
 
-primitivo: TOKEN_UNSIGNED_INTEGER { $$ =  nuevoPrimitivoExpresion($1, INT); }
-    | TOKEN_STRING { $$ =  nuevoPrimitivoExpresion($1, STRING); }
-    | TOKEN_REAL { $$ =  nuevoPrimitivoExpresion($1, FLOAT); }
+primitivo: TOKEN_INTEGER { $$ = nuevoPrimitivoExpresion($1, INT); }
+    | TOKEN_HEX_INTEGER { $$ = nuevoPrimitivoExpresion($1, INT); }
+    | TOKEN_DOUBLE_LIT { $$ = nuevoPrimitivoExpresion($1, FLOAT); }
+    | TOKEN_STRING_LITERAL { $$ = nuevoPrimitivoExpresion($1, STRING); }
+    | TOKEN_CHAR_LITERAL { $$ = nuevoPrimitivoExpresion($1, CHAR); }
+    | TOKEN_TRUE { $$ = nuevoPrimitivoExpresion($1, BOOLEAN); }
+    | TOKEN_FALSE { $$ = nuevoPrimitivoExpresion($1, BOOLEAN); }
     ;
 
 tipoPrimitivo: TOKEN_DINT { $$ = INT; }
-    | TOKEN_DFLOAT { $$ = FLOAT; }
+    | TOKEN_DDOUBLE { $$ = FLOAT; }
     | TOKEN_DSTRING { $$ = STRING; }
+    | TOKEN_DCHAR { $$ = CHAR; }
+    | TOKEN_DBOOLEAN { $$ = BOOLEAN; }
     ;
+
 %%
 
-/* definición de yyerror, usa el yylloc global para ubicación */
 void yyerror(const char *s) {
     fprintf(stderr,
-            "Illegal input %s en %d:%d\n",
+            "Error de sintaxis: %s en linea %d, columna %d\n",
             s,
             yylloc.first_line,
             yylloc.first_column);

@@ -9,6 +9,8 @@ typedef struct {
     AbstractExpresion base;
     char* nombre;
     TipoDato tipo;
+    int line;     // Añadir
+    int column;   // Añadir
 } DeclaracionVariable;
 
 Result interpretDeclaracionVariable(AbstractExpresion*, Context*);

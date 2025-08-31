@@ -3,24 +3,22 @@
 
 #include "ast/AbstractExpresion.h"
 
-/*
-    Estructura de un builder:
-    AbstractExpresion* nombreExpresionNodo a construir (datos iniciales)
-*/
-
 AbstractExpresion* nuevoInstruccionesExpresion(void);
 AbstractExpresion* nuevoPrintExpresion(AbstractExpresion* listaExpresiones);
 AbstractExpresion* nuevoPrimitivoExpresion(char* valor, char tipo);
 AbstractExpresion* nuevoListaExpresiones(void);
-AbstractExpresion* nuevoDeclaracionVariables(TipoDato, char* nombre, AbstractExpresion* expresion);
+AbstractExpresion* nuevoDeclaracionVariables(TipoDato tipo, char* nombre, AbstractExpresion* expresion, int line, int column);
 AbstractExpresion* nuevoIdentificadorExpresion(char* nombre);
-//AbstractExpresion* nuevoExpresionLenguaje(char op, AbstractExpresion* izquierda, AbstractExpresion* derecha);
+AbstractExpresion* nuevoBloqueExpresion(AbstractExpresion* sentencias);
 
 /*
     Builds expresiones
 */
 AbstractExpresion* nuevoSumaExpresion(AbstractExpresion* izquierda, AbstractExpresion* derecha);
 AbstractExpresion* nuevoRestaExpresion(AbstractExpresion* izquierda, AbstractExpresion* derecha);
+AbstractExpresion* nuevoMultiplicacionExpresion(AbstractExpresion* izquierda, AbstractExpresion* derecha); // NUEVO
+AbstractExpresion* nuevoDivisionExpresion(AbstractExpresion* izquierda, AbstractExpresion* derecha);       // NUEVO
+AbstractExpresion* nuevoModuloExpresion(AbstractExpresion* izquierda, AbstractExpresion* derecha);         // NUEVO
 AbstractExpresion* nuevoUnarioExpresion(AbstractExpresion* expresion);
 
 

@@ -2,12 +2,17 @@
 #define SYMBOL_REPORTER_H
 
 #include "context/result.h" // Para TipoDato
+#include "context/context.h" // Necesitamos la definición de Symbol
 
-// Estructura para almacenar una copia de la info de un símbolo
 typedef struct SymbolInfo {
+    int id;
     char* name;
-    TipoDato type;
-    int scope_level; // El nivel de anidamiento del ámbito
+    char* type;
+    char* value;
+    char* scope_name; // Cambiamos el nombre para más claridad
+    int scope_level;
+    int line;
+    int column;
     struct SymbolInfo* next;
 } SymbolInfo;
 
@@ -15,7 +20,7 @@ typedef struct SymbolInfo {
 void init_symbol_report();
 void clear_symbol_report();
 void free_symbol_report();
-void add_symbol_to_report(const char* name, TipoDato type, int scope_level);
+void add_symbol_to_report(const Symbol* symbol, int scope_level);
 const SymbolInfo* get_symbol_list();
 
 #endif

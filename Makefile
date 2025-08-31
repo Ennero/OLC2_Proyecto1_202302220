@@ -9,8 +9,8 @@ FLEX    := flex
 GTK_CFLAGS := $(shell pkg-config --cflags gtk+-3.0)
 GTK_LIBS   := $(shell pkg-config --libs gtk+-3.0)
 
-# Se añaden las flags de compilación de GTK a la variable CFLAGS principal
-CFLAGS  := -I$(SRC) -Wall -Wextra $(GTK_CFLAGS)
+# AÑADIDO: -I$(BUILD) para que el compilador encuentre parser.tab.h
+CFLAGS  := -I$(SRC) -I$(BUILD) -Wall -Wextra $(GTK_CFLAGS)
 RM      := rm -rf
 MKDIR   := mkdir -p
 
@@ -43,7 +43,7 @@ $(LEX_C): $(SRC)/entriesTools/lexer.l $(BISON_H) | $(BUILD)
 	$(FLEX) -o $@ $<
 
 # Compilar .c de src a .o
-# Esta regla ahora usará las CFLAGS que incluyen las rutas de GTK
+# Esta regla ahora usará las CFLAGS que incluyen las rutas de GTK y build
 $(BUILD)/%.o: $(SRC)/%.c | $(BUILD)
 	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) -c $< -o $@

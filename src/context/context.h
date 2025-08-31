@@ -17,6 +17,8 @@ struct Symbol{
     void* valor;
     TipoDato tipo;
     Clase clase;
+    int line;     // Añadir
+    int column;   // Añadir
 
     Symbol* anterior;
 };
@@ -29,7 +31,7 @@ struct Context {
 
 Context* nuevoContext(Context* anterior);
 Symbol* nuevoVariable(char* nombre, void* valor, TipoDato tipo);
-void agregarSymbol(Context* actual, Symbol*);
+void agregarSymbol(Context* actual, Symbol*, int line, int column);
 Symbol* buscarSymbol(Symbol* actual, char* nombre);
 Symbol* buscarTablaSimbolos(Context* actual, char* nombre);
 
