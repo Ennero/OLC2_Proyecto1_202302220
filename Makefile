@@ -30,7 +30,7 @@ OBJ_SRC := $(patsubst $(SRC)/%.c,$(BUILD)/%.o,$(SRC_FILES))
 OBJ_GEN := $(BUILD)/parser.tab.o $(BUILD)/lex.yy.o
 OBJ_ALL := $(OBJ_SRC) $(OBJ_GEN)
 
-all: $(BUILD)/calc
+all: $(BUILD)/javalang
 
 $(BUILD):
 	$(MKDIR) $(BUILD)
