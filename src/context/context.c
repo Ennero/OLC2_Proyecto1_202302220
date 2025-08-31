@@ -29,6 +29,11 @@ void agregarSymbol(Context* actual, Symbol* symbol) {
         printf("La variable de nombre '%s' ya existe.\n", symbol->nombre);
         return;
     }
+
+    // Añado el simbolo a la tabla de simbolos
+    add_symbol_to_report(symbol->nombre, symbol->tipo, actual->nombre);
+
+    // Agregamos el símbolo al contexto actual
     symbol->anterior = actual->ultimoSymbol;
     actual->ultimoSymbol = symbol;
 }

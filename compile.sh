@@ -1,1 +1,1 @@
-./build/javalang-interpreter
+./build/calc
