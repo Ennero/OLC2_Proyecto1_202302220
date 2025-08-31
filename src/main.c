@@ -3,6 +3,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h> // Para mkdir
+#include <sys/types.h> // Para mkdir
 #include "ast/AbstractExpresion.h"
 #include "context/context.h"
 #include "output_buffer.h"
@@ -308,11 +310,10 @@ static void on_ast_export_clicked(GtkButton* button, gpointer user_data) {
 
     if (gtk_dialog_run(GTK_DIALOG(dialog)) == GTK_RESPONSE_ACCEPT) {
         char *dest_filename = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(dialog));
-        const char* src_filename = "ast.svg"; // Por defecto
+        const char* src_filename = "ast-graph/ast.svg"; // <<<< CAMBIO: Ruta actualizada
         
-        // Determinar qué archivo fuente copiar basado en la extensión elegida
         if (g_str_has_suffix(dest_filename, ".pdf")) {
-            src_filename = "ast.pdf";
+            src_filename = "ast-graph/ast.pdf"; // <<<< CAMBIO: Ruta actualizada
         }
         
         copy_file(src_filename, dest_filename);
@@ -345,9 +346,11 @@ static void on_generate_ast_clicked(GtkToolButton* button, gpointer user_data) {
     }
     
     if (get_error_list() == NULL && ast_root) {
-        generate_ast_graph(ast_root, "ast.dot");
-        system("dot -Tsvg ast.dot -o ast.svg");
-        system("dot -Tpdf ast.dot -o ast.pdf");
+        // <<<< CAMBIO: Crear directorio y usar nuevas rutas >>>>
+        mkdir("ast-graph", 0777); // 0777 da permisos de lectura/escritura/ejecución
+        generate_ast_graph(ast_root, "ast-graph/ast.dot");
+        system("dot -Tsvg ast-graph/ast.dot -o ast-graph/ast.svg");
+        system("dot -Tpdf ast-graph/ast.dot -o ast-graph/ast.pdf");
 
         GtkWidget* ast_window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
         gtk_window_set_title(GTK_WINDOW(ast_window), "Visor del Árbol de Sintaxis Abstracta (AST)");
@@ -362,7 +365,7 @@ static void on_generate_ast_clicked(GtkToolButton* button, gpointer user_data) {
         gtk_widget_set_vexpand(scrolled_window, TRUE);
         gtk_box_pack_start(GTK_BOX(vbox), scrolled_window, TRUE, TRUE, 0);
         
-        GtkWidget* image = gtk_image_new_from_file("ast.svg");
+        GtkWidget* image = gtk_image_new_from_file("ast-graph/ast.svg");
         gtk_scrolled_window_add_with_viewport(GTK_SCROLLED_WINDOW(scrolled_window), image);
         
         GtkWidget* button_box = gtk_button_box_new(GTK_ORIENTATION_HORIZONTAL);
@@ -374,7 +377,7 @@ static void on_generate_ast_clicked(GtkToolButton* button, gpointer user_data) {
         
         gtk_widget_show_all(ast_window);
         
-        gtk_text_buffer_set_text(widgets->output_buffer, "Gráfico del AST generado. Puede exportarlo desde la nueva ventana.", -1);
+        gtk_text_buffer_set_text(widgets->output_buffer, "Gráfico del AST generado en la carpeta 'ast-graph'.", -1);
     } else {
         gtk_text_buffer_set_text(widgets->output_buffer, "No se pudo generar el AST debido a errores en el código.", -1);
         display_error_table_window(widgets->main_window);
