@@ -1,2 +1,2 @@
 #!/bin/bash
-./build/calc
+./build/javalang
