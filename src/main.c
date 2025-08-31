@@ -8,6 +8,7 @@
 #include "output_buffer.h"
 #include "symbol_reporter.h"
 #include "error_reporter.h"
+#include "ast_grapher.h" // Se incluye el nuevo graficador
 
 // --- Declaraciones Globales y Prototipos ---
 typedef struct yy_buffer_state* YY_BUFFER_STATE;
@@ -258,10 +259,61 @@ static void on_show_errors_clicked(GtkToolButton* button, gpointer user_data) {
     g_free(input_text);
 }
 
+// <<<< IMPLEMENTACIÓN DE LA FUNCIÓN PARA GENERAR EL AST >>>>
 static void on_generate_ast_clicked(GtkToolButton* button, gpointer user_data) {
     (void)button;
     AppWidgets* widgets = (AppWidgets*) user_data;
-    gtk_text_buffer_set_text(widgets->output_buffer, "Funcionalidad 'Generar AST' no implementada todavía.", -1);
+    
+    // 1. Obtener el código fuente
+    GtkTextBuffer* buffer = GTK_TEXT_BUFFER(widgets->input_buffer);
+    GtkTextIter start, end;
+    gtk_text_buffer_get_bounds(buffer, &start, &end);
+    gchar* input_text = gtk_text_buffer_get_text(buffer, &start, &end, FALSE);
+
+    // 2. Limpiar y analizar para construir el AST (sin interpretar)
+    clear_error_report();
+    if(ast_root) {
+        // liberarAST(ast_root); // Importante liberar el AST anterior si existe
+        ast_root = NULL;
+    }
+    yylineno = 1;
+    yycolumn = 1;
+
+    if (input_text && input_text[0] != '\0') {
+        YY_BUFFER_STATE buffer_state = yy_scan_string(input_text);
+        yyparse();
+        yy_delete_buffer(buffer_state);
+    }
+    
+    // 3. Verificar si el análisis fue exitoso
+    if (get_error_list() == NULL && ast_root) {
+        // 4. Generar el archivo .dot y la imagen
+        generate_ast_graph(ast_root, "ast.dot");
+        // Se ejecuta el comando de Graphviz. Requiere que esté instalado y en el PATH.
+        system("dot -Tpng ast.dot -o ast.png"); 
+
+        // 5. Mostrar la imagen en una nueva ventana
+        GtkWidget* ast_window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+        gtk_window_set_title(GTK_WINDOW(ast_window), "Árbol de Sintaxis Abstracta (AST)");
+        gtk_window_set_default_size(GTK_WINDOW(ast_window), 800, 600);
+        gtk_window_set_transient_for(GTK_WINDOW(ast_window), widgets->main_window);
+        gtk_window_set_modal(GTK_WINDOW(ast_window), TRUE);
+
+        GtkWidget* scrolled_window = gtk_scrolled_window_new(NULL, NULL);
+        gtk_container_add(GTK_CONTAINER(ast_window), scrolled_window);
+        
+        GtkWidget* image = gtk_image_new_from_file("ast.png");
+        gtk_container_add(GTK_CONTAINER(scrolled_window), image);
+        
+        gtk_widget_show_all(ast_window);
+        
+        gtk_text_buffer_set_text(widgets->output_buffer, "Gráfico del AST generado exitosamente en ast.png", -1);
+    } else {
+        gtk_text_buffer_set_text(widgets->output_buffer, "No se pudo generar el AST debido a errores en el código.", -1);
+        display_error_table_window(widgets->main_window); // Mostrar los errores
+    }
+
+    g_free(input_text);
 }
 
 //=====================================================================
@@ -330,7 +382,6 @@ static void activate(GtkApplication* app, gpointer user_data) {
     paned = gtk_paned_new(GTK_ORIENTATION_HORIZONTAL);
     gtk_box_pack_start(GTK_BOX(vbox), paned, TRUE, TRUE, 0);
 
-    // Contenedor para la entrada
     GtkWidget* left_vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 5);
     GtkWidget* input_label = gtk_label_new(NULL);
     gtk_label_set_markup(GTK_LABEL(input_label), "<span weight='bold' size='large'>Entrada del Programa</span>");
@@ -353,7 +404,6 @@ static void activate(GtkApplication* app, gpointer user_data) {
     GtkSourceLanguage* lang = gtk_source_language_manager_get_language(lang_manager, "java");
     gtk_source_buffer_set_language(widgets->input_buffer, lang);
 
-    // Contenedor para la salida
     GtkWidget* right_vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 5);
     GtkWidget* output_label = gtk_label_new(NULL);
     gtk_label_set_markup(GTK_LABEL(output_label), "<span weight='bold' size='large'>Salida del Programa</span>");

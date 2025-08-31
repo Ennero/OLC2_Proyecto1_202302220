@@ -24,6 +24,10 @@ Operacion tablaOperacionesMultiplicacion[TIPO_COUNT][TIPO_COUNT] = {
 
 AbstractExpresion* nuevoMultiplicacionExpresion(AbstractExpresion* izquierda, AbstractExpresion* derecha) {
     ExpresionLenguaje* expr = nuevoExpresionLenguaje(interpretExpresionLenguaje, izquierda, derecha);
+
+    // Para generar el árbol
+    expr->base.node_type = "Multiplicacion";
+
     expr->tablaOperaciones = &tablaOperacionesMultiplicacion;
     return (AbstractExpresion*) expr;
 }

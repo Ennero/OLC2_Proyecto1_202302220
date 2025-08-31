@@ -35,8 +35,8 @@ Result interpretIdentificadorExpresion(AbstractExpresion* self, Context* context
 AbstractExpresion* nuevoIdentificadorExpresion(char* nombre, int line, int column) {
     IdentificadorExpresion* nodo = malloc(sizeof(IdentificadorExpresion));
     if (!nodo) return NULL;
-    
-    buildAbstractExpresion(&nodo->base, interpretIdentificadorExpresion);
+
+    buildAbstractExpresion(&nodo->base, interpretIdentificadorExpresion, "Identificador");
 
     nodo->nombre = nombre;
     // Se guardan la línea y la columna en la estructura del nodo.

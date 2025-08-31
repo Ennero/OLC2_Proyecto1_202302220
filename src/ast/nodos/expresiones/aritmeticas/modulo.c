@@ -23,6 +23,10 @@ Operacion tablaOperacionesModulo[TIPO_COUNT][TIPO_COUNT] = {
 
 AbstractExpresion* nuevoModuloExpresion(AbstractExpresion* izquierda, AbstractExpresion* derecha) {
     ExpresionLenguaje* expr = nuevoExpresionLenguaje(interpretExpresionLenguaje, izquierda, derecha);
+
+    // Para generar el árbol
+    expr->base.node_type = "Modulo";
+
     expr->tablaOperaciones = &tablaOperacionesModulo;
     return (AbstractExpresion*) expr;
 }

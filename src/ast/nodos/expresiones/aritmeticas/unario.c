@@ -27,6 +27,10 @@ Operacion tablaOperacionesUnario[TIPO_COUNT][TIPO_COUNT] = {
 //builders.h
 AbstractExpresion* nuevoUnarioExpresion(AbstractExpresion* expresion) {
     ExpresionLenguaje* unarioExpresion = nuevoExpresionLenguaje(interpretUnarioLenguaje, expresion, NULL);
+
+    // Para la generación del árbol
+    unarioExpresion->base.node_type = "Unario";
+
     unarioExpresion->tablaOperaciones = &tablaOperacionesUnario;
     return (AbstractExpresion*) unarioExpresion;
 }

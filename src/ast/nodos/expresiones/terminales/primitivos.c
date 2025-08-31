@@ -63,7 +63,7 @@ AbstractExpresion* nuevoPrimitivoExpresion(char* v, TipoDato tipo) {
     PrimitivoExpresion* nodo = malloc(sizeof(PrimitivoExpresion));
     if (!nodo) return NULL;
     
-    buildAbstractExpresion(&nodo->base, interpretPrimitivoExpresion);
+    buildAbstractExpresion(&nodo->base, interpretPrimitivoExpresion, "Primitivo");
 
     nodo->valor = v;
     nodo->tipo = tipo;

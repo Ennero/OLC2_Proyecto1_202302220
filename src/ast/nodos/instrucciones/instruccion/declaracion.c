@@ -29,7 +29,7 @@ AbstractExpresion* nuevoDeclaracionVariables(TipoDato tipo, char* nombre, Abstra
     DeclaracionVariable* nodo = malloc(sizeof(DeclaracionVariable));
     if (!nodo) return NULL;
 
-    buildAbstractExpresion(&nodo->base, interpretDeclaracionVariable);
+    buildAbstractExpresion(&nodo->base, interpretDeclaracionVariable, "DeclaracionVariable");
     nodo->tipo = tipo;
     nodo->nombre = nombre;
     // Guardamos la línea y columna en el nodo para usarlas después

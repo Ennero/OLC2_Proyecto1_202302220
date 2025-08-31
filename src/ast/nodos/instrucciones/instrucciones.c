@@ -26,9 +26,9 @@ Result interpretInstrucciones(AbstractExpresion* self, Context* context) {
 AbstractExpresion* nuevoInstruccionesExpresion() {
     InstruccionesExpresion* nodo = malloc(sizeof(InstruccionesExpresion));
     if (!nodo) return NULL;
-    
-    buildAbstractExpresion(&nodo->base, interpretInstrucciones);
-    
+
+    buildAbstractExpresion(&nodo->base, interpretInstrucciones, "Instrucciones");
+
     return (AbstractExpresion*) nodo;
 }
 

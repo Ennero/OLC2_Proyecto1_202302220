@@ -20,8 +20,8 @@ Result interpretBloque(AbstractExpresion* self, Context* context) {
 AbstractExpresion* nuevoBloqueExpresion(AbstractExpresion* instrucciones) {
     BloqueExpresion* nodo = malloc(sizeof(BloqueExpresion));
     if (!nodo) return NULL;
-    
-    buildAbstractExpresion(&nodo->base, interpretBloque);
+
+    buildAbstractExpresion(&nodo->base, interpretBloque, "Bloque");
     if (instrucciones) {
         agregarHijo((AbstractExpresion*)nodo, instrucciones);
     }

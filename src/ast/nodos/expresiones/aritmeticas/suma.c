@@ -42,6 +42,11 @@ Operacion tablaOperacionesSuma[TIPO_COUNT][TIPO_COUNT] = {
 //builders.h
 AbstractExpresion* nuevoSumaExpresion(AbstractExpresion* izquierda, AbstractExpresion* derecha) {
     ExpresionLenguaje* sumaExpresion = nuevoExpresionLenguaje(interpretExpresionLenguaje, izquierda, derecha);
+
+    // Para generar el arbol
+    sumaExpresion->base.node_type = "Suma";
+
+
     sumaExpresion->tablaOperaciones = &tablaOperacionesSuma;
     return (AbstractExpresion*) sumaExpresion;
 }

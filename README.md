@@ -45,7 +45,14 @@ source ~/.bashrc
 sudo apt install libatk1.0-dev libpango1.0-dev libcairo2-dev libgdk-pixbuf2.0-dev -y
 ```
 
-### 6. Verificar instalaciones
+
+### 6. Instalar Graphviz
+```bash
+sudo apt update
+sudo apt install graphviz -y
+```
+
+### 7. Verificar instalaciones
 Verifica GTK3:
 ```bash
 pkg-config --modversion gtk+-3.0
@@ -55,22 +62,26 @@ Verifica GtkSourceView:
 pkg-config --modversion gtksourceview-3.0
 ```
 
+Verifica Graphviz:
+```bash
+dot -V
+```
 ---
 
 ## Configuraciones adicionales
 
-### 7. Configurar el proyecto en VS Code
+### 8. Configurar el proyecto en VS Code
 - Descarga e instala [VS Code](https://code.visualstudio.com).
 - Instala la extensión **C/C++** de Microsoft (busca "C/C++" en la pestaña de Extensiones).
 
-### 8. Crear el directorio del proyecto
+### 9. Crear el directorio del proyecto
 Crea un directorio (por ejemplo, `OLC2_Proyecto1_202302220`) y navega a él:
 ```bash
 mkdir ~/Escritorio/OLC2_Proyecto1_202302220
 cd ~/Escritorio/OLC2_Proyecto1_202302220
 ```
 
-### 9. Configurar VS Code para IntelliSense
+### 10. Configurar VS Code para IntelliSense
 - Abre el proyecto en VS Code (**File > Open Folder** y selecciona el directorio).
 - Crea o edita el archivo de configuración de IntelliSense: Presiona `Ctrl+Shift+P`, escribe `C/C++: Edit Configurations (JSON)` y selecciona.
 - Usa el siguiente contenido:
@@ -116,7 +127,7 @@ cd ~/Escritorio/OLC2_Proyecto1_202302220
 
 ## Compilar y ejecutar
 
-### 10. Compilar y ejecutar
+### 11. Compilar y ejecutar
 - Abre una terminal en VS Code o en el directorio del proyecto.
 - Compila el proyecto:
 ```bash

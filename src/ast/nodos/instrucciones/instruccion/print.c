@@ -47,7 +47,7 @@ Result interpretPrintExpresion(AbstractExpresion* self, Context* context) {
 AbstractExpresion* nuevoPrintExpresion(AbstractExpresion* listaExpresiones) {
     PrintExpresion* nodo = malloc(sizeof(PrintExpresion));
     if (!nodo) return NULL;
-    buildAbstractExpresion(&nodo->base, interpretPrintExpresion);
+    buildAbstractExpresion(&nodo->base, interpretPrintExpresion, "Print");
     if (listaExpresiones) agregarHijo((AbstractExpresion*) nodo, listaExpresiones);
     return (AbstractExpresion*) nodo;
 }

@@ -33,6 +33,10 @@ Operacion tablaOperacionesDivision[TIPO_COUNT][TIPO_COUNT] = {
 
 AbstractExpresion* nuevoDivisionExpresion(AbstractExpresion* izquierda, AbstractExpresion* derecha) {
     ExpresionLenguaje* expr = nuevoExpresionLenguaje(interpretExpresionLenguaje, izquierda, derecha);
+
+    // Para generar el árbol
+    expr->base.node_type = "Division";
+
     expr->tablaOperaciones = &tablaOperacionesDivision;
     return (AbstractExpresion*) expr;
 }

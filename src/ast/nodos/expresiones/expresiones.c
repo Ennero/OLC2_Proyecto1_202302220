@@ -39,7 +39,7 @@ ExpresionLenguaje* nuevoExpresionLenguaje(Interpret funcionEspecifica, AbstractE
     if (!nodo) return NULL;
 
     //asignar valores
-    buildAbstractExpresion(&nodo->base, funcionEspecifica);
+    buildAbstractExpresion(&nodo->base, funcionEspecifica, "ExpresionLenguaje");
 
     //guardar los punteros en lo hijos de este arbol a los lados de la expresion
     if (izquierda) agregarHijo((AbstractExpresion*) nodo, izquierda);
