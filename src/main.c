@@ -8,7 +8,7 @@
 #include "output_buffer.h"
 #include "symbol_reporter.h"
 #include "error_reporter.h"
-#include "ast_grapher.h" // Se incluye el nuevo graficador
+#include "ast_grapher.h"
 
 // --- Declaraciones Globales y Prototipos ---
 typedef struct yy_buffer_state* YY_BUFFER_STATE;
@@ -37,15 +37,17 @@ static void on_execute_clicked(GtkToolButton* button, gpointer user_data);
 static void on_show_symbols_clicked(GtkToolButton* button, gpointer user_data);
 static void on_show_errors_clicked(GtkToolButton* button, gpointer user_data);
 static void on_generate_ast_clicked(GtkToolButton* button, gpointer user_data);
+static void on_ast_export_clicked(GtkButton *button, gpointer user_data);
 
 static void display_error_table_window(GtkWindow* parent);
 static void display_symbol_table_window(GtkWindow* parent);
 static gboolean save_file_content(AppWidgets* widgets, const char* path);
 static void open_file(AppWidgets* widgets, const char* path);
+static gboolean copy_file(const char* src_path, const char* dest_path);
 
 
 //=====================================================================
-// LÓGICA DE GESTIÓN DE ARCHIVOS
+// LÓGICA DE GESTIÓN DE ARCHIVOS Y EXPORTACIÓN
 //=====================================================================
 static void open_file(AppWidgets* widgets, const char* path) {
     FILE* file = fopen(path, "r");
@@ -99,6 +101,31 @@ static gboolean save_file_content(AppWidgets* widgets, const char* path) {
     gtk_window_set_title(widgets->main_window, window_title);
     g_free(basename);
     g_free(window_title);
+    return TRUE;
+}
+
+// Función auxiliar para copiar un archivo (usada para la exportación)
+static gboolean copy_file(const char* src_path, const char* dest_path) {
+    FILE* src = fopen(src_path, "rb");
+    if (!src) return FALSE;
+    FILE* dest = fopen(dest_path, "wb");
+    if (!dest) {
+        fclose(src);
+        return FALSE;
+    }
+
+    char buffer[4096];
+    size_t n;
+    while ((n = fread(buffer, 1, sizeof(buffer), src)) > 0) {
+        if (fwrite(buffer, 1, n, dest) != n) {
+            fclose(src);
+            fclose(dest);
+            return FALSE;
+        }
+    }
+
+    fclose(src);
+    fclose(dest);
     return TRUE;
 }
 
@@ -259,21 +286,53 @@ static void on_show_errors_clicked(GtkToolButton* button, gpointer user_data) {
     g_free(input_text);
 }
 
-// <<<< IMPLEMENTACIÓN DE LA FUNCIÓN PARA GENERAR EL AST >>>>
+static void on_ast_export_clicked(GtkButton* button, gpointer user_data) {
+    (void)button;
+    GtkWidget* parent_window = GTK_WIDGET(user_data);
+    GtkWidget *dialog = gtk_file_chooser_dialog_new("Exportar AST Como", GTK_WINDOW(parent_window), GTK_FILE_CHOOSER_ACTION_SAVE,
+                                         "_Cancelar", GTK_RESPONSE_CANCEL,
+                                         "_Exportar", GTK_RESPONSE_ACCEPT, NULL);
+    
+    GtkFileFilter* svg_filter = gtk_file_filter_new();
+    gtk_file_filter_set_name(svg_filter, "Gráfico Vectorial Escalable (*.svg)");
+    gtk_file_filter_add_pattern(svg_filter, "*.svg");
+    gtk_file_chooser_add_filter(GTK_FILE_CHOOSER(dialog), svg_filter);
+
+    GtkFileFilter* pdf_filter = gtk_file_filter_new();
+    gtk_file_filter_set_name(pdf_filter, "Documento PDF (*.pdf)");
+    gtk_file_filter_add_pattern(pdf_filter, "*.pdf");
+    gtk_file_chooser_add_filter(GTK_FILE_CHOOSER(dialog), pdf_filter);
+
+    gtk_file_chooser_set_do_overwrite_confirmation(GTK_FILE_CHOOSER(dialog), TRUE);
+    gtk_file_chooser_set_current_name(GTK_FILE_CHOOSER(dialog), "ast.svg");
+
+    if (gtk_dialog_run(GTK_DIALOG(dialog)) == GTK_RESPONSE_ACCEPT) {
+        char *dest_filename = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(dialog));
+        const char* src_filename = "ast.svg"; // Por defecto
+        
+        // Determinar qué archivo fuente copiar basado en la extensión elegida
+        if (g_str_has_suffix(dest_filename, ".pdf")) {
+            src_filename = "ast.pdf";
+        }
+        
+        copy_file(src_filename, dest_filename);
+        g_free(dest_filename);
+    }
+    gtk_widget_destroy(dialog);
+}
+
 static void on_generate_ast_clicked(GtkToolButton* button, gpointer user_data) {
     (void)button;
     AppWidgets* widgets = (AppWidgets*) user_data;
     
-    // 1. Obtener el código fuente
     GtkTextBuffer* buffer = GTK_TEXT_BUFFER(widgets->input_buffer);
     GtkTextIter start, end;
     gtk_text_buffer_get_bounds(buffer, &start, &end);
     gchar* input_text = gtk_text_buffer_get_text(buffer, &start, &end, FALSE);
 
-    // 2. Limpiar y analizar para construir el AST (sin interpretar)
     clear_error_report();
     if(ast_root) {
-        // liberarAST(ast_root); // Importante liberar el AST anterior si existe
+        // liberarAST(ast_root);
         ast_root = NULL;
     }
     yylineno = 1;
@@ -285,36 +344,45 @@ static void on_generate_ast_clicked(GtkToolButton* button, gpointer user_data) {
         yy_delete_buffer(buffer_state);
     }
     
-    // 3. Verificar si el análisis fue exitoso
     if (get_error_list() == NULL && ast_root) {
-        // 4. Generar el archivo .dot y la imagen
         generate_ast_graph(ast_root, "ast.dot");
-        // Se ejecuta el comando de Graphviz. Requiere que esté instalado y en el PATH.
-        system("dot -Tpng ast.dot -o ast.png"); 
+        system("dot -Tsvg ast.dot -o ast.svg");
+        system("dot -Tpdf ast.dot -o ast.pdf");
 
-        // 5. Mostrar la imagen en una nueva ventana
         GtkWidget* ast_window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-        gtk_window_set_title(GTK_WINDOW(ast_window), "Árbol de Sintaxis Abstracta (AST)");
+        gtk_window_set_title(GTK_WINDOW(ast_window), "Visor del Árbol de Sintaxis Abstracta (AST)");
         gtk_window_set_default_size(GTK_WINDOW(ast_window), 800, 600);
         gtk_window_set_transient_for(GTK_WINDOW(ast_window), widgets->main_window);
         gtk_window_set_modal(GTK_WINDOW(ast_window), TRUE);
+        
+        GtkWidget* vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 5);
+        gtk_container_add(GTK_CONTAINER(ast_window), vbox);
 
         GtkWidget* scrolled_window = gtk_scrolled_window_new(NULL, NULL);
-        gtk_container_add(GTK_CONTAINER(ast_window), scrolled_window);
+        gtk_widget_set_vexpand(scrolled_window, TRUE);
+        gtk_box_pack_start(GTK_BOX(vbox), scrolled_window, TRUE, TRUE, 0);
         
-        GtkWidget* image = gtk_image_new_from_file("ast.png");
-        gtk_container_add(GTK_CONTAINER(scrolled_window), image);
+        GtkWidget* image = gtk_image_new_from_file("ast.svg");
+        gtk_scrolled_window_add_with_viewport(GTK_SCROLLED_WINDOW(scrolled_window), image);
+        
+        GtkWidget* button_box = gtk_button_box_new(GTK_ORIENTATION_HORIZONTAL);
+        gtk_button_box_set_layout(GTK_BUTTON_BOX(button_box), GTK_BUTTONBOX_END);
+        GtkWidget* export_button = gtk_button_new_with_label("Exportar como...");
+        g_signal_connect(export_button, "clicked", G_CALLBACK(on_ast_export_clicked), ast_window);
+        gtk_container_add(GTK_CONTAINER(button_box), export_button);
+        gtk_box_pack_start(GTK_BOX(vbox), button_box, FALSE, FALSE, 5);
         
         gtk_widget_show_all(ast_window);
         
-        gtk_text_buffer_set_text(widgets->output_buffer, "Gráfico del AST generado exitosamente en ast.png", -1);
+        gtk_text_buffer_set_text(widgets->output_buffer, "Gráfico del AST generado. Puede exportarlo desde la nueva ventana.", -1);
     } else {
         gtk_text_buffer_set_text(widgets->output_buffer, "No se pudo generar el AST debido a errores en el código.", -1);
-        display_error_table_window(widgets->main_window); // Mostrar los errores
+        display_error_table_window(widgets->main_window);
     }
 
     g_free(input_text);
 }
+
 
 //=====================================================================
 // CONSTRUCCIÓN DE LA INTERFAZ GRÁFICA
