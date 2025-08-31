@@ -3,13 +3,11 @@
 #include <string.h>
 #include <stdio.h>
 
-// Se añaden punteros tanto a la cabeza como a la cola de la lista
 static SymbolInfo* symbol_list_head = NULL;
-static SymbolInfo* symbol_list_tail = NULL; // NUEVO
+static SymbolInfo* symbol_list_tail = NULL;
 static int symbol_id_counter = 0;
 
-// ... (format_value no cambia) ...
-
+// Función auxiliar para convertir el valor de un símbolo a una cadena de texto
 static void format_value(char* buffer, size_t size, const void* value, TipoDato type) {
     if (value == NULL) {
         snprintf(buffer, size, "null");
@@ -37,9 +35,10 @@ static void format_value(char* buffer, size_t size, const void* value, TipoDato 
     }
 }
 
+
 void init_symbol_report() {
     symbol_list_head = NULL;
-    symbol_list_tail = NULL; // Reiniciar cola
+    symbol_list_tail = NULL;
     symbol_id_counter = 0;
 }
 
@@ -50,12 +49,12 @@ void clear_symbol_report() {
         free(current->name);
         free(current->type);
         free(current->value);
-        free(current->scope_name);
+        free(current->context_name); // <<<<<<< CAMBIO: Se libera context_name
         free(current);
         current = next;
     }
     symbol_list_head = NULL;
-    symbol_list_tail = NULL; // Reiniciar cola
+    symbol_list_tail = NULL;
     symbol_id_counter = 0;
 }
 
@@ -63,35 +62,31 @@ void free_symbol_report() {
     clear_symbol_report();
 }
 
-void add_symbol_to_report(const Symbol* symbol, int scope_level) {
+// <<<<<<< CAMBIO: La firma ahora acepta un const char* para el nombre del contexto
+void add_symbol_to_report(const Symbol* symbol, const char* context_name) {
     SymbolInfo* new_info = (SymbolInfo*) malloc(sizeof(SymbolInfo));
     if (!new_info) return;
 
     char value_buffer[256];
-    char scope_buffer[64];
-
     format_value(value_buffer, sizeof(value_buffer), symbol->valor, symbol->tipo);
-    snprintf(scope_buffer, sizeof(scope_buffer), "Contexto %s", symbol->clase == FUNCION ? symbol->nombre : "");
 
     new_info->id = ++symbol_id_counter;
     new_info->name = strdup(symbol->nombre);
     new_info->type = strdup(labelTipoDato[symbol->tipo]);
     new_info->value = strdup(value_buffer);
-    new_info->scope_name = strdup(scope_buffer);
-    new_info->scope_level = scope_level;
+    // <<<<<<< CAMBIO: Se copia directamente el nombre completo del contexto
+    new_info->context_name = strdup(context_name);
     new_info->line = symbol->line;
     new_info->column = symbol->column;
-    new_info->next = NULL; // El nuevo nodo es siempre el último
+    new_info->next = NULL;
 
-    // --- LÓGICA DE INSERCIÓN CORREGIDA ---
+    // Lógica para añadir al final de la lista (mantiene el orden)
     if (symbol_list_head == NULL) {
-        // Si la lista está vacía, es tanto la cabeza como la cola
         symbol_list_head = new_info;
         symbol_list_tail = new_info;
     } else {
-        // Si no, se añade después de la cola actual
         symbol_list_tail->next = new_info;
-        symbol_list_tail = new_info; // La nueva cola es el nuevo nodo
+        symbol_list_tail = new_info;
     }
 }
 

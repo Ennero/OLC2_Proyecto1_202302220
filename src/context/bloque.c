@@ -1,36 +1,28 @@
-#include "ast/AbstractExpresion.h"
-#include "ast/nodos/builders.h"
-#include "context/context.h"
 #include "bloque.h"
-#include <stdlib.h>
+#include "ast/nodos/builders.h"
 
-// ESTA ES LA FUNCIÓN CLAVE
+// La función de interpretación ahora crea un contexto con nombre
 Result interpretBloque(AbstractExpresion* self, Context* context) {
-    // 1. Crear un nuevo contexto para este bloque. Su padre es el contexto actual.
-    Context* new_context = nuevoContext(context);
+    // <<<<<<< CAMBIO: Se pasa "bloque" como el tipo de contexto
+    Context* nuevo = nuevoContext(context, "bloque");
 
-    // 2. El bloque tiene un solo hijo: la lista de instrucciones (lSentencia).
-    //    Lo interpretamos usando el NUEVO contexto.
     if (self->numHijos > 0) {
-        self->hijos[0]->interpret(self->hijos[0], new_context);
+        AbstractExpresion* instrucciones = self->hijos[0];
+        instrucciones->interpret(instrucciones, nuevo);
     }
-    
-    // 3. Al terminar la función, 'new_context' se pierde y volvemos
-    //    automáticamente al contexto padre. ¡El ámbito se cierra!
+
+    // Aquí se liberaría la memoria del 'nuevo' contexto y sus símbolos
+    // (Implementación futura)
     return nuevoValorResultadoVacio();
 }
 
-AbstractExpresion* nuevoBloqueExpresion(AbstractExpresion* sentencias) {
+AbstractExpresion* nuevoBloqueExpresion(AbstractExpresion* instrucciones) {
     BloqueExpresion* nodo = malloc(sizeof(BloqueExpresion));
     if (!nodo) return NULL;
-
-    // Asignamos la función de interpretación específica para bloques.
-    buildAbstractExpresion(&nodo->base, interpretBloque);
-
-    // El hijo de un nodo de bloque es la lista de sentencias que contiene.
-    if (sentencias) {
-        agregarHijo((AbstractExpresion*)nodo, sentencias);
-    }
     
-    return (AbstractExpresion*)nodo;
+    buildAbstractExpresion(&nodo->base, interpretBloque);
+    if (instrucciones) {
+        agregarHijo((AbstractExpresion*)nodo, instrucciones);
+    }
+    return (AbstractExpresion*) nodo;
 }

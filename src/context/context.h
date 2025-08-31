@@ -17,24 +17,22 @@ struct Symbol{
     void* valor;
     TipoDato tipo;
     Clase clase;
-    int line;     // Añadir
-    int column;   // Añadir
-
+    int line;
+    int column;
     Symbol* anterior;
 };
 
 struct Context {
-    int nombre;
+    char* nombre_completo; // <<<<<<< CAMBIO: de int a char*
     Context* anterior;
-    Symbol* ultimoSymbol; //tabla de simbolos
+    Symbol* ultimoSymbol;
 };
 
-Context* nuevoContext(Context* anterior);
+// Se actualizan las firmas
+Context* nuevoContext(Context* anterior, const char* tipo_contexto);
 Symbol* nuevoVariable(char* nombre, void* valor, TipoDato tipo);
-void agregarSymbol(Context* actual, Symbol*, int line, int column);
+void agregarSymbol(Context* actual, Symbol* symbol, int line, int column);
 Symbol* buscarSymbol(Symbol* actual, char* nombre);
 Symbol* buscarTablaSimbolos(Context* actual, char* nombre);
 
-//cambiar la lista de symbol con una tabla hash donde la funcion hash esta dada por el nombre del symbol + la linea + columna inicio + columna final + tipo + clase
-
-#endif
+#endif // CONTEXT_H

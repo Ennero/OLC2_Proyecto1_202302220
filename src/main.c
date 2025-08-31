@@ -7,13 +7,12 @@
 // --- Declaraciones de Flex/Bison ---
 typedef struct yy_buffer_state* YY_BUFFER_STATE;
 extern int yyparse(void);
-extern int yylineno; // Hacer yylineno accesible para poder reiniciarlo
-extern int yycolumn; // NUEVO: Hacer yycolumn accesible
+extern int yylineno;
+extern int yycolumn;
 extern YY_BUFFER_STATE yy_scan_string(const char * str);
 extern void yy_delete_buffer(YY_BUFFER_STATE b);
 extern void yylex_destroy();
 
-// DEFINICIÓN de la variable global
 AbstractExpresion* ast_root = NULL;
 
 // --- Estructura para Widgets ---
@@ -27,6 +26,7 @@ typedef struct {
 // Le decimos al compilador que estas funciones existen antes de usarlas.
 static void on_execute_clicked(GtkButton* button, gpointer user_data);
 static void on_show_symbols_clicked(GtkButton* button, gpointer user_data);
+static void display_symbol_table_window(GtkWindow* parent);
 
 //=====================================================================
 // LÓGICA PARA LA TABLA DE SÍMBOLOS
@@ -55,15 +55,17 @@ static void display_symbol_table_window(GtkWindow* parent) {
     const SymbolInfo* symbols = get_symbol_list();
     while(symbols) {
         GtkTreeIter iter;
-        char context_str[128];
-        snprintf(context_str, sizeof(context_str), "%s (Nivel %d)", symbols->scope_name, symbols->scope_level);
-
         gtk_list_store_append(store, &iter);
+        // <<<<<<< CAMBIO: Se usa el nombre de contexto directamente desde el reportero
         gtk_list_store_set(store, &iter,
-                           COL_ID, symbols->id, COL_NAME, symbols->name,
-                           COL_TYPE, symbols->type, COL_VALUE, symbols->value,
-                           COL_CONTEXT, context_str, COL_LINE, symbols->line,
-                           COL_COLUMN, symbols->column, -1);
+                           COL_ID, symbols->id,
+                           COL_NAME, symbols->name,
+                           COL_TYPE, symbols->type,
+                           COL_VALUE, symbols->value,
+                           COL_CONTEXT, symbols->context_name, // Usa el nuevo campo
+                           COL_LINE, symbols->line,
+                           COL_COLUMN, symbols->column,
+                           -1);
         symbols = symbols->next;
     }
 
@@ -109,16 +111,14 @@ static void display_symbol_table_window(GtkWindow* parent) {
 // DEFINICIONES DE LAS FUNCIONES CALLBACK
 //=====================================================================
 
-// Función que se ejecuta al presionar el botón "Ejecutar"
 static void on_execute_clicked(GtkButton* button, gpointer user_data) {
-    (void)button; // Silenciar advertencia de parámetro no usado
+    (void)button;
     AppWidgets* widgets = (AppWidgets*) user_data;
     
     GtkTextIter start, end;
     gtk_text_buffer_get_bounds(widgets->input_buffer, &start, &end);
     gchar* input_text = gtk_text_buffer_get_text(widgets->input_buffer, &start, &end, FALSE);
 
-    // Reiniciar para una nueva ejecución
     clear_output_buffer();
     clear_symbol_report();
     ast_root = NULL;
@@ -128,13 +128,13 @@ static void on_execute_clicked(GtkButton* button, gpointer user_data) {
     if (input_text && input_text[0] != '\0') {
         YY_BUFFER_STATE buffer_state = yy_scan_string(input_text);
         if (yyparse() == 0 && ast_root) {
-            Context* contextPadre = nuevoContext(NULL);
+            // <<<<<<< CAMBIO: Se crea el contexto raíz con el nombre "global"
+            Context* contextPadre = nuevoContext(NULL, "global");
             ast_root->interpret(ast_root, contextPadre);
         } else {
             append_to_output("Error de sintaxis o análisis.\n");
         }
         yy_delete_buffer(buffer_state);
-        // liberarAST(ast_root);
     } else {
         append_to_output("No hay código para ejecutar.\n");
     }
@@ -144,7 +144,6 @@ static void on_execute_clicked(GtkButton* button, gpointer user_data) {
     g_free(input_text);
 }
 
-// Callback para el botón "Mostrar Tabla de Símbolos"
 static void on_show_symbols_clicked(GtkButton* button, gpointer user_data) {
     (void)button;
     AppWidgets* widgets = (AppWidgets*) user_data;
@@ -153,7 +152,6 @@ static void on_show_symbols_clicked(GtkButton* button, gpointer user_data) {
     gtk_text_buffer_get_bounds(widgets->input_buffer, &start, &end);
     gchar* input_text = gtk_text_buffer_get_text(widgets->input_buffer, &start, &end, FALSE);
 
-    // Re-analizar el código para poblar el reportero
     clear_symbol_report();
     ast_root = NULL;
     yylineno = 1;
@@ -162,11 +160,11 @@ static void on_show_symbols_clicked(GtkButton* button, gpointer user_data) {
     if (input_text && input_text[0] != '\0') {
         YY_BUFFER_STATE buffer_state = yy_scan_string(input_text);
         if (yyparse() == 0 && ast_root) {
-            Context* contextPadre = nuevoContext(NULL);
+            // <<<<<<< CAMBIO: Se crea el contexto raíz con el nombre "global"
+            Context* contextPadre = nuevoContext(NULL, "global");
             ast_root->interpret(ast_root, contextPadre);
         }
         yy_delete_buffer(buffer_state);
-        // liberarAST(ast_root);
     }
     
     display_symbol_table_window(widgets->main_window);
