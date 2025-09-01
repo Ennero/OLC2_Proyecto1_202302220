@@ -11,7 +11,12 @@
 Result interpretExpresionLenguaje(AbstractExpresion* self, Context* context) {
     ExpresionLenguaje* nodo = (ExpresionLenguaje*) self;
     calcularResultados(nodo, context);
-    
+
+    // Verificar si se encontró un error semántico
+    if (has_semantic_error_been_found()) {
+            return nuevoValorResultadoVacio();
+        }
+
     Operacion op = (*nodo->tablaOperaciones)[nodo->izquierda.tipo][nodo->derecha.tipo];
     if (op == NULL) {
         char description[256];

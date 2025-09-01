@@ -67,7 +67,17 @@ Operacion tablaOperacionesResta[TIPO_COUNT][TIPO_COUNT] = {
     [INT][DOUBLE] = restarIntDouble,
     [DOUBLE][INT] = restarDoubleInt,
     [FLOAT][DOUBLE] = restarFloatDouble,
-    [DOUBLE][FLOAT] = restarDoubleFloat
+    [DOUBLE][FLOAT] = restarDoubleFloat,
+
+    // Nuevas operaciones para CHAR
+    [CHAR][CHAR] = restarIntInt,
+    [CHAR][INT] = restarIntInt,
+    [INT][CHAR] = restarIntInt,
+    [CHAR][FLOAT] = restarFloatInt, // Izquierda se promueve a float
+    [FLOAT][CHAR] = restarFloatInt,
+    [CHAR][DOUBLE] = restarDoubleInt, // Izquierda se promueve a double
+    [DOUBLE][CHAR] = restarDoubleInt
+
 };
 
 AbstractExpresion* nuevoRestaExpresion(AbstractExpresion* izquierda, AbstractExpresion* derecha, int line, int column) {

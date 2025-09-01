@@ -8,7 +8,7 @@
 Result dividirIntInt(ExpresionLenguaje* self) {
     int divisor = *((int*)self->derecha.valor);
     if (divisor == 0) {
-        add_error_to_report("Semántico", "/", "División por cero.", 0, 0, NULL);
+        add_error_to_report("Semántico", "/", "División por cero.", self->base.line, self->base.column, NULL);
         return nuevoValorResultadoVacio();
     }
     // La división de enteros en C trunca el resultado, lo cual es correcto para int/int.
@@ -20,7 +20,7 @@ Result dividirIntInt(ExpresionLenguaje* self) {
 Result dividirFloatFloat(ExpresionLenguaje* self) {
     float divisor = *((float*)self->derecha.valor);
     if (divisor == 0.0f) {
-        add_error_to_report("Semántico", "/", "División por cero.", 0, 0, NULL);
+        add_error_to_report("Semántico", "/", "División por cero.", self->base.line, self->base.column, NULL);
         return nuevoValorResultadoVacio();
     }
     float* res = malloc(sizeof(float));
@@ -31,7 +31,7 @@ Result dividirFloatFloat(ExpresionLenguaje* self) {
 Result dividirDoubleDouble(ExpresionLenguaje* self) {
     double divisor = *((double*)self->derecha.valor);
     if (divisor == 0.0) {
-        add_error_to_report("Semántico", "/", "División por cero.", 0, 0, NULL);
+        add_error_to_report("Semántico", "/", "División por cero.", self->base.line, self->base.column, NULL);
         return nuevoValorResultadoVacio();
     }
     double* res = malloc(sizeof(double));
@@ -42,7 +42,7 @@ Result dividirDoubleDouble(ExpresionLenguaje* self) {
 Result dividirIntFloat(ExpresionLenguaje* self) {
     float divisor = *((float*)self->derecha.valor);
     if (divisor == 0.0f) {
-        add_error_to_report("Semántico", "/", "División por cero.", 0, 0, NULL);
+        add_error_to_report("Semántico", "/", "División por cero.", self->base.line, self->base.column, NULL);
         return nuevoValorResultadoVacio();
     }
     float* res = malloc(sizeof(float));
@@ -53,7 +53,7 @@ Result dividirIntFloat(ExpresionLenguaje* self) {
 Result dividirFloatInt(ExpresionLenguaje* self) {
     int divisor = *((int*)self->derecha.valor);
     if (divisor == 0) {
-        add_error_to_report("Semántico", "/", "División por cero.", 0, 0, NULL);
+        add_error_to_report("Semántico", "/", "División por cero.", self->base.line, self->base.column, NULL);
         return nuevoValorResultadoVacio();
     }
     float* res = malloc(sizeof(float));
@@ -64,7 +64,7 @@ Result dividirFloatInt(ExpresionLenguaje* self) {
 Result dividirIntDouble(ExpresionLenguaje* self) {
     double divisor = *((double*)self->derecha.valor);
     if (divisor == 0.0) {
-        add_error_to_report("Semántico", "/", "División por cero.", 0, 0, NULL);
+        add_error_to_report("Semántico", "/", "División por cero.", self->base.line, self->base.column, NULL);
         return nuevoValorResultadoVacio();
     }
     double* res = malloc(sizeof(double));
@@ -75,7 +75,7 @@ Result dividirIntDouble(ExpresionLenguaje* self) {
 Result dividirDoubleInt(ExpresionLenguaje* self) {
     int divisor = *((int*)self->derecha.valor);
     if (divisor == 0) {
-        add_error_to_report("Semántico", "/", "División por cero.", 0, 0, NULL);
+        add_error_to_report("Semántico", "/", "División por cero.", self->base.line, self->base.column, NULL);
         return nuevoValorResultadoVacio();
     }
     double* res = malloc(sizeof(double));
@@ -86,7 +86,7 @@ Result dividirDoubleInt(ExpresionLenguaje* self) {
 Result dividirFloatDouble(ExpresionLenguaje* self) {
     double divisor = *((double*)self->derecha.valor);
     if (divisor == 0.0) {
-        add_error_to_report("Semántico", "/", "División por cero.", 0, 0, NULL);
+        add_error_to_report("Semántico", "/", "División por cero.", self->base.line, self->base.column, NULL);
         return nuevoValorResultadoVacio();
     }
     double* res = malloc(sizeof(double));
@@ -97,7 +97,7 @@ Result dividirFloatDouble(ExpresionLenguaje* self) {
 Result dividirDoubleFloat(ExpresionLenguaje* self) {
     float divisor = *((float*)self->derecha.valor);
     if (divisor == 0.0f) {
-        add_error_to_report("Semántico", "/", "División por cero.", 0, 0, NULL);
+        add_error_to_report("Semántico", "/", "División por cero.", self->base.line, self->base.column, NULL);
         return nuevoValorResultadoVacio();
     }
     double* res = malloc(sizeof(double));
@@ -114,7 +114,16 @@ Operacion tablaOperacionesDivision[TIPO_COUNT][TIPO_COUNT] = {
     [INT][DOUBLE] = dividirIntDouble,
     [DOUBLE][INT] = dividirDoubleInt,
     [FLOAT][DOUBLE] = dividirFloatDouble,
-    [DOUBLE][FLOAT] = dividirDoubleFloat
+    [DOUBLE][FLOAT] = dividirDoubleFloat,
+
+    // Nuevas operaciones para CHAR
+    [CHAR][CHAR] = dividirIntInt,
+    [CHAR][INT] = dividirIntInt,
+    [INT][CHAR] = dividirIntInt,
+    [CHAR][FLOAT] = dividirFloatInt, // Izquierda se promueve a float
+    [FLOAT][CHAR] = dividirFloatInt,
+    [CHAR][DOUBLE] = dividirDoubleInt, // Izquierda se promueve a double
+    [DOUBLE][CHAR] = dividirDoubleInt
 };
 
 AbstractExpresion* nuevoDivisionExpresion(AbstractExpresion* izquierda, AbstractExpresion* derecha, int line, int column) {

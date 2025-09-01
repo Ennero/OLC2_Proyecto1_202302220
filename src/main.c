@@ -225,32 +225,41 @@ static void on_execute_clicked(GtkToolButton* button, gpointer user_data) {
     yylineno = 1;
     yycolumn = 1;
 
-    // Si hay algo en el texto de entrada
+    
+    
     if (input_text && input_text[0] != '\0') {
+        // 1. Ejecutar el análisis léxico y sintáctico
         YY_BUFFER_STATE buffer_state = yy_scan_string(input_text);
         yyparse();
 
-        // Verificar errores
+        // 2. Si NO hubo errores de sintaxis Y se generó un AST, proceder a interpretar
         if (get_error_list() == NULL && ast_root) {
-
-            // Si no hay errores, se procede a la interpretación
             Context* contextPadre = nuevoContext(NULL, "global");
             ast_root->interpret(ast_root, contextPadre);
-            if (has_semantic_error_been_found()) {
-                append_to_output("\nSe encontró un error semántico. Ejecución abortada.");
-                display_error_table_window(widgets->main_window);
-            } else {
-                append_to_output("\n\n======== Código analizado y ejecutado correctamente ========");
-            }
-        } else if (get_error_list() != NULL) {
-            append_to_output("Se encontraron errores léxicos/sintácticos. La ejecución fue abortada.\n");
-        } else {
-            append_to_output("No se pudo generar el AST por un error desconocido.\n");
         }
+        
         yy_delete_buffer(buffer_state);
     } else {
         append_to_output("No hay código para ejecutar.\n");
     }
+
+    // 3. Lógica final para determinar el mensaje de estado (fuera del if principal)
+    // Esta es la ÚNICA fuente de verdad para el mensaje final.
+    if (get_error_list() != NULL) {
+        // Si la lista de errores (léxicos, sintácticos O semánticos) NO está vacía:
+        // a. Limpiamos cualquier salida parcial (como el "null" que veías).
+        clear_output_buffer();
+        // b. Escribimos el mensaje de error.
+        append_to_output("======== Se encontraron errores durante el análisis y/o ejecución ========\nVer la tabla de errores para más detalles.");
+    } else {
+        // Si la lista de errores está completamente vacía, la ejecución fue un éxito.
+        append_to_output("\n\n======== Código analizado y ejecutado correctamente ========");
+    }
+
+
+
+
+
 
     // Actualizar el buffer de salida
     const char* output_text = get_output_buffer();

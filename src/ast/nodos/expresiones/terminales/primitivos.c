@@ -90,15 +90,11 @@ Result interpretPrimitivoExpresion(AbstractExpresion *self, Context *context)
     }
     case CHAR:
     {
-        char *valor = malloc(sizeof(char));
+        // Ahora guardamos el char como un entero para facilitar las operaciones.
+        int *valor = malloc(sizeof(int));
 
-        // Reutilizamos la función de procesar escapes para manejar '\n', '\t', etc.
         char *processed_char_content = process_string_escapes(nodo->valor);
-
-        // El valor del char es el primer (y único) carácter del contenido procesado.
-        *valor = processed_char_content[0];
-
-        // Liberamos la memoria de la cadena auxiliar.
+        *valor = (int)processed_char_content[0]; // Guardamos su valor numérico.
         free(processed_char_content);
 
         return nuevoValorResultado(valor, CHAR);

@@ -67,7 +67,16 @@ Operacion tablaOperacionesMultiplicacion[TIPO_COUNT][TIPO_COUNT] = {
     [INT][DOUBLE] = multiplicarIntDouble,
     [DOUBLE][INT] = multiplicarDoubleInt,
     [FLOAT][DOUBLE] = multiplicarFloatDouble,
-    [DOUBLE][FLOAT] = multiplicarDoubleFloat
+    [DOUBLE][FLOAT] = multiplicarDoubleFloat,
+
+    // Nuevas operaciones para CHAR
+    [CHAR][CHAR] = multiplicarIntInt,
+    [CHAR][INT] = multiplicarIntInt,
+    [INT][CHAR] = multiplicarIntInt,
+    [CHAR][FLOAT] = multiplicarFloatInt, // Izquierda se promueve a float
+    [FLOAT][CHAR] = multiplicarFloatInt,
+    [CHAR][DOUBLE] = multiplicarDoubleInt, // Izquierda se promueve a double
+    [DOUBLE][CHAR] = multiplicarDoubleInt
 };
 
 AbstractExpresion* nuevoMultiplicacionExpresion(AbstractExpresion* izquierda, AbstractExpresion* derecha, int line, int column) {
