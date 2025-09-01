@@ -266,15 +266,23 @@ static void on_show_symbols_clicked(GtkToolButton* button, gpointer user_data) {
     GtkTextIter start, end;
     gtk_text_buffer_get_bounds(buffer, &start, &end);
     gchar* input_text = gtk_text_buffer_get_text(buffer, &start, &end, FALSE);
+
+    // Limpiar los reportes
     clear_symbol_report();
     clear_error_report();
     ast_root = NULL;
     yylineno = 1;
     yycolumn = 1;
+
+    // Si hay algo en el texto de entrada
     if (input_text && input_text[0] != '\0') {
         YY_BUFFER_STATE buffer_state = yy_scan_string(input_text);
         yyparse();
+
+        // Si tampoco hay errores
         if(get_error_list() == NULL && ast_root) {
+
+            // Si no hay errores, se procede a la interpretación
             Context* contextPadre = nuevoContext(NULL, "global");
             ast_root->interpret(ast_root, contextPadre);
         }
@@ -284,6 +292,7 @@ static void on_show_symbols_clicked(GtkToolButton* button, gpointer user_data) {
     g_free(input_text);
 }
 
+// Funcion para Mostrar los Errores
 static void on_show_errors_clicked(GtkToolButton* button, gpointer user_data) {
     (void)button;
     AppWidgets* widgets = (AppWidgets*) user_data;
@@ -308,12 +317,13 @@ static void on_show_errors_clicked(GtkToolButton* button, gpointer user_data) {
     g_free(input_text);
 }
 
+// Funcion para Exportar el AST
 static void on_ast_export_clicked(GtkButton* button, gpointer user_data) {
     (void)button;
     GtkWidget* parent_window = GTK_WIDGET(user_data);
     GtkWidget *dialog = gtk_file_chooser_dialog_new("Exportar AST Como", GTK_WINDOW(parent_window), GTK_FILE_CHOOSER_ACTION_SAVE,
-                                         "_Cancelar", GTK_RESPONSE_CANCEL,
-                                         "_Exportar", GTK_RESPONSE_ACCEPT, NULL);
+                                            "_Cancelar", GTK_RESPONSE_CANCEL,
+                                            "_Exportar", GTK_RESPONSE_ACCEPT, NULL);
     
     GtkFileFilter* svg_filter = gtk_file_filter_new();
     gtk_file_filter_set_name(svg_filter, "Gráfico Vectorial Escalable (*.svg)");
@@ -330,10 +340,10 @@ static void on_ast_export_clicked(GtkButton* button, gpointer user_data) {
 
     if (gtk_dialog_run(GTK_DIALOG(dialog)) == GTK_RESPONSE_ACCEPT) {
         char *dest_filename = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(dialog));
-        const char* src_filename = "ast-graph/ast.svg"; // <<<< CAMBIO: Ruta actualizada
+        const char* src_filename = "ast-graph/ast.svg";
         
         if (g_str_has_suffix(dest_filename, ".pdf")) {
-            src_filename = "ast-graph/ast.pdf"; // <<<< CAMBIO: Ruta actualizada
+            src_filename = "ast-graph/ast.pdf";
         }
         
         copy_file(src_filename, dest_filename);
@@ -342,6 +352,7 @@ static void on_ast_export_clicked(GtkButton* button, gpointer user_data) {
     gtk_widget_destroy(dialog);
 }
 
+// Funcion para generar el ast
 static void on_generate_ast_clicked(GtkToolButton* button, gpointer user_data) {
     (void)button;
     AppWidgets* widgets = (AppWidgets*) user_data;
@@ -554,7 +565,7 @@ int main(int argc, char** argv) {
 }
 
 //=====================================================================
-// LÓGICA DE TABLAS (SIN CAMBIOS)
+// LÓGICA DE TABLAS 
 //=====================================================================
 enum {
     ERR_COL_ID, ERR_COL_TYPE, ERR_COL_LEXEME, ERR_COL_DESC, ERR_COL_LINE, ERR_COL_COLUMN, ERR_NUM_COLS
@@ -576,9 +587,9 @@ static void display_error_table_window(GtkWindow* parent) {
         GtkTreeIter iter;
         gtk_list_store_append(store, &iter);
         gtk_list_store_set(store, &iter,
-                           ERR_COL_ID, errors->id, ERR_COL_TYPE, errors->type,
-                           ERR_COL_LEXEME, errors->lexeme, ERR_COL_DESC, errors->description,
-                           ERR_COL_LINE, errors->line, ERR_COL_COLUMN, errors->column, -1);
+                            ERR_COL_ID, errors->id, ERR_COL_TYPE, errors->type,
+                            ERR_COL_LEXEME, errors->lexeme, ERR_COL_DESC, errors->description,
+                            ERR_COL_LINE, errors->line, ERR_COL_COLUMN, errors->column, -1);
         errors = errors->next;
     }
     tree_view = gtk_tree_view_new_with_model(GTK_TREE_MODEL(store));
@@ -627,10 +638,10 @@ static void display_symbol_table_window(GtkWindow* parent) {
         GtkTreeIter iter;
         gtk_list_store_append(store, &iter);
         gtk_list_store_set(store, &iter,
-                           SYM_COL_ID, symbols->id, SYM_COL_NAME, symbols->name,
-                           SYM_COL_TYPE, symbols->type, SYM_COL_VALUE, symbols->value,
-                           SYM_COL_CONTEXT, symbols->context_name, SYM_COL_LINE, symbols->line,
-                           SYM_COL_COLUMN, symbols->column, -1);
+                            SYM_COL_ID, symbols->id, SYM_COL_NAME, symbols->name,
+                            SYM_COL_TYPE, symbols->type, SYM_COL_VALUE, symbols->value,
+                            SYM_COL_CONTEXT, symbols->context_name, SYM_COL_LINE, symbols->line,
+                            SYM_COL_COLUMN, symbols->column, -1);
         symbols = symbols->next;
     }
     tree_view = gtk_tree_view_new_with_model(GTK_TREE_MODEL(store));
