@@ -47,11 +47,15 @@
 %right '='
 %left TOKEN_OR
 %left TOKEN_AND
+%left '|' 
+%left '^' 
+%left '&' 
+
 %left TOKEN_IGUAL_IGUAL TOKEN_DIFERENTE        
 %left '<' '>' TOKEN_MAYOR_IGUAL TOKEN_MENOR_IGUAL
 %left '+' '-'
 %left '*' '/' '%'
-%right '!' NEG
+%right '!' '~' NEG
 %right '(' ')'
 
 %%
@@ -117,6 +121,14 @@ expr: expr '+' expr                  { $$ = nuevoSumaExpresion($1, $3, @2.first_
     | expr '/' expr                { $$ = nuevoDivisionExpresion($1, $3, @2.first_line, @2.first_column); }
     | expr '%' expr                { $$ = nuevoModuloExpresion($1, $3, @2.first_line, @2.first_column); }
 
+    // <<<< NUEVAS REGLAS BIT A BIT >>>>
+    | expr '&' expr                { $$ = nuevoBitwiseAndExpresion($1, $3, @2.first_line, @2.first_column); }
+    | expr '|' expr                { $$ = nuevoBitwiseOrExpresion($1, $3, @2.first_line, @2.first_column); }
+    | expr '^' expr                { $$ = nuevoBitwiseXorExpresion($1, $3, @2.first_line, @2.first_column); }
+
+
+
+
     // --- REGLAS RELACIONALES ---
     | expr TOKEN_IGUAL_IGUAL expr  { $$ = nuevoIgualExpresion($1, $3, @2.first_line, @2.first_column); }
     | expr TOKEN_DIFERENTE expr    { $$ = nuevoDiferenteExpresion($1, $3, @2.first_line, @2.first_column); }
@@ -133,6 +145,8 @@ expr: expr '+' expr                  { $$ = nuevoSumaExpresion($1, $3, @2.first_
     // --- REGLAS UNARIAS ---
     | '(' expr ')'                 { $$ = $2; }
     | '-' expr %prec NEG           { $$ = nuevoUnarioExpresion($2, @1.first_line, @1.first_column); }
+    | '~' expr                     { $$ = nuevoBitwiseNotExpresion($2, @1.first_line, @1.first_column); } // NUEVA REGLA UNARIA
+    
     | primitivo                    { $$ = $1; }
     | TOKEN_IDENTIFIER             { $$ = nuevoIdentificadorExpresion($1, @1.first_line, @1.first_column); }
     | '(' tipoPrimitivo ')' expr   { $$ = nuevoCasteoExpresion($2, $4, @1.first_line, @1.first_column); }

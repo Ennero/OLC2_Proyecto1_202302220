@@ -44,6 +44,12 @@ AbstractExpresion* nuevoAndExpresion(AbstractExpresion* izquierda, AbstractExpre
 AbstractExpresion* nuevoOrExpresion(AbstractExpresion* izquierda, AbstractExpresion* derecha, int line, int column);
 AbstractExpresion* nuevoNotExpresion(AbstractExpresion* expresion, int line, int column);
 
+/* --- Constructores de Nodos de Expresiones Bit a Bit --- */
+AbstractExpresion* nuevoBitwiseAndExpresion(AbstractExpresion* izquierda, AbstractExpresion* derecha, int line, int column);
+AbstractExpresion* nuevoBitwiseOrExpresion(AbstractExpresion* izquierda, AbstractExpresion* derecha, int line, int column);
+AbstractExpresion* nuevoBitwiseXorExpresion(AbstractExpresion* izquierda, AbstractExpresion* derecha, int line, int column);
+AbstractExpresion* nuevoBitwiseNotExpresion(AbstractExpresion* expresion, int line, int column);
+
 
 #endif
 

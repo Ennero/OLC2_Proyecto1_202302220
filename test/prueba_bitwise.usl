@@ -1,0 +1,60 @@
+// Archivo de prueba para los operadores Bit a Bit
+
+System.out.println("--- Pruebas de Operadores Bit a Bit ---");
+
+// --- Valores iniciales ---
+// En binario: ...0000 1111 (15)
+int a = 15;
+
+// En binario: ...0001 1001 (25)
+int b = 25;
+
+// Como 'A', su valor ASCII es 65
+// En binario: ...0100 0001 (65)
+char c = 'A';
+
+
+// --- Prueba de Bitwise AND (&) ---
+//   0000 1111  (15)
+// & 0001 1001  (25)
+//   -----------
+//   0000 1001  (9)
+int resultado_and = a & b;
+System.out.println("15 & 25 = " + resultado_and); // Debería imprimir 9
+
+
+// --- Prueba de Bitwise OR (|) ---
+//   0000 1111  (15)
+// | 0100 0001  (65)
+//   -----------
+//   0100 1111  (79)
+int resultado_or = a | c;
+System.out.println("15 | 'A' = " + resultado_or); // Debería imprimir 79
+
+
+// --- Prueba de Bitwise XOR (^) ---
+//   0000 1111  (15)
+// ^ 0001 1001  (25)
+//   -----------
+//   0001 0110  (22)
+int resultado_xor = a ^ b;
+System.out.println("15 ^ 25 = " + resultado_xor); // Debería imprimir 22
+
+
+// --- Prueba de Bitwise NOT (~) ---
+// ~ 0000 1111  (15)
+//   -----------
+//   1111 0000  (-16 en complemento a dos)
+int resultado_not = ~a;
+System.out.println("~15 = " + resultado_not); // Debería imprimir -16
+
+
+// --- Prueba combinada con precedencia ---
+// Se evalúa primero el AND, luego el OR
+// (25 & 15) | 65  ->  9 | 65
+//   0000 1001  (9)
+// | 0100 0001  (65)
+//   -----------
+//   0100 1001  (73)
+int combinado = c | b & a;
+System.out.println("'A' | 25 & 15 = " + combinado); // Debería imprimir 73

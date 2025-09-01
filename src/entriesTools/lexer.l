@@ -103,7 +103,8 @@ newline           \n
 "||"               return TOKEN_OR;
 "++"               return TOKEN_INCREMENTO;
 "--"               return TOKEN_DECREMENTO;
-[+*/%<>()\[\]{};,=.!-] { return yytext[0]; }
+
+[+*/%<>()\[\]{};,=.!&|^~] { return yytext[0]; }
 .                  { add_error_to_report("Léxico", yytext, "Caracter ilegal no reconocido.", yylineno, yycolumn, NULL); }
 
 %%
