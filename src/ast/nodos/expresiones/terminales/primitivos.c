@@ -7,11 +7,20 @@
 #include <string.h>
 #include <stdbool.h>
 
-// <<<< NUEVA FUNCIÓN AUXILIAR PARA PROCESAR ESCAPES EN STRINGS >>>>
+// NUEVO: Función auxiliar para convertir una subcadena hexadecimal de 4 dígitos a un int.
+static int parse_unicode_escape(const char *escape_sequence)
+{
+    char hex[5];
+    strncpy(hex, escape_sequence, 4);
+    hex[4] = '\0';
+    return (int)strtol(hex, NULL, 16);
+}
+
+// MODIFICADO: Ahora procesa también los escapes unicode \uXXXX.
 static char *process_string_escapes(const char *input)
 {
     size_t len = strlen(input);
-    char *output = malloc(len + 1); // La longitud final será <= que la original
+    char *output = malloc(len + 1);
     if (!output)
         return NULL;
 
@@ -41,7 +50,18 @@ static char *process_string_escapes(const char *input)
             case '\'':
                 output[j++] = '\'';
                 break;
-            default: // Si no es un escape conocido, se trata como literal
+            // NUEVO: Manejo de secuencias de escape Unicode
+            case 'u':
+                if (i + 4 < len)
+                {
+                    int unicode_val = parse_unicode_escape(&input[i + 1]);
+                    // Ojo: Esto asume que el valor unicode cabe en un char.
+                    // Para un intérprete más avanzado se necesitaría manejo de UTF-8.
+                    output[j++] = (char)unicode_val;
+                    i += 4; // Avanzamos el índice para saltar los 4 dígitos hexadecimales.
+                }
+                break;
+            default:
                 output[j++] = '\\';
                 output[j++] = input[i];
                 break;
@@ -57,6 +77,7 @@ static char *process_string_escapes(const char *input)
     return output;
 }
 
+// MODIFICADO: La función de interpretación ahora maneja correctamente Hex y Unicode.
 Result interpretPrimitivoExpresion(AbstractExpresion *self, Context *context)
 {
     (void)context;
@@ -67,7 +88,16 @@ Result interpretPrimitivoExpresion(AbstractExpresion *self, Context *context)
     case INT:
     {
         int *valor = malloc(sizeof(int));
-        *valor = atoi(nodo->valor);
+        // MODIFICADO: Usamos strtol con base 0 para detectar automáticamente "0x".
+        // strtol es más robusto que atoi.
+        if (strncmp(nodo->valor, "0x", 2) == 0 || strncmp(nodo->valor, "0X", 2) == 0)
+        {
+            *valor = (int)strtol(nodo->valor, NULL, 16);
+        }
+        else
+        {
+            *valor = (int)strtol(nodo->valor, NULL, 10);
+        }
         return nuevoValorResultado(valor, INT);
     }
     case FLOAT:
@@ -90,18 +120,14 @@ Result interpretPrimitivoExpresion(AbstractExpresion *self, Context *context)
     }
     case CHAR:
     {
-        // Ahora guardamos el char como un entero para facilitar las operaciones.
         int *valor = malloc(sizeof(int));
-
         char *processed_char_content = process_string_escapes(nodo->valor);
-        *valor = (int)processed_char_content[0]; // Guardamos su valor numérico.
+        *valor = (int)processed_char_content[0];
         free(processed_char_content);
-
         return nuevoValorResultado(valor, CHAR);
     }
     case STRING:
     {
-        // El lexer nos da el string sin comillas, solo procesamos escapes
         char *processed_string = process_string_escapes(nodo->valor);
         return nuevoValorResultado(processed_string, STRING);
     }
