@@ -1,6 +1,7 @@
+#include "aritmeticas.h"
 #include "ast/nodos/builders.h"
 #include "ast/nodos/expresiones/expresiones.h"
-#include "aritmeticas.h"
+#include "context/result.h"
 #include <stdlib.h>
 
 Result multiplicarIntInt(ExpresionLenguaje* self) {
@@ -15,19 +16,63 @@ Result multiplicarFloatFloat(ExpresionLenguaje* self) {
     return nuevoValorResultado(res, FLOAT);
 }
 
-// ... (puedes añadir más combinaciones como int * float)
+Result multiplicarDoubleDouble(ExpresionLenguaje* self) {
+    double* res = malloc(sizeof(double));
+    *res = *((double*)self->izquierda.valor) * *((double*)self->derecha.valor);
+    return nuevoValorResultado(res, DOUBLE);
+}
+
+Result multiplicarIntFloat(ExpresionLenguaje* self) {
+    float* res = malloc(sizeof(float));
+    *res = (float)(*((int*)self->izquierda.valor)) * *((float*)self->derecha.valor);
+    return nuevoValorResultado(res, FLOAT);
+}
+
+Result multiplicarFloatInt(ExpresionLenguaje* self) {
+    float* res = malloc(sizeof(float));
+    *res = *((float*)self->izquierda.valor) * (float)(*((int*)self->derecha.valor));
+    return nuevoValorResultado(res, FLOAT);
+}
+
+Result multiplicarIntDouble(ExpresionLenguaje* self) {
+    double* res = malloc(sizeof(double));
+    *res = (double)(*((int*)self->izquierda.valor)) * *((double*)self->derecha.valor);
+    return nuevoValorResultado(res, DOUBLE);
+}
+
+Result multiplicarDoubleInt(ExpresionLenguaje* self) {
+    double* res = malloc(sizeof(double));
+    *res = *((double*)self->izquierda.valor) * (double)(*((int*)self->derecha.valor));
+    return nuevoValorResultado(res, DOUBLE);
+}
+
+Result multiplicarFloatDouble(ExpresionLenguaje* self) {
+    double* res = malloc(sizeof(double));
+    *res = (double)(*((float*)self->izquierda.valor)) * *((double*)self->derecha.valor);
+    return nuevoValorResultado(res, DOUBLE);
+}
+
+Result multiplicarDoubleFloat(ExpresionLenguaje* self) {
+    double* res = malloc(sizeof(double));
+    *res = *((double*)self->izquierda.valor) * (double)(*((float*)self->derecha.valor));
+    return nuevoValorResultado(res, DOUBLE);
+}
 
 Operacion tablaOperacionesMultiplicacion[TIPO_COUNT][TIPO_COUNT] = {
     [INT][INT] = multiplicarIntInt,
     [FLOAT][FLOAT] = multiplicarFloatFloat,
+    [DOUBLE][DOUBLE] = multiplicarDoubleDouble,
+    [INT][FLOAT] = multiplicarIntFloat,
+    [FLOAT][INT] = multiplicarFloatInt,
+    [INT][DOUBLE] = multiplicarIntDouble,
+    [DOUBLE][INT] = multiplicarDoubleInt,
+    [FLOAT][DOUBLE] = multiplicarFloatDouble,
+    [DOUBLE][FLOAT] = multiplicarDoubleFloat
 };
 
 AbstractExpresion* nuevoMultiplicacionExpresion(AbstractExpresion* izquierda, AbstractExpresion* derecha) {
     ExpresionLenguaje* expr = nuevoExpresionLenguaje(interpretExpresionLenguaje, izquierda, derecha);
-
-    // Para generar el árbol
     expr->base.node_type = "Multiplicacion";
-
     expr->tablaOperaciones = &tablaOperacionesMultiplicacion;
     return (AbstractExpresion*) expr;
 }

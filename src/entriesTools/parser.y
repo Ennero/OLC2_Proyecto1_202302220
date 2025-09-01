@@ -16,6 +16,7 @@
     #include "context/result.h"
     #include "context/bloque.h"
     #include "error_reporter.h"
+    #include "ast/nodos/instrucciones/instruccion/reasignacion.h"
 }
 
 /* Habilitar el seguimiento de ubicaciones (línea/columna) */
@@ -31,9 +32,9 @@
 /* --- Declaración de Tokens --- */
 %token TOKEN_IF TOKEN_ELSE TOKEN_WHILE TOKEN_FOR TOKEN_SWITCH TOKEN_CASE
 %token TOKEN_BREAK TOKEN_CONTINUE TOKEN_RETURN TOKEN_PRINT TOKEN_MAIN TOKEN_CLASS
-%token TOKEN_DINT TOKEN_DDOUBLE TOKEN_DBOOLEAN TOKEN_DCHAR TOKEN_DSTRING
+%token TOKEN_DINT TOKEN_DFLOAT TOKEN_DDOUBLE TOKEN_DBOOLEAN TOKEN_DCHAR TOKEN_DSTRING
 %token <string> TOKEN_IDENTIFIER TOKEN_INTEGER TOKEN_HEX_INTEGER TOKEN_DOUBLE_LIT
-%token <string> TOKEN_CHAR_LITERAL TOKEN_STRING_LITERAL TOKEN_TRUE TOKEN_FALSE
+%token <string> TOKEN_CHAR_LITERAL TOKEN_STRING_LITERAL TOKEN_TRUE TOKEN_FALSE TOKEN_FLOAT_LIT
 %token TOKEN_IGUAL_IGUAL TOKEN_DIFERENTE TOKEN_MAYOR_IGUAL TOKEN_MENOR_IGUAL
 %token TOKEN_AND TOKEN_OR TOKEN_INCREMENTO TOKEN_DECREMENTO
 
@@ -121,7 +122,8 @@ expr: expr '+' expr   { $$ = nuevoSumaExpresion($1, $3); }
 
 primitivo: TOKEN_INTEGER        { $$ = nuevoPrimitivoExpresion($1, INT); }
     | TOKEN_HEX_INTEGER    { $$ = nuevoPrimitivoExpresion($1, INT); }
-    | TOKEN_DOUBLE_LIT     { $$ = nuevoPrimitivoExpresion($1, FLOAT); }
+    | TOKEN_FLOAT_LIT      { $$ = nuevoPrimitivoExpresion($1, FLOAT); }
+    | TOKEN_DOUBLE_LIT     { $$ = nuevoPrimitivoExpresion($1, DOUBLE); }
     | TOKEN_STRING_LITERAL { $$ = nuevoPrimitivoExpresion($1, STRING); }
     | TOKEN_CHAR_LITERAL   { $$ = nuevoPrimitivoExpresion($1, CHAR); }
     | TOKEN_TRUE           { $$ = nuevoPrimitivoExpresion($1, BOOLEAN); }
@@ -129,10 +131,11 @@ primitivo: TOKEN_INTEGER        { $$ = nuevoPrimitivoExpresion($1, INT); }
     ;
 
 tipoPrimitivo: TOKEN_DINT     { $$ = INT; }
-    | TOKEN_DDOUBLE  { $$ = FLOAT; }
-    | TOKEN_DSTRING  { $$ = STRING; }
-    | TOKEN_DCHAR    { $$ = CHAR; }
-    | TOKEN_DBOOLEAN { $$ = BOOLEAN; }
+    | TOKEN_DFLOAT    { $$ = FLOAT; }
+    | TOKEN_DDOUBLE   { $$ = DOUBLE; }
+    | TOKEN_DSTRING   { $$ = STRING; }
+    | TOKEN_DCHAR     { $$ = CHAR; }
+    | TOKEN_DBOOLEAN  { $$ = BOOLEAN; }
     ;
 
 %%

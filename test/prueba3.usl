@@ -1,0 +1,22 @@
+// --- Ejemplos para Probar Tipos Avanzados ---
+
+// Prueba de Double
+double pi = 3.1415926535;
+double radio = 10.5;
+double area = pi * radio * radio; // Se necesita implementar la multiplicación para doubles
+print(area);
+
+// Prueba de Caracteres Unicode y de Escape
+char letra_A = '\u0041';       // 'A' en Unicode
+char nueva_linea = '\n';
+char comilla_simple = ''';
+
+print(letra_A);
+print(nueva_linea); // Esto debería imprimir una línea en blanco
+print(comilla_simple);
+
+// Prueba de errores semánticos con los nuevos tipos
+int x = 10;
+x = 20.5; // ERROR: No se puede asignar double a int
+
+char c = "hola"; // ERROR: No se puede asignar String a char

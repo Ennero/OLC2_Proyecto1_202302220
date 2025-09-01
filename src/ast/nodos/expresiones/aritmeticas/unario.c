@@ -1,36 +1,70 @@
-#include "ast/AbstractExpresion.h"
-#include "ast/nodos/builders.h"
-#include "context/context.h"
-#include "context/result.h"
 #include "aritmeticas.h"
-#include "ast/nodos/expresiones/expresiones.h"
-
+#include "ast/nodos/builders.h"
+#include "ast/nodos/expresiones/expresiones.h" // Se incluye para UnaryOperacion
+#include "context/result.h"
+#include "error_reporter.h"
 #include <stdlib.h>
+#include <stdio.h>
 
-Result negarAritmeticoInt(ExpresionLenguaje* self) {
-    int* res = malloc(sizeof(int));
-    *res = - *((int*)self->izquierda.valor);
-    return nuevoValorResultado(res, INT);
+// --- Funciones de Negación ---
+// Reciben directamente un 'Result'
+Result negarInt(Result res) {
+    int* val = malloc(sizeof(int));
+    *val = -(*((int*)res.valor));
+    free(res.valor);
+    return nuevoValorResultado(val, INT);
 }
 
-Result negarAritmeticoFloat(ExpresionLenguaje* self) {
-    float* res = malloc(sizeof(float));
-    *res = - *((float*)self->izquierda.valor);
-    return nuevoValorResultado(res, FLOAT);
+Result negarFloat(Result res) {
+    float* val = malloc(sizeof(float));
+    *val = -(*((float*)res.valor));
+    free(res.valor);
+    return nuevoValorResultado(val, FLOAT);
 }
 
-Operacion tablaOperacionesUnario[TIPO_COUNT][TIPO_COUNT] = {
-    [INT][NULO] = negarAritmeticoInt,
-    [FLOAT][NULO] = negarAritmeticoFloat,
+Result negarDouble(Result res) {
+    double* val = malloc(sizeof(double));
+    *val = -(*((double*)res.valor));
+    free(res.valor);
+    return nuevoValorResultado(val, DOUBLE);
+}
+
+// --- Tabla de Operaciones para Unario (1D) ---
+// Ahora usa el tipo correcto 'UnaryOperacion' y es un arreglo simple.
+UnaryOperacion tablaOperacionesUnario[TIPO_COUNT] = {
+    [INT] = negarInt,
+    [FLOAT] = negarFloat,
+    [DOUBLE] = negarDouble
 };
 
-//builders.h
+// --- Interpretador para el Nodo Unario ---
+// Esta función es específica para el nodo unario y es más simple.
+Result interpretUnarioExpresion(AbstractExpresion* self, Context* context) {
+    // 1. Interpretar la expresión hija (solo hay una)
+    Result res = self->hijos[0]->interpret(self->hijos[0], context);
+
+    // 2. Comprobar si el tipo es válido para la negación
+    if (res.tipo >= TIPO_COUNT || tablaOperacionesUnario[res.tipo] == NULL) {
+        char desc[256];
+        sprintf(desc, "El operador unario '-' no se puede aplicar a un valor de tipo '%s'.", labelTipoDato[res.tipo]);
+        // Idealmente, se pasaría la línea/columna del operador '-'
+        add_error_to_report("Semántico", "-", desc, 0, 0); 
+        return nuevoValorResultadoVacio();
+    }
+    
+    // 3. Llamar a la función de negación correcta
+    return tablaOperacionesUnario[res.tipo](res);
+}
+
+// --- Constructor del Nodo ---
 AbstractExpresion* nuevoUnarioExpresion(AbstractExpresion* expresion) {
-    ExpresionLenguaje* unarioExpresion = nuevoExpresionLenguaje(interpretUnarioLenguaje, expresion, NULL);
+    // Nota: El nodo unario no necesita la estructura compleja 'ExpresionLenguaje'.
+    // Es un nodo simple con un solo hijo.
+    AbstractExpresion* unarioExpresion = malloc(sizeof(AbstractExpresion));
+    if(!unarioExpresion) return NULL;
 
-    // Para la generación del árbol
-    unarioExpresion->base.node_type = "Unario";
+    buildAbstractExpresion(unarioExpresion, interpretUnarioExpresion, "NegacionUnaria");
+    agregarHijo(unarioExpresion, expresion);
 
-    unarioExpresion->tablaOperaciones = &tablaOperacionesUnario;
-    return (AbstractExpresion*) unarioExpresion;
+    return unarioExpresion;
 }

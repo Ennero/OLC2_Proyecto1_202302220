@@ -7,7 +7,6 @@
 extern void yyerror(const char *s);
 int yycolumn = 1;
 char* yylasttext = NULL;
-
 int yywrap(void);
 
 #define YY_USER_ACTION                                   \
@@ -21,13 +20,9 @@ int yywrap(void);
 
 %}
 
-/* Opciones de Flex */
 %option yylineno nounput noinput warn
-
-/* Condiciones de arranque para comentarios */
 %x COMMENT
 
-/* --- Definiciones de Expresiones Regulares --- */
 digit             [0-9]
 hex_digit         [0-9a-fA-F]
 alpha             [a-zA-Z_]
@@ -36,9 +31,14 @@ identifier        {alpha}{alpha_num}*
 integer           {digit}+
 hex_integer       0[xX]{hex_digit}+
 exponent          [eE][+-]?{digit}+
+
+float_lit         ({digit}+\.{digit}*[fF])|(\.{digit}+[fF])|({digit}+[fF])
 double_lit        ({digit}+\.{digit}*({exponent})?|\.{digit}+({exponent})?|{digit}+{exponent})
-char_lit          \'([^'\\]|\\.)\'
-string_lit        \"([^"\\]|\\.)*\"
+
+unicode_escape    \\u{hex_digit}{4}
+char_lit          \'([^'\\]|\\.|{unicode_escape})\'
+string_lit        \"([^"\\]|\\.|{unicode_escape})*\"
+
 line_comment      "//".*
 block_comment     "/*"
 white_space       [ \t\r]+
@@ -68,6 +68,7 @@ newline           \n
 "main"             return TOKEN_MAIN;
 "class"            return TOKEN_CLASS;
 "int"              return TOKEN_DINT;
+"float"            return TOKEN_DFLOAT;
 "double"           return TOKEN_DDOUBLE;
 "boolean"          return TOKEN_DBOOLEAN;
 "char"             return TOKEN_DCHAR;
@@ -76,6 +77,7 @@ newline           \n
 "false"            { yylval.string = strdup(yytext); return TOKEN_FALSE; }
 {integer}          { yylval.string = strdup(yytext); return TOKEN_INTEGER; }
 {hex_integer}      { yylval.string = strdup(yytext); return TOKEN_HEX_INTEGER; }
+{float_lit}        { yylval.string = strdup(yytext); return TOKEN_FLOAT_LIT; }
 {double_lit}       { yylval.string = strdup(yytext); return TOKEN_DOUBLE_LIT; }
 {char_lit}         { yylval.string = strdup(yytext); return TOKEN_CHAR_LITERAL; }
 {string_lit}       { yylval.string = strdup(yytext); return TOKEN_STRING_LITERAL; }
@@ -88,7 +90,7 @@ newline           \n
 "||"               return TOKEN_OR;
 "++"               return TOKEN_INCREMENTO;
 "--"               return TOKEN_DECREMENTO;
-[+\-*/%<>()\[\]{};,=.!] { return yytext[0]; }
+[+*/%<>()\[\]{};,=.!-] { return yytext[0]; }
 .                  { add_error_to_report("Léxico", yytext, "Caracter ilegal no reconocido.", yylineno, yycolumn); }
 
 %%

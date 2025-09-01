@@ -7,7 +7,8 @@ FLEX    := flex
 
 # Se separan las flags de GTK3 y se AÑADEN las de GtkSourceView
 GTK_CFLAGS := $(shell pkg-config --cflags gtk+-3.0 gtksourceview-3.0)
-GTK_LIBS   := $(shell pkg-config --libs gtk+-3.0 gtksourceview-3.0)
+# <<<< CAMBIO CLAVE: Se añade -lm al final para enlazar la librería matemática >>>>
+GTK_LIBS   := $(shell pkg-config --libs gtk+-3.0 gtksourceview-3.0) -lm
 
 # Se añaden las flags de compilación a la variable CFLAGS principal
 CFLAGS  := -I$(SRC) -I$(BUILD) -Wall -Wextra $(GTK_CFLAGS)
@@ -25,11 +26,11 @@ BISON_H := $(BUILD)/parser.tab.h
 LEX_C   := $(BUILD)/lex.yy.c
 
 # Objetos finales
-# <<<<< CORRECCIÓN: 'patsubst' en lugar de 'pastsusb' >>>>>
 OBJ_SRC := $(patsubst $(SRC)/%.c,$(BUILD)/%.o,$(SRC_FILES))
 OBJ_GEN := $(BUILD)/parser.tab.o $(BUILD)/lex.yy.o
 OBJ_ALL := $(OBJ_SRC) $(OBJ_GEN)
 
+# <<<< NOTA: He cambiado el nombre del ejecutable a 'javalang' para que coincida con tu log de error >>>>
 all: $(BUILD)/javalang
 
 $(BUILD):
@@ -63,4 +64,3 @@ clean:
 	$(RM) $(BUILD)
 
 .PHONY: all clean
-
