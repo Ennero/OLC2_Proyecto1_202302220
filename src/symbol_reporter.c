@@ -7,7 +7,6 @@ static SymbolInfo* symbol_list_head = NULL;
 static SymbolInfo* symbol_list_tail = NULL;
 static int symbol_id_counter = 0;
 
-// La función format_value ahora sabe cómo manejar 'double' y 'char' Unicode
 static void format_value(char* buffer, size_t size, const void* value, TipoDato type) {
     if (value == NULL) {
         snprintf(buffer, size, "null");
@@ -17,20 +16,38 @@ static void format_value(char* buffer, size_t size, const void* value, TipoDato 
         case INT:
             snprintf(buffer, size, "%d", *(int*)value);
             break;
-        case DOUBLE: // <<<< NUEVO: Manejo de double
-            snprintf(buffer, size, "%g", *(double*)value);
+        case FLOAT:
+            snprintf(buffer, size, "%f", *(float*)value);
+            break;
+        case DOUBLE:
+            snprintf(buffer, size, "%.15g", *(double*)value);
             break;
         case STRING:
             snprintf(buffer, size, "\"%s\"", (char*)value);
             break;
-        case CHAR: // <<<< CAMBIO: Manejo de char como int (Unicode)
-            // Si es un caracter ASCII imprimible, se muestra como tal.
-            if (*(int*)value >= 32 && *(int*)value <= 126) {
-                snprintf(buffer, size, "'%c'", *(int*)value);
-            } else { // Si no, se muestra como código Unicode
-                snprintf(buffer, size, "'\\u%04X'", *(int*)value);
+        
+        // <<<< CORRECCIÓN CLAVE >>>>
+        // Se añade lógica para mostrar los caracteres de escape de forma legible.
+        case CHAR: {
+            int char_val = *(int*)value;
+            switch(char_val) {
+                case '\n': snprintf(buffer, size, "'\\n'"); break;
+                case '\t': snprintf(buffer, size, "'\\t'"); break;
+                case '\r': snprintf(buffer, size, "'\\r'"); break;
+                case '\'': snprintf(buffer, size, "'\\''"); break;
+                case '\"': snprintf(buffer, size, "'\\\"'"); break;
+                case '\\': snprintf(buffer, size, "'\\\\'"); break;
+                default:
+                    if (char_val >= 32 && char_val <= 126) {
+                        snprintf(buffer, size, "'%c'", char_val);
+                    } else {
+                        snprintf(buffer, size, "'\\u%04X'", char_val);
+                    }
+                    break;
             }
             break;
+        }
+        
         case BOOLEAN:
             snprintf(buffer, size, "%s", *(int*)value ? "true" : "false");
             break;

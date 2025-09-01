@@ -29,14 +29,9 @@ Result interpretPrintExpresion(AbstractExpresion* self, Context* context) {
             case BOOLEAN:
                 sprintf(buffer, "%s\n", *(int*)result.valor ? "true" : "false");
                 break;
-            case CHAR: { // <<<< CAMBIO: Manejo de char como int (Unicode)
+            case CHAR: {
                 int char_val = *(int*)result.valor;
-                // Si es un caracter ASCII imprimible, se muestra como tal.
-                if (char_val >= 32 && char_val <= 126) {
-                    sprintf(buffer, "%c\n", char_val);
-                } else { // Si no, se muestra como código Unicode
-                    sprintf(buffer, "\\u%04X\n", char_val);
-                }
+                sprintf(buffer, "%c\n", char_val);
                 break;
             }
             case NULO:
