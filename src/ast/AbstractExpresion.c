@@ -26,9 +26,11 @@ void liberarAST(AbstractExpresion* raiz) {
 }
 
 // Se añade el parámetro 'node_type'
-void buildAbstractExpresion(AbstractExpresion* base, Interpret interpretPuntero, const char* node_type) {
+void buildAbstractExpresion(AbstractExpresion* base, Interpret interpretPuntero, const char* node_type, int line, int column) {
     base->interpret = interpretPuntero;
     base->node_type = node_type; // Se asigna el nombre
     base->hijos = NULL;
     base->numHijos = 0;
+    base->line = line;
+    base->column = column;
 }

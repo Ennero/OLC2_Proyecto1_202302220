@@ -31,7 +31,7 @@ Result interpretNotExpresion(AbstractExpresion* self, Context* context) {
         char desc[256];
         sprintf(desc, "El operador unario '!' no se puede aplicar a un valor de tipo '%s'.", labelTipoDato[res.tipo]);
         // Idealmente, se pasaría la línea/columna del operador '!'
-        add_error_to_report("Semántico", "!", desc, 0, 0, NULL); 
+        add_error_to_report("Semantico", "!", desc, self->line, self->column, context->nombre_completo); 
         return nuevoValorResultadoVacio();
     }
     
@@ -40,11 +40,11 @@ Result interpretNotExpresion(AbstractExpresion* self, Context* context) {
 }
 
 // --- Constructor del Nodo ---
-AbstractExpresion* nuevoNotExpresion(AbstractExpresion* expresion) {
+AbstractExpresion* nuevoNotExpresion(AbstractExpresion* expresion, int line, int column) {
     AbstractExpresion* notExpresion = malloc(sizeof(AbstractExpresion));
     if(!notExpresion) return NULL;
 
-    buildAbstractExpresion(notExpresion, interpretNotExpresion, "Not");
+    buildAbstractExpresion(notExpresion, interpretNotExpresion, "Not", line, column);
     agregarHijo(notExpresion, expresion);
 
     return notExpresion;

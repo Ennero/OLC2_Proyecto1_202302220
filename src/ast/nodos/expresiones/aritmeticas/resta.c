@@ -70,8 +70,8 @@ Operacion tablaOperacionesResta[TIPO_COUNT][TIPO_COUNT] = {
     [DOUBLE][FLOAT] = restarDoubleFloat
 };
 
-AbstractExpresion* nuevoRestaExpresion(AbstractExpresion* izquierda, AbstractExpresion* derecha) {
-    ExpresionLenguaje* restaExpresion = nuevoExpresionLenguaje(interpretExpresionLenguaje, izquierda, derecha);
+AbstractExpresion* nuevoRestaExpresion(AbstractExpresion* izquierda, AbstractExpresion* derecha, int line, int column) {
+    ExpresionLenguaje* restaExpresion = nuevoExpresionLenguaje(interpretExpresionLenguaje, izquierda, derecha, line, column);
     restaExpresion->base.node_type = "Resta";
     restaExpresion->tablaOperaciones = &tablaOperacionesResta;
     return (AbstractExpresion*) restaExpresion;

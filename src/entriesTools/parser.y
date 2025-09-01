@@ -16,6 +16,7 @@
     #include "context/result.h"
     #include "context/bloque.h"
     #include "error_reporter.h"
+    #include "ast/nodos/instrucciones/instruccion/casteos.h"
     #include "ast/nodos/instrucciones/instruccion/reasignacion.h"
 }
 
@@ -51,6 +52,7 @@
 %left '+' '-'
 %left '*' '/' '%'
 %right '!' NEG
+%right '(' ')'
 
 %%
 
@@ -94,11 +96,11 @@ lista_Expr: lista_Expr ',' expr { agregarHijo($1, $3); $$ = $1; }
     }
     ;
 
-imprimir: TOKEN_PRINT '(' lista_Expr ')' { $$ = nuevoPrintExpresion($3); }
+imprimir: TOKEN_PRINT '(' lista_Expr ')' { $$ = nuevoPrintExpresion($3, @1.first_line, @1.first_column); }
     ;
 
-bloque: '{' lSentencia '}' { $$ = nuevoBloqueExpresion($2); }
-    | '{' '}' { $$ = nuevoBloqueExpresion(NULL); }
+bloque: '{' lSentencia '}' { $$ = nuevoBloqueExpresion($2, @1.first_line, @1.first_column); }
+    | '{' '}' { $$ = nuevoBloqueExpresion(NULL, @1.first_line, @1.first_column); }
     ;
 
 declaracion_var: tipoPrimitivo TOKEN_IDENTIFIER { $$ = nuevoDeclaracionVariables($1, $2, NULL, @2.first_line, @2.first_column); }
@@ -109,40 +111,41 @@ reasignacion_var: TOKEN_IDENTIFIER '=' expr { $$ = nuevoReasignacionExpresion($1
     ;
 
     // --- REGLAS ARITMÉTICAS ---
-expr: expr '+' expr                  { $$ = nuevoSumaExpresion($1, $3); }
-    | expr '-' expr                { $$ = nuevoRestaExpresion($1, $3); }
-    | expr '*' expr                { $$ = nuevoMultiplicacionExpresion($1, $3); }
-    | expr '/' expr                { $$ = nuevoDivisionExpresion($1, $3); }
-    | expr '%' expr                { $$ = nuevoModuloExpresion($1, $3); }
+expr: expr '+' expr                  { $$ = nuevoSumaExpresion($1, $3, @2.first_line, @2.first_column); }
+    | expr '-' expr                { $$ = nuevoRestaExpresion($1, $3, @2.first_line, @2.first_column); }
+    | expr '*' expr                { $$ = nuevoMultiplicacionExpresion($1, $3, @2.first_line, @2.first_column); }
+    | expr '/' expr                { $$ = nuevoDivisionExpresion($1, $3, @2.first_line, @2.first_column); }
+    | expr '%' expr                { $$ = nuevoModuloExpresion($1, $3, @2.first_line, @2.first_column); }
 
     // --- REGLAS RELACIONALES ---
-    | expr TOKEN_IGUAL_IGUAL expr  { $$ = nuevoIgualExpresion($1, $3); }
-    | expr TOKEN_DIFERENTE expr    { $$ = nuevoDiferenteExpresion($1, $3); }
-    | expr '<' expr                { $$ = nuevoMenorQueExpresion($1, $3); }
-    | expr '>' expr                { $$ = nuevoMayorQueExpresion($1, $3); }
-    | expr TOKEN_MENOR_IGUAL expr  { $$ = nuevoMenorIgualExpresion($1, $3); }
-    | expr TOKEN_MAYOR_IGUAL expr  { $$ = nuevoMayorIgualExpresion($1, $3); }
+    | expr TOKEN_IGUAL_IGUAL expr  { $$ = nuevoIgualExpresion($1, $3, @2.first_line, @2.first_column); }
+    | expr TOKEN_DIFERENTE expr    { $$ = nuevoDiferenteExpresion($1, $3, @2.first_line, @2.first_column); }
+    | expr '<' expr                { $$ = nuevoMenorQueExpresion($1, $3, @2.first_line, @2.first_column); }
+    | expr '>' expr                { $$ = nuevoMayorQueExpresion($1, $3, @2.first_line, @2.first_column); }
+    | expr TOKEN_MENOR_IGUAL expr  { $$ = nuevoMenorIgualExpresion($1, $3, @2.first_line, @2.first_column); }
+    | expr TOKEN_MAYOR_IGUAL expr  { $$ = nuevoMayorIgualExpresion($1, $3, @2.first_line, @2.first_column); }
 
     // --- REGLAS LÓGICAS ---
-    | expr TOKEN_AND expr          { $$ = nuevoAndExpresion($1, $3); }
-    | expr TOKEN_OR expr           { $$ = nuevoOrExpresion($1, $3); }
-    | '!' expr                     { $$ = nuevoNotExpresion($2); }
+    | expr TOKEN_AND expr          { $$ = nuevoAndExpresion($1, $3, @2.first_line, @2.first_column); }
+    | expr TOKEN_OR expr           { $$ = nuevoOrExpresion($1, $3, @2.first_line, @2.first_column); }
+    | '!' expr                     { $$ = nuevoNotExpresion($2, @1.first_line, @1.first_column); }
 
     // --- REGLAS UNARIAS ---
     | '(' expr ')'                 { $$ = $2; }
-    | '-' expr %prec NEG           { $$ = nuevoUnarioExpresion($2); }
+    | '-' expr %prec NEG           { $$ = nuevoUnarioExpresion($2, @1.first_line, @1.first_column); }
     | primitivo                    { $$ = $1; }
     | TOKEN_IDENTIFIER             { $$ = nuevoIdentificadorExpresion($1, @1.first_line, @1.first_column); }
+    | '(' tipoPrimitivo ')' expr   { $$ = nuevoCasteoExpresion($2, $4, @1.first_line, @1.first_column); }
     ;
 
-primitivo: TOKEN_INTEGER        { $$ = nuevoPrimitivoExpresion($1, INT); }
-    | TOKEN_HEX_INTEGER    { $$ = nuevoPrimitivoExpresion($1, INT); }
-    | TOKEN_FLOAT_LIT      { $$ = nuevoPrimitivoExpresion($1, FLOAT); }
-    | TOKEN_DOUBLE_LIT     { $$ = nuevoPrimitivoExpresion($1, DOUBLE); }
-    | TOKEN_STRING_LITERAL { $$ = nuevoPrimitivoExpresion($1, STRING); }
-    | TOKEN_CHAR_LITERAL   { $$ = nuevoPrimitivoExpresion($1, CHAR); }
-    | TOKEN_TRUE           { $$ = nuevoPrimitivoExpresion($1, BOOLEAN); }
-    | TOKEN_FALSE          { $$ = nuevoPrimitivoExpresion($1, BOOLEAN); }
+primitivo: TOKEN_INTEGER        { $$ = nuevoPrimitivoExpresion($1, INT, @1.first_line, @1.first_column); }
+    | TOKEN_HEX_INTEGER    { $$ = nuevoPrimitivoExpresion($1, INT, @1.first_line, @1.first_column); }
+    | TOKEN_FLOAT_LIT      { $$ = nuevoPrimitivoExpresion($1, FLOAT, @1.first_line, @1.first_column); }
+    | TOKEN_DOUBLE_LIT     { $$ = nuevoPrimitivoExpresion($1, DOUBLE, @1.first_line, @1.first_column); }
+    | TOKEN_STRING_LITERAL { $$ = nuevoPrimitivoExpresion($1, STRING, @1.first_line, @1.first_column); }
+    | TOKEN_CHAR_LITERAL   { $$ = nuevoPrimitivoExpresion($1, CHAR, @1.first_line, @1.first_column); }
+    | TOKEN_TRUE           { $$ = nuevoPrimitivoExpresion($1, BOOLEAN, @1.first_line, @1.first_column); }
+    | TOKEN_FALSE          { $$ = nuevoPrimitivoExpresion($1, BOOLEAN, @1.first_line, @1.first_column); }
     ;
 
 tipoPrimitivo: TOKEN_DINT     { $$ = INT; }

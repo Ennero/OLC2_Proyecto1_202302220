@@ -3,6 +3,7 @@
 #include "context/context.h"
 #include "context/result.h"
 #include "expresiones.h"
+#include "error_reporter.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -13,9 +14,14 @@ Result interpretExpresionLenguaje(AbstractExpresion* self, Context* context) {
     
     Operacion op = (*nodo->tablaOperaciones)[nodo->izquierda.tipo][nodo->derecha.tipo];
     if (op == NULL) {
-        printf("Operación no soportada para los tipos %s, %s\n", 
-            labelTipoDato[nodo->izquierda.tipo], labelTipoDato[nodo->derecha.tipo]);
-            return nuevoValorResultadoVacio();
+        char description[256];
+        snprintf(description, sizeof(description), "La operacion '%s' no esta definida entre los tipos %s y %s.",
+            self->node_type,
+            labelTipoDato[nodo->izquierda.tipo], 
+            labelTipoDato[nodo->derecha.tipo]
+        );
+        add_error_to_report("Semantico", self->node_type, description, self->line, self->column, context->nombre_completo);
+        return nuevoValorResultadoVacio();
     }
     return op(nodo);
 }
@@ -26,20 +32,24 @@ Result interpretUnarioLenguaje(AbstractExpresion* self, Context* context) {
 
     Operacion op = (*nodo->tablaOperaciones)[nodo->izquierda.tipo][NULO];
     if (op == NULL) {
-        printf("Operación no soportada para el tipo %s\n", 
-            labelTipoDato[nodo->izquierda.tipo]);
+        char description[256];
+        snprintf(description, sizeof(description), "La operacion unaria '%s' no esta definida para el tipo %s.",
+            self->node_type,
+            labelTipoDato[nodo->izquierda.tipo]
+        );
+        add_error_to_report("Semantico", self->node_type, description, self->line, self->column, context->nombre_completo);
         return nuevoValorResultadoVacio();
     }
     return op(nodo);
 }
 
-ExpresionLenguaje* nuevoExpresionLenguaje(Interpret funcionEspecifica, AbstractExpresion* izquierda, AbstractExpresion* derecha) {
+ExpresionLenguaje* nuevoExpresionLenguaje(Interpret funcionEspecifica, AbstractExpresion* izquierda, AbstractExpresion* derecha, int line, int column) {
     // reservar el espacio en memoria y obtener el puntero a este
     ExpresionLenguaje* nodo = malloc(sizeof(ExpresionLenguaje));
     if (!nodo) return NULL;
 
     //asignar valores
-    buildAbstractExpresion(&nodo->base, funcionEspecifica, "ExpresionLenguaje");
+    buildAbstractExpresion(&nodo->base, funcionEspecifica, "ExpresionLenguaje", line, column);
 
     //guardar los punteros en lo hijos de este arbol a los lados de la expresion
     if (izquierda) agregarHijo((AbstractExpresion*) nodo, izquierda);

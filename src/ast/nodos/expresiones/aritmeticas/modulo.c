@@ -99,8 +99,8 @@ Operacion tablaOperacionesModulo[TIPO_COUNT][TIPO_COUNT] = {
     [DOUBLE][FLOAT] = moduloDoubleFloat
 };
 
-AbstractExpresion* nuevoModuloExpresion(AbstractExpresion* izquierda, AbstractExpresion* derecha) {
-    ExpresionLenguaje* expr = nuevoExpresionLenguaje(interpretExpresionLenguaje, izquierda, derecha);
+AbstractExpresion* nuevoModuloExpresion(AbstractExpresion* izquierda, AbstractExpresion* derecha, int line, int column) {
+    ExpresionLenguaje* expr = nuevoExpresionLenguaje(interpretExpresionLenguaje, izquierda, derecha, line, column);
     expr->base.node_type = "Modulo";
     expr->tablaOperaciones = &tablaOperacionesModulo;
     return (AbstractExpresion*) expr;

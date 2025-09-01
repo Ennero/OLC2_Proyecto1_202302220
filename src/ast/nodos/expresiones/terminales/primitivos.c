@@ -45,83 +45,45 @@ Result interpretPrimitivoExpresion(AbstractExpresion* self, Context* context) {
     
     switch (nodo->tipo) {
         case INT: {
-            int* valor_int = malloc(sizeof(int));
-            if (strncmp(nodo->valor, "0x", 2) == 0 || strncmp(nodo->valor, "0X", 2) == 0) {
-                *valor_int = (int)strtol(nodo->valor, NULL, 16);
-            } else {
-                *valor_int = atoi(nodo->valor);
-            }
-            free(nodo->valor);
-            return nuevoValorResultado((void*) valor_int, nodo->tipo);
+            int* valor = malloc(sizeof(int));
+            *valor = atoi(nodo->valor);
+            return nuevoValorResultado(valor, INT);
         }
-        case FLOAT: { 
-            float* valor_float = malloc(sizeof(float));
-            *valor_float = atof(nodo->valor); // atof convierte a double, pero el cast a float es seguro
-            free(nodo->valor);
-            return nuevoValorResultado((void*) valor_float, nodo->tipo);
+        case FLOAT: {
+            float* valor = malloc(sizeof(float));
+            *valor = atof(nodo->valor);
+            return nuevoValorResultado(valor, FLOAT);
         }
         case DOUBLE: {
-            double* valor_double = malloc(sizeof(double));
-            *valor_double = atof(nodo->valor);
-            free(nodo->valor);
-            return nuevoValorResultado((void*) valor_double, nodo->tipo);
-        }
-        case STRING: {
-            size_t len = strlen(nodo->valor);
-            char* inner_content = malloc(len - 1); // Espacio para el contenido sin comillas
-            if (len >= 2) {
-                strncpy(inner_content, nodo->valor + 1, len - 2);
-            }
-            inner_content[len - 2] = '\0';
-            
-            char* processed_string = process_string_escapes(inner_content);
-            
-            free(inner_content);
-            free(nodo->valor);
-            return nuevoValorResultado((void*) processed_string, STRING);
-        }
-        case CHAR: {
-            int* valor_char_unicode = malloc(sizeof(int));
-            if (strlen(nodo->valor) >= 3) {
-                if (nodo->valor[1] == '\\' && nodo->valor[2] == 'u') {
-                    char hex_code[5] = {0};
-                    strncpy(hex_code, nodo->valor + 3, 4);
-                    *valor_char_unicode = (int)strtol(hex_code, NULL, 16);
-                } else if (nodo->valor[1] == '\\') {
-                    switch(nodo->valor[2]) {
-                        case 'n': *valor_char_unicode = '\n'; break;
-                        case 't': *valor_char_unicode = '\t'; break;
-                        case 'r': *valor_char_unicode = '\r'; break;
-                        case '\'': *valor_char_unicode = '\''; break;
-                        case '\"': *valor_char_unicode = '\"'; break;
-                        case '\\': *valor_char_unicode = '\\'; break;
-                        default: *valor_char_unicode = nodo->valor[2]; break;
-                    }
-                } else {
-                    *valor_char_unicode = (int)nodo->valor[1];
-                }
-            } else {
-                *valor_char_unicode = 0;
-            }
-            free(nodo->valor);
-            return nuevoValorResultado((void*) valor_char_unicode, nodo->tipo);
+            double* valor = malloc(sizeof(double));
+            *valor = atof(nodo->valor);
+            return nuevoValorResultado(valor, DOUBLE);
         }
         case BOOLEAN: {
-            int* valor_bool = malloc(sizeof(int));
-            *valor_bool = (strcmp(nodo->valor, "true") == 0);
-            free(nodo->valor);
-            return nuevoValorResultado((void*) valor_bool, nodo->tipo);
+            int* valor = malloc(sizeof(int));
+            *valor = strcmp(nodo->valor, "true") == 0;
+            return nuevoValorResultado(valor, BOOLEAN);
+        }
+        case CHAR: {
+            char* valor = malloc(sizeof(char));
+            // El lexer ya nos da el caracter sin comillas
+            *valor = nodo->valor[0];
+            return nuevoValorResultado(valor, CHAR);
+        }
+        case STRING: {
+            // El lexer nos da el string con comillas, hay que quitarlas
+            char* processed_string = process_string_escapes(nodo->valor);
+            return nuevoValorResultado(processed_string, STRING);
         }
         default:
-            printf("Tipo de dato primitivo no implementado");
+            return nuevoValorResultadoVacio();
     }
-    return nuevoValorResultadoVacio();
 }
 
-AbstractExpresion* nuevoPrimitivoExpresion(char* v, TipoDato tipo) {
+AbstractExpresion* nuevoPrimitivoExpresion(char* v, TipoDato tipo, int line, int column) {
     PrimitivoExpresion* nodo = malloc(sizeof(PrimitivoExpresion));
     if (!nodo) return NULL;
-    buildAbstractExpresion(&nodo->base, interpretPrimitivoExpresion, "Primitivo");
+    buildAbstractExpresion(&nodo->base, interpretPrimitivoExpresion, "Primitivo", line, column);
     nodo->valor = v;
     nodo->tipo = tipo;
     return (AbstractExpresion*) nodo;

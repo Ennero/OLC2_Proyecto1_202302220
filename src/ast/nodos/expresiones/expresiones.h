@@ -24,7 +24,7 @@ struct ExpresionLenguaje{
 //interpret basico de expresiones
 Result interpretExpresionLenguaje(AbstractExpresion* self, Context* context);
 Result interpretUnarioLenguaje(AbstractExpresion* self, Context* context);
-ExpresionLenguaje* nuevoExpresionLenguaje(Interpret funcionEspecifica, AbstractExpresion* izquierda, AbstractExpresion* derecha);
+ExpresionLenguaje* nuevoExpresionLenguaje(Interpret funcionEspecifica, AbstractExpresion* izquierda, AbstractExpresion* derecha, int line, int column);
 void calcularResultadoIzquierdo(ExpresionLenguaje* self, Context* context);
 void calcularResultadoDerecho(ExpresionLenguaje* self, Context* context);
 void calcularResultados(ExpresionLenguaje* self, Context* context);

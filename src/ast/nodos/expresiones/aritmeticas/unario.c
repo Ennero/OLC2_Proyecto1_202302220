@@ -48,7 +48,7 @@ Result interpretUnarioExpresion(AbstractExpresion* self, Context* context) {
         char desc[256];
         sprintf(desc, "El operador unario '-' no se puede aplicar a un valor de tipo '%s'.", labelTipoDato[res.tipo]);
         // Idealmente, se pasaría la línea/columna del operador '-'
-        add_error_to_report("Semántico", "-", desc, 0, 0, NULL); 
+        add_error_to_report("Semantico", "-", desc, self->line, self->column, context->nombre_completo); 
         return nuevoValorResultadoVacio();
     }
     
@@ -57,13 +57,13 @@ Result interpretUnarioExpresion(AbstractExpresion* self, Context* context) {
 }
 
 // --- Constructor del Nodo ---
-AbstractExpresion* nuevoUnarioExpresion(AbstractExpresion* expresion) {
+AbstractExpresion* nuevoUnarioExpresion(AbstractExpresion* expresion, int line, int column) {
     // Nota: El nodo unario no necesita la estructura compleja 'ExpresionLenguaje'.
     // Es un nodo simple con un solo hijo.
     AbstractExpresion* unarioExpresion = malloc(sizeof(AbstractExpresion));
     if(!unarioExpresion) return NULL;
 
-    buildAbstractExpresion(unarioExpresion, interpretUnarioExpresion, "NegacionUnaria");
+    buildAbstractExpresion(unarioExpresion, interpretUnarioExpresion, "NegacionUnaria", line, column);
     agregarHijo(unarioExpresion, expresion);
 
     return unarioExpresion;

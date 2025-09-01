@@ -47,26 +47,26 @@ Operacion tablaOperacionesMenorIgual[TIPO_COUNT][TIPO_COUNT] = {
 };
 
 // Constructores de Nodos
-AbstractExpresion* nuevoMayorQueExpresion(AbstractExpresion* i, AbstractExpresion* d) {
-    ExpresionLenguaje* expr = nuevoExpresionLenguaje(interpretExpresionLenguaje, i, d);
+AbstractExpresion* nuevoMayorQueExpresion(AbstractExpresion* i, AbstractExpresion* d, int line, int column) {
+    ExpresionLenguaje* expr = nuevoExpresionLenguaje(interpretExpresionLenguaje, i, d, line, column);
     expr->base.node_type = "MayorQue";
     expr->tablaOperaciones = &tablaOperacionesMayorQue;
     return (AbstractExpresion*) expr;
 }
-AbstractExpresion* nuevoMenorQueExpresion(AbstractExpresion* i, AbstractExpresion* d) {
-    ExpresionLenguaje* expr = nuevoExpresionLenguaje(interpretExpresionLenguaje, i, d);
+AbstractExpresion* nuevoMenorQueExpresion(AbstractExpresion* i, AbstractExpresion* d, int line, int column) {
+    ExpresionLenguaje* expr = nuevoExpresionLenguaje(interpretExpresionLenguaje, i, d, line, column);
     expr->base.node_type = "MenorQue";
     expr->tablaOperaciones = &tablaOperacionesMenorQue;
     return (AbstractExpresion*) expr;
 }
-AbstractExpresion* nuevoMayorIgualExpresion(AbstractExpresion* i, AbstractExpresion* d) {
-    ExpresionLenguaje* expr = nuevoExpresionLenguaje(interpretExpresionLenguaje, i, d);
+AbstractExpresion* nuevoMayorIgualExpresion(AbstractExpresion* i, AbstractExpresion* d, int line, int column) {
+    ExpresionLenguaje* expr = nuevoExpresionLenguaje(interpretExpresionLenguaje, i, d, line, column);
     expr->base.node_type = "MayorIgual";
     expr->tablaOperaciones = &tablaOperacionesMayorIgual;
     return (AbstractExpresion*) expr;
 }
-AbstractExpresion* nuevoMenorIgualExpresion(AbstractExpresion* i, AbstractExpresion* d) {
-    ExpresionLenguaje* expr = nuevoExpresionLenguaje(interpretExpresionLenguaje, i, d);
+AbstractExpresion* nuevoMenorIgualExpresion(AbstractExpresion* i, AbstractExpresion* d, int line, int column) {
+    ExpresionLenguaje* expr = nuevoExpresionLenguaje(interpretExpresionLenguaje, i, d, line, column);
     expr->base.node_type = "MenorIgual";
     expr->tablaOperaciones = &tablaOperacionesMenorIgual;
     return (AbstractExpresion*) expr;

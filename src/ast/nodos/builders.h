@@ -11,37 +11,38 @@
 
 /* --- Constructores de Nodos de Instrucciones y Estructura --- */
 AbstractExpresion* nuevoInstruccionesExpresion(void);
-AbstractExpresion* nuevoPrintExpresion(AbstractExpresion* listaExpresiones);
+AbstractExpresion* nuevoPrintExpresion(AbstractExpresion* listaExpresiones, int line, int column);
 AbstractExpresion* nuevoListaExpresiones(void);
 AbstractExpresion* nuevoDeclaracionVariables(TipoDato tipo, char* nombre, AbstractExpresion* expresion, int line, int column);
 AbstractExpresion* nuevoReasignacionExpresion(char* nombre, AbstractExpresion* expresion, int line, int column);
-AbstractExpresion* nuevoBloqueExpresion(AbstractExpresion* lSentencia);
+AbstractExpresion* nuevoBloqueExpresion(AbstractExpresion* lSentencia, int line, int column);
+AbstractExpresion* nuevoCasteoExpresion(TipoDato tipo_destino, AbstractExpresion* expresion, int line, int column);
 
 /* --- Constructores de Nodos de Expresiones Terminales (Valores) --- */
-AbstractExpresion* nuevoPrimitivoExpresion(char* valor, TipoDato tipo);
+AbstractExpresion* nuevoPrimitivoExpresion(char* valor, TipoDato tipo, int line, int column);
 AbstractExpresion* nuevoIdentificadorExpresion(char* nombre, int line, int column);
 
 
 /* --- Constructores de Nodos de Expresiones Aritméticas --- */
-AbstractExpresion* nuevoSumaExpresion(AbstractExpresion* izquierda, AbstractExpresion* derecha);
-AbstractExpresion* nuevoRestaExpresion(AbstractExpresion* izquierda, AbstractExpresion* derecha);
-AbstractExpresion* nuevoMultiplicacionExpresion(AbstractExpresion* izquierda, AbstractExpresion* derecha);
-AbstractExpresion* nuevoDivisionExpresion(AbstractExpresion* izquierda, AbstractExpresion* derecha);
-AbstractExpresion* nuevoModuloExpresion(AbstractExpresion* izquierda, AbstractExpresion* derecha);
-AbstractExpresion* nuevoUnarioExpresion(AbstractExpresion* expresion);
+AbstractExpresion* nuevoSumaExpresion(AbstractExpresion* izquierda, AbstractExpresion* derecha, int line, int column);
+AbstractExpresion* nuevoRestaExpresion(AbstractExpresion* izquierda, AbstractExpresion* derecha, int line, int column);
+AbstractExpresion* nuevoMultiplicacionExpresion(AbstractExpresion* izquierda, AbstractExpresion* derecha, int line, int column);
+AbstractExpresion* nuevoDivisionExpresion(AbstractExpresion* izquierda, AbstractExpresion* derecha, int line, int column);
+AbstractExpresion* nuevoModuloExpresion(AbstractExpresion* izquierda, AbstractExpresion* derecha, int line, int column);
+AbstractExpresion* nuevoUnarioExpresion(AbstractExpresion* expresion, int line, int column);
 
 /* --- Constructores de Nodos de Expresiones Relacionales --- */
-AbstractExpresion* nuevoIgualExpresion(AbstractExpresion* izquierda, AbstractExpresion* derecha);
-AbstractExpresion* nuevoDiferenteExpresion(AbstractExpresion* izquierda, AbstractExpresion* derecha);
-AbstractExpresion* nuevoMenorQueExpresion(AbstractExpresion* izquierda, AbstractExpresion* derecha);
-AbstractExpresion* nuevoMayorQueExpresion(AbstractExpresion* izquierda, AbstractExpresion* derecha);
-AbstractExpresion* nuevoMenorIgualExpresion(AbstractExpresion* izquierda, AbstractExpresion* derecha);
-AbstractExpresion* nuevoMayorIgualExpresion(AbstractExpresion* izquierda, AbstractExpresion* derecha);
+AbstractExpresion* nuevoIgualExpresion(AbstractExpresion* izquierda, AbstractExpresion* derecha, int line, int column);
+AbstractExpresion* nuevoDiferenteExpresion(AbstractExpresion* izquierda, AbstractExpresion* derecha, int line, int column);
+AbstractExpresion* nuevoMenorQueExpresion(AbstractExpresion* izquierda, AbstractExpresion* derecha, int line, int column);
+AbstractExpresion* nuevoMayorQueExpresion(AbstractExpresion* izquierda, AbstractExpresion* derecha, int line, int column);
+AbstractExpresion* nuevoMenorIgualExpresion(AbstractExpresion* izquierda, AbstractExpresion* derecha, int line, int column);
+AbstractExpresion* nuevoMayorIgualExpresion(AbstractExpresion* izquierda, AbstractExpresion* derecha, int line, int column);
 
 /* --- Constructores de Nodos de Expresiones Lógicas --- */
-AbstractExpresion* nuevoAndExpresion(AbstractExpresion* izquierda, AbstractExpresion* derecha);
-AbstractExpresion* nuevoOrExpresion(AbstractExpresion* izquierda, AbstractExpresion* derecha);
-AbstractExpresion* nuevoNotExpresion(AbstractExpresion* expresion);
+AbstractExpresion* nuevoAndExpresion(AbstractExpresion* izquierda, AbstractExpresion* derecha, int line, int column);
+AbstractExpresion* nuevoOrExpresion(AbstractExpresion* izquierda, AbstractExpresion* derecha, int line, int column);
+AbstractExpresion* nuevoNotExpresion(AbstractExpresion* expresion, int line, int column);
 
 
 #endif

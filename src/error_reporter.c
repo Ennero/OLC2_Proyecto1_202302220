@@ -60,7 +60,7 @@ void free_error_report() {
 void add_error_to_report(const char* type, const char* lexeme, const char* description, int line, int column, const char* context_name) {
 
     // Si se encuentra un error semántico
-    if (strcmp(type, "Semántico") == 0) {
+    if (strcmp(type, "Semantico") == 0) {
         semantic_error_found = true;
     }
     // Reservar memoria para el nuevo nodo de error

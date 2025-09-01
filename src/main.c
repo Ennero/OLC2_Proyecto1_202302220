@@ -536,6 +536,26 @@ static void activate(GtkApplication* app, gpointer user_data) {
     gtk_widget_show_all(window);
 }
 
+// Callback for the 'open' signal
+static void on_app_open(GtkApplication* app, GFile** files, gint n_files, char* hint, gpointer user_data) {
+    (void)hint;
+    AppWidgets* widgets = (AppWidgets*) user_data;
+
+    // This is the first activation, so create the window
+    if (!widgets->main_window) {
+        activate(app, user_data);
+    }
+
+    if (n_files > 0) {
+        // For simplicity, we only open the first file
+        char* path = g_file_get_path(files[0]);
+        open_file(widgets, path);
+        g_free(path);
+    }
+
+    gtk_window_present(widgets->main_window);
+}
+
 // --- Función Principal ---
 int main(int argc, char** argv) {
     init_output_buffer();
@@ -546,8 +566,10 @@ int main(int argc, char** argv) {
     int status;
     AppWidgets* widgets = g_malloc(sizeof(AppWidgets));
 
-    app = gtk_application_new("com.mi.interprete", G_APPLICATION_DEFAULT_FLAGS);
+    app = gtk_application_new("com.mi.interprete", G_APPLICATION_HANDLES_OPEN);
     g_signal_connect(app, "activate", G_CALLBACK(activate), widgets);
+    g_signal_connect(app, "open", G_CALLBACK(on_app_open), widgets);
+    g_signal_connect(app, "open", G_CALLBACK(on_app_open), widgets); // Connect the 'open' signal
     status = g_application_run(G_APPLICATION(app), argc, argv);
     g_object_unref(app);
 

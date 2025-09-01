@@ -15,7 +15,7 @@ AbstractExpresion* nuevoListaExpresiones() {
     ListaExpresiones* nodo = malloc(sizeof(ListaExpresiones));
     if (!nodo) return NULL;
     //asignar valores
-    buildAbstractExpresion(&nodo->base, NULL, "ListaExpresiones");
+    buildAbstractExpresion(&nodo->base, NULL, "ListaExpresiones", 0, 0);
 
     return (AbstractExpresion*) nodo;
 }

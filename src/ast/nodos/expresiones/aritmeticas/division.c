@@ -117,8 +117,8 @@ Operacion tablaOperacionesDivision[TIPO_COUNT][TIPO_COUNT] = {
     [DOUBLE][FLOAT] = dividirDoubleFloat
 };
 
-AbstractExpresion* nuevoDivisionExpresion(AbstractExpresion* izquierda, AbstractExpresion* derecha) {
-    ExpresionLenguaje* expr = nuevoExpresionLenguaje(interpretExpresionLenguaje, izquierda, derecha);
+AbstractExpresion* nuevoDivisionExpresion(AbstractExpresion* izquierda, AbstractExpresion* derecha, int line, int column) {
+    ExpresionLenguaje* expr = nuevoExpresionLenguaje(interpretExpresionLenguaje, izquierda, derecha, line, column);
     expr->base.node_type = "Division";
     expr->tablaOperaciones = &tablaOperacionesDivision;
     return (AbstractExpresion*) expr;

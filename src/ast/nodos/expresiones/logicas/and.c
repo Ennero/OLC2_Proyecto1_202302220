@@ -20,8 +20,8 @@ Operacion tablaOperacionesAnd[TIPO_COUNT][TIPO_COUNT] = {
 };
 
 // --- Constructor del Nodo del AST ---
-AbstractExpresion* nuevoAndExpresion(AbstractExpresion* izquierda, AbstractExpresion* derecha) {
-    ExpresionLenguaje* expr = nuevoExpresionLenguaje(interpretExpresionLenguaje, izquierda, derecha);
+AbstractExpresion* nuevoAndExpresion(AbstractExpresion* izquierda, AbstractExpresion* derecha, int line, int column) {
+    ExpresionLenguaje* expr = nuevoExpresionLenguaje(interpretExpresionLenguaje, izquierda, derecha, line, column);
     expr->base.node_type = "And";
     expr->tablaOperaciones = &tablaOperacionesAnd;
     return (AbstractExpresion*) expr;

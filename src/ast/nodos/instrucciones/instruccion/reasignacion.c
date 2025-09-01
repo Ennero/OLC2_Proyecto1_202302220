@@ -46,7 +46,7 @@ AbstractExpresion* nuevoReasignacionExpresion(char* nombre, AbstractExpresion* e
     ReasignacionExpresion* nodo = malloc(sizeof(ReasignacionExpresion));
     if (!nodo) return NULL;
 
-    buildAbstractExpresion(&nodo->base, interpretReasignacion, "Reasignacion");
+    buildAbstractExpresion(&nodo->base, interpretReasignacion, "Reasignacion", line, column);
     nodo->nombre = nombre;
     nodo->line = line;
     nodo->column = column;

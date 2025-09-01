@@ -71,8 +71,8 @@ Operacion tablaOperacionesSuma[TIPO_COUNT][TIPO_COUNT] = {
     [DOUBLE][FLOAT] = sumarDoubleFloat
 };
 
-AbstractExpresion* nuevoSumaExpresion(AbstractExpresion* izquierda, AbstractExpresion* derecha) {
-    ExpresionLenguaje* sumaExpresion = nuevoExpresionLenguaje(interpretExpresionLenguaje, izquierda, derecha);
+AbstractExpresion* nuevoSumaExpresion(AbstractExpresion* izquierda, AbstractExpresion* derecha, int line, int column) {
+    ExpresionLenguaje* sumaExpresion = nuevoExpresionLenguaje(interpretExpresionLenguaje, izquierda, derecha, line, column);
     sumaExpresion->base.node_type = "Suma";
     sumaExpresion->tablaOperaciones = &tablaOperacionesSuma;
     return (AbstractExpresion*) sumaExpresion;

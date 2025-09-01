@@ -54,15 +54,15 @@ Operacion tablaOperacionesDiferente[TIPO_COUNT][TIPO_COUNT] = {
     [BOOLEAN]= { [BOOLEAN]=compararBooleanosDiferente }
 };
 
-AbstractExpresion* nuevoIgualExpresion(AbstractExpresion* i, AbstractExpresion* d) {
-    ExpresionLenguaje* expr = nuevoExpresionLenguaje(interpretExpresionLenguaje, i, d);
+AbstractExpresion* nuevoIgualExpresion(AbstractExpresion* i, AbstractExpresion* d, int line, int column) {
+    ExpresionLenguaje* expr = nuevoExpresionLenguaje(interpretExpresionLenguaje, i, d, line, column);
     expr->base.node_type = "IgualIgual";
     expr->tablaOperaciones = &tablaOperacionesIgual;
     return (AbstractExpresion*) expr;
 }
 
-AbstractExpresion* nuevoDiferenteExpresion(AbstractExpresion* i, AbstractExpresion* d) {
-    ExpresionLenguaje* expr = nuevoExpresionLenguaje(interpretExpresionLenguaje, i, d);
+AbstractExpresion* nuevoDiferenteExpresion(AbstractExpresion* i, AbstractExpresion* d, int line, int column) {
+    ExpresionLenguaje* expr = nuevoExpresionLenguaje(interpretExpresionLenguaje, i, d, line, column);
     expr->base.node_type = "Diferente";
     expr->tablaOperaciones = &tablaOperacionesDiferente;
     return (AbstractExpresion*) expr;

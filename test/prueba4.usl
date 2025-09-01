@@ -7,12 +7,12 @@
 int x = 10;
 char c = "hola"; // ERROR SEMÁNTICO: No se puede asignar 'String' a 'char'.
 
-print(x); // Esta línea no se ejecutará.
+System.out.println(x); // Esta línea no se ejecutará.
 
 // --- Prueba 2: Error en la Reasignación ---
 // Este código no se ejecutará por el error anterior,
 // pero sirve para pruebas si se comenta la primera parte.
 double pi = 3.14;
-print(pi);
+System.out.println(pi);
 
 pi = 100; // ERROR SEMÁNTICO: No se puede asignar 'int' a 'double' (en nuestra implementación estricta).

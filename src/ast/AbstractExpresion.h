@@ -15,11 +15,13 @@ struct AbstractExpresion {
     const char* node_type;
     AbstractExpresion** hijos;
     size_t numHijos;
+    int line;
+    int column;
 };
 
 void agregarHijo(AbstractExpresion* padre, AbstractExpresion* hijo);
 void liberarAST(AbstractExpresion* raiz);
 
-void buildAbstractExpresion(AbstractExpresion* base, Interpret interpretPuntero, const char* node_type);
+void buildAbstractExpresion(AbstractExpresion* base, Interpret interpretPuntero, const char* node_type, int line, int column);
 
 #endif

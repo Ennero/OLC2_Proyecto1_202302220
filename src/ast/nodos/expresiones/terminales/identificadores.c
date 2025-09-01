@@ -36,7 +36,7 @@ AbstractExpresion* nuevoIdentificadorExpresion(char* nombre, int line, int colum
     IdentificadorExpresion* nodo = malloc(sizeof(IdentificadorExpresion));
     if (!nodo) return NULL;
 
-    buildAbstractExpresion(&nodo->base, interpretIdentificadorExpresion, "Identificador");
+    buildAbstractExpresion(&nodo->base, interpretIdentificadorExpresion, "Identificador", line, column);
 
     nodo->nombre = nombre;
     // Se guardan la línea y la columna en la estructura del nodo.

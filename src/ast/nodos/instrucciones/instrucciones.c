@@ -31,7 +31,7 @@ AbstractExpresion* nuevoInstruccionesExpresion() {
     InstruccionesExpresion* nodo = malloc(sizeof(InstruccionesExpresion));
     if (!nodo) return NULL;
 
-    buildAbstractExpresion(&nodo->base, interpretInstrucciones, "Instrucciones");
+    buildAbstractExpresion(&nodo->base, interpretInstrucciones, "Instrucciones", 0, 0);
 
     return (AbstractExpresion*) nodo;
 }

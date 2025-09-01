@@ -70,8 +70,8 @@ Operacion tablaOperacionesMultiplicacion[TIPO_COUNT][TIPO_COUNT] = {
     [DOUBLE][FLOAT] = multiplicarDoubleFloat
 };
 
-AbstractExpresion* nuevoMultiplicacionExpresion(AbstractExpresion* izquierda, AbstractExpresion* derecha) {
-    ExpresionLenguaje* expr = nuevoExpresionLenguaje(interpretExpresionLenguaje, izquierda, derecha);
+AbstractExpresion* nuevoMultiplicacionExpresion(AbstractExpresion* izquierda, AbstractExpresion* derecha, int line, int column) {
+    ExpresionLenguaje* expr = nuevoExpresionLenguaje(interpretExpresionLenguaje, izquierda, derecha, line, column);
     expr->base.node_type = "Multiplicacion";
     expr->tablaOperaciones = &tablaOperacionesMultiplicacion;
     return (AbstractExpresion*) expr;
