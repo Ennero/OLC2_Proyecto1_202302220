@@ -15,12 +15,12 @@
 // 4. La ejecución se detendrá. La línea "print(a);" no se ejecutará.
 
 int a = 10;
-print(x); // ERROR: 'x' no existe.
-print(a); // Esta línea no debería ejecutarse.
+System.out.println(x); // ERROR: 'x' no existe.
+System.out.println(a); // Esta línea no debería ejecutarse.
 
 // --- Prueba 2: Uso correcto después de un error ---
 // Si se corrigiera el error anterior (declarando 'int x = 5;'),
 // este código debería funcionar perfectamente.
 
 int y = 20;
-print(y);
+System.out.println(y);

@@ -4,12 +4,12 @@
 
 // --- Prueba 1: Redeclaración en el ámbito global ---
 int a = 10;
-print(a);
+System.out.println(a);
 
 int a = 20; // ERROR SEMÁNTICO: 'a' ya fue declarada en el ámbito 'global'.
 // La ejecución debería detenerse aquí.
 
-print(a); // Esta línea no debería ejecutarse.
+System.out.println(a); // Esta línea no debería ejecutarse.
 
 // --- Prueba 2: Ocultamiento válido vs. Redeclaración inválida ---
 // Este código no se ejecutará porque el error anterior detiene el programa,
@@ -18,10 +18,10 @@ int b = 100;
 
 {
 String b = "hola"; // VÁLIDO: Esta 'b' es local al bloque y "oculta" a la 'b' global.
-print(b);
+System.out.println(b);
 
 double b = 3.14; // ERROR SEMÁNTICO: 'b' ya fue declarada en ESTE ámbito ('global_bloque').
 
 }
 
-print(b);
+System.out.println(b);

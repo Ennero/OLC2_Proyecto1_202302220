@@ -7,7 +7,7 @@ int a = 10 # 5;
 int b = 20
 
 // Error Sintáctico: Paréntesis sin cerrar
-print( (5 + 3 );
+System.out.println( (5 + 3 );
 
 // Error léxico dentro de un comentario
 /* Este comentario nunca se cierra...

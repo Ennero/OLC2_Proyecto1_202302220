@@ -26,7 +26,7 @@ int b = 20
 
 // --- Prueba 4: Sentencia con error interno ---
 // El parser ya se recuperó en el ';', por lo que esta línea no se analiza.
-print( (5 + 3 );
+System.out.println( (5 + 3 );
 
 // --- Prueba 5: Sentencia Válida Post-Error ---
 // Esta línea tampoco se analizará porque el pánico anterior
