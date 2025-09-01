@@ -92,7 +92,7 @@ void agregarSymbol(Context* actual, Symbol* symbol, int line, int column) {
         snprintf(description, sizeof(description), "La variable '%s' ya ha sido declarada en este ámbito.", symbol->nombre);
         
         // En lugar de printf, se reporta un error semántico formal.
-        add_error_to_report("Semántico", symbol->nombre, description, line, column);
+        add_error_to_report("Semántico", symbol->nombre, description, line, column, actual->nombre_completo);
         
         // Se libera la memoria del símbolo recién creado que no se usará.
         free(symbol);

@@ -24,7 +24,7 @@ Result interpretIdentificadorExpresion(AbstractExpresion* self, Context* context
     snprintf(description, sizeof(description), "La variable '%s' no ha sido declarada en este ámbito.", nodo->nombre);
     
     // Se reporta el error con su tipo, el lexema (nombre), la descripción y la ubicación.
-    add_error_to_report("Semántico", nodo->nombre, description, nodo->line, nodo->column);
+    add_error_to_report("Semántico", nodo->nombre, description, nodo->line, nodo->column, context->nombre_completo);
     
     // Se devuelve un valor nulo para evitar que el programa crashee,
     // aunque la ejecución se detendrá igualmente gracias a la bandera de error.

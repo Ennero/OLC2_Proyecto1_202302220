@@ -48,7 +48,7 @@ Result interpretUnarioExpresion(AbstractExpresion* self, Context* context) {
         char desc[256];
         sprintf(desc, "El operador unario '-' no se puede aplicar a un valor de tipo '%s'.", labelTipoDato[res.tipo]);
         // Idealmente, se pasaría la línea/columna del operador '-'
-        add_error_to_report("Semántico", "-", desc, 0, 0); 
+        add_error_to_report("Semántico", "-", desc, 0, 0, NULL); 
         return nuevoValorResultadoVacio();
     }
     

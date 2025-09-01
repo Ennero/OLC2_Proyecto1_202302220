@@ -91,13 +91,13 @@ newline           \n
 "++"               return TOKEN_INCREMENTO;
 "--"               return TOKEN_DECREMENTO;
 [+*/%<>()\[\]{};,=.!-] { return yytext[0]; }
-.                  { add_error_to_report("Léxico", yytext, "Caracter ilegal no reconocido.", yylineno, yycolumn); }
+.                  { add_error_to_report("Léxico", yytext, "Caracter ilegal no reconocido.", yylineno, yycolumn, NULL); }
 
 %%
 
 int yywrap(void) {
     if (YY_START == COMMENT) {
-        add_error_to_report("Léxico", "EOF", "Fin de archivo inesperado dentro de un comentario en bloque.", yylineno, yycolumn);
+        add_error_to_report("Léxico", "EOF", "Fin de archivo inesperado dentro de un comentario en bloque.", yylineno, yycolumn, NULL);
         BEGIN(INITIAL);
     }
     return 1;

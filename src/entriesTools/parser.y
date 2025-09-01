@@ -156,5 +156,5 @@ tipoPrimitivo: TOKEN_DINT     { $$ = INT; }
 %%
 
 void yyerror(const char *s) {
-    add_error_to_report("Sintáctico", yylasttext, s, yylloc.first_line, yylloc.first_column);
+    add_error_to_report("Sintáctico", yylasttext, s, yylloc.first_line, yylloc.first_column, NULL);
 }

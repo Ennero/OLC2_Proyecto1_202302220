@@ -20,7 +20,7 @@ Result interpretDeclaracionVariable(AbstractExpresion* nodo, Context* context) {
                 labelTipoDato[resultado.tipo], self->nombre, labelTipoDato[self->tipo]);
             
             // Se reporta el error semántico 
-            add_error_to_report("Semántico", self->nombre, description, self->line, self->column);
+            add_error_to_report("Semántico", self->nombre, description, self->line, self->column, context->nombre_completo);
             return nuevoValorResultadoVacio();
         }
         

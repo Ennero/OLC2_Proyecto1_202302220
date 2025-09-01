@@ -568,7 +568,7 @@ int main(int argc, char** argv) {
 // LÓGICA DE TABLAS 
 //=====================================================================
 enum {
-    ERR_COL_ID, ERR_COL_TYPE, ERR_COL_LEXEME, ERR_COL_DESC, ERR_COL_LINE, ERR_COL_COLUMN, ERR_NUM_COLS
+    ERR_COL_ID, ERR_COL_TYPE, ERR_COL_LEXEME, ERR_COL_DESC, ERR_COL_CONTEXT, ERR_COL_LINE, ERR_COL_COLUMN, ERR_NUM_COLS
 };
 static void display_error_table_window(GtkWindow* parent) {
     GtkWidget *window, *scrolled_window, *tree_view;
@@ -581,7 +581,7 @@ static void display_error_table_window(GtkWindow* parent) {
     gtk_window_set_transient_for(GTK_WINDOW(window), parent);
     gtk_window_set_modal(GTK_WINDOW(window), TRUE);
     gtk_container_set_border_width(GTK_CONTAINER(window), 10);
-    store = gtk_list_store_new(ERR_NUM_COLS, G_TYPE_UINT, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_UINT, G_TYPE_UINT);
+    store = gtk_list_store_new(ERR_NUM_COLS, G_TYPE_UINT, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_UINT, G_TYPE_UINT);
     const ErrorInfo* errors = get_error_list();
     while(errors) {
         GtkTreeIter iter;
@@ -589,6 +589,7 @@ static void display_error_table_window(GtkWindow* parent) {
         gtk_list_store_set(store, &iter,
                             ERR_COL_ID, errors->id, ERR_COL_TYPE, errors->type,
                             ERR_COL_LEXEME, errors->lexeme, ERR_COL_DESC, errors->description,
+                            ERR_COL_CONTEXT, errors->context_name,
                             ERR_COL_LINE, errors->line, ERR_COL_COLUMN, errors->column, -1);
         errors = errors->next;
     }
@@ -604,6 +605,9 @@ static void display_error_table_window(GtkWindow* parent) {
     gtk_tree_view_append_column(GTK_TREE_VIEW(tree_view), column);
     renderer = gtk_cell_renderer_text_new();
     column = gtk_tree_view_column_new_with_attributes("Descripción", renderer, "text", ERR_COL_DESC, NULL);
+    gtk_tree_view_append_column(GTK_TREE_VIEW(tree_view), column);
+    renderer = gtk_cell_renderer_text_new();
+    column = gtk_tree_view_column_new_with_attributes("Contexto", renderer, "text", ERR_COL_CONTEXT, NULL);
     gtk_tree_view_append_column(GTK_TREE_VIEW(tree_view), column);
     renderer = gtk_cell_renderer_text_new();
     column = gtk_tree_view_column_new_with_attributes("Línea", renderer, "text", ERR_COL_LINE, NULL);

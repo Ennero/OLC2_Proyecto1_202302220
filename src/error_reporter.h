@@ -9,6 +9,7 @@ typedef struct ErrorInfo {
     char* type;
     char* lexeme;
     char* description;
+    char* context_name;
     int line;
     int column;
     struct ErrorInfo* next;
@@ -18,7 +19,7 @@ typedef struct ErrorInfo {
 void init_error_report();
 void clear_error_report();
 void free_error_report();
-void add_error_to_report(const char* type, const char* lexeme, const char* description, int line, int column);
+void add_error_to_report(const char* type, const char* lexeme, const char* description, int line, int column, const char* context_name);
 const ErrorInfo* get_error_list();
 
 // Funcion para verificar si se ha encontrado un error semántico

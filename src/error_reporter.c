@@ -38,6 +38,7 @@ void clear_error_report() {
         free(current->type);
         free(current->lexeme);
         free(current->description);
+        free(current->context_name);
         
         // Liberar el nodo de la estructura en sí
         free(current);
@@ -56,7 +57,7 @@ void free_error_report() {
 }
 
 // Añade un nuevo error al final de la lista
-void add_error_to_report(const char* type, const char* lexeme, const char* description, int line, int column) {
+void add_error_to_report(const char* type, const char* lexeme, const char* description, int line, int column, const char* context_name) {
 
     // Si se encuentra un error semántico
     if (strcmp(type, "Semántico") == 0) {
@@ -73,6 +74,7 @@ void add_error_to_report(const char* type, const char* lexeme, const char* descr
     new_info->description = strdup(description);
     new_info->line = line;
     new_info->column = column;
+    new_info->context_name = strdup(context_name ? context_name : "global");
     new_info->next = NULL; // Este será el último nodo de la lista
 
     // Añadir el nodo al final de la lista enlazada

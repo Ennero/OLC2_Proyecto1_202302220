@@ -16,7 +16,7 @@ Result interpretReasignacion(AbstractExpresion* self, Context* context) {
     if (!simboloEncontrado) {
         char description[256];
         snprintf(description, sizeof(description), "Error de asignación: la variable '%s' no ha sido declarada.", nodo->nombre);
-        add_error_to_report("Semántico", nodo->nombre, description, nodo->line, nodo->column);
+        add_error_to_report("Semántico", nodo->nombre, description, nodo->line, nodo->column, context->nombre_completo);
         return nuevoValorResultadoVacio();
     }
 
@@ -28,7 +28,7 @@ Result interpretReasignacion(AbstractExpresion* self, Context* context) {
         char description[256];
         snprintf(description, sizeof(description), "Error de tipos: no se puede asignar un valor de tipo '%s' a la variable '%s' de tipo '%s'.", 
             labelTipoDato[nuevoValorResult.tipo], nodo->nombre, labelTipoDato[simboloEncontrado->tipo]);
-        add_error_to_report("Semántico", nodo->nombre, description, nodo->line, nodo->column);
+        add_error_to_report("Semántico", nodo->nombre, description, nodo->line, nodo->column, context->nombre_completo);
         return nuevoValorResultadoVacio();
     }
     
