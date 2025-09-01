@@ -37,6 +37,19 @@ AbstractExpresion* nuevoDivisionExpresion(AbstractExpresion* izquierda, Abstract
 AbstractExpresion* nuevoModuloExpresion(AbstractExpresion* izquierda, AbstractExpresion* derecha);
 AbstractExpresion* nuevoUnarioExpresion(AbstractExpresion* expresion);
 
+/* --- Constructores de Nodos de Expresiones Relacionales --- */
+AbstractExpresion* nuevoIgualExpresion(AbstractExpresion* izquierda, AbstractExpresion* derecha);
+AbstractExpresion* nuevoDiferenteExpresion(AbstractExpresion* izquierda, AbstractExpresion* derecha);
+AbstractExpresion* nuevoMenorQueExpresion(AbstractExpresion* izquierda, AbstractExpresion* derecha);
+AbstractExpresion* nuevoMayorQueExpresion(AbstractExpresion* izquierda, AbstractExpresion* derecha);
+AbstractExpresion* nuevoMenorIgualExpresion(AbstractExpresion* izquierda, AbstractExpresion* derecha);
+AbstractExpresion* nuevoMayorIgualExpresion(AbstractExpresion* izquierda, AbstractExpresion* derecha);
+
+/* --- Constructores de Nodos de Expresiones Lógicas --- */
+AbstractExpresion* nuevoAndExpresion(AbstractExpresion* izquierda, AbstractExpresion* derecha);
+AbstractExpresion* nuevoOrExpresion(AbstractExpresion* izquierda, AbstractExpresion* derecha);
+AbstractExpresion* nuevoNotExpresion(AbstractExpresion* expresion);
+
 
 #endif
 

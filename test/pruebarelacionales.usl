@@ -1,0 +1,38 @@
+// --- Archivo de Pruebas Completo: Aritméticos, Relacionales y Lógicos ---
+
+print("--- Pruebas Relacionales ---");
+int a = 10;
+int b = 20;
+double c = 10.0;
+String s1 = "hola";
+String s2 = "mundo";
+
+print(a < b);      // Debe imprimir: true
+print(a > b);      // Debe imprimir: false
+print(a == c);     // Debe imprimir: true (compara valores numéricos)
+print(a != b);     // Debe imprimir: true
+print(b >= 20);    // Debe imprimir: true
+print(s1 == "hola"); // Debe imprimir: true
+
+print("--- Pruebas Lógicas ---");
+boolean t = true;
+boolean f = false;
+
+print(t && f);     // Debe imprimir: false
+print(t || f);     // Debe imprimir: true
+print(!f);         // Debe imprimir: true
+print(!t);         // Debe imprimir: false
+
+print("--- Pruebas Combinadas ---");
+// La precedencia de operadores debería resolver esto correctamente
+print(a < b && s1 == "hola");  // true && true -> true
+print(a > b || !f);            // false || true -> true
+print(10 * 2 == 20);           // true
+
+// --- Pruebas de Errores Semánticos ---
+// Descomenta una línea a la vez para probar la detección de errores.
+// Cada una de estas líneas debería detener la ejecución y mostrar un error semántico.
+
+// print(a < s1);     // ERROR: No se puede comparar '<' entre int y String.
+// print(t && a);     // ERROR: El operador '&&' solo funciona con booleanos.
+// print(!a);         // ERROR: El operador '!' solo funciona con booleanos.

@@ -46,7 +46,7 @@
 %right '='
 %left TOKEN_OR
 %left TOKEN_AND
-%left TOKEN_IGUAL_IGUAL TOKEN_DIFERENTE
+%left TOKEN_IGUAL_IGUAL TOKEN_DIFERENTE        
 %left '<' '>' TOKEN_MAYOR_IGUAL TOKEN_MENOR_IGUAL
 %left '+' '-'
 %left '*' '/' '%'
@@ -109,15 +109,30 @@ declaracion_var: tipoPrimitivo TOKEN_IDENTIFIER { $$ = nuevoDeclaracionVariables
 reasignacion_var: TOKEN_IDENTIFIER '=' expr { $$ = nuevoReasignacionExpresion($1, $3, @1.first_line, @1.first_column); }
     ;
 
-expr: expr '+' expr   { $$ = nuevoSumaExpresion($1, $3); }
-    | expr '-' expr { $$ = nuevoRestaExpresion($1, $3); }
-    | expr '*' expr   { $$ = nuevoMultiplicacionExpresion($1, $3); }
-    | expr '/' expr   { $$ = nuevoDivisionExpresion($1, $3); }
-    | expr '%' expr   { $$ = nuevoModuloExpresion($1, $3); }
-    | '(' expr ')' { $$ = $2; }
-    | '-' expr %prec NEG  { $$ = nuevoUnarioExpresion($2); }
-    | primitivo { $$ = $1; }
-    | TOKEN_IDENTIFIER { $$ = nuevoIdentificadorExpresion($1, @1.first_line, @1.first_column); }
+expr: expr '+' expr                  { $$ = nuevoSumaExpresion($1, $3); }
+    | expr '-' expr                { $$ = nuevoRestaExpresion($1, $3); }
+    | expr '*' expr                { $$ = nuevoMultiplicacionExpresion($1, $3); }
+    | expr '/' expr                { $$ = nuevoDivisionExpresion($1, $3); }
+    | expr '%' expr                { $$ = nuevoModuloExpresion($1, $3); }
+
+    // --- NUEVAS REGLAS RELACIONALES ---
+    | expr TOKEN_IGUAL_IGUAL expr  { $$ = nuevoIgualExpresion($1, $3); }
+    | expr TOKEN_DIFERENTE expr    { $$ = nuevoDiferenteExpresion($1, $3); }
+    | expr '<' expr                { $$ = nuevoMenorQueExpresion($1, $3); }
+    | expr '>' expr                { $$ = nuevoMayorQueExpresion($1, $3); }
+    | expr TOKEN_MENOR_IGUAL expr  { $$ = nuevoMenorIgualExpresion($1, $3); }
+    | expr TOKEN_MAYOR_IGUAL expr  { $$ = nuevoMayorIgualExpresion($1, $3); }
+
+    // --- NUEVAS REGLAS LÓGICAS ---
+    | expr TOKEN_AND expr          { $$ = nuevoAndExpresion($1, $3); }
+    | expr TOKEN_OR expr           { $$ = nuevoOrExpresion($1, $3); }
+    | '!' expr                     { $$ = nuevoNotExpresion($2); }
+    
+    // --- Fin de nuevas reglas ---
+    | '(' expr ')'                 { $$ = $2; }
+    | '-' expr %prec NEG           { $$ = nuevoUnarioExpresion($2); }
+    | primitivo                    { $$ = $1; }
+    | TOKEN_IDENTIFIER             { $$ = nuevoIdentificadorExpresion($1, @1.first_line, @1.first_column); }
     ;
 
 primitivo: TOKEN_INTEGER        { $$ = nuevoPrimitivoExpresion($1, INT); }

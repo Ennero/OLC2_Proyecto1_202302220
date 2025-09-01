@@ -3,8 +3,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/stat.h> // Para mkdir
-#include <sys/types.h> // Para mkdir
+#include <sys/stat.h>
+#include <sys/types.h>
 #include "ast/AbstractExpresion.h"
 #include "context/context.h"
 #include "output_buffer.h"
@@ -21,9 +21,11 @@ extern YY_BUFFER_STATE yy_scan_string(const char * str);
 extern void yy_delete_buffer(YY_BUFFER_STATE b);
 extern void yylex_destroy();
 
+// Raíz del árbol de sintaxis abstracta
 AbstractExpresion* ast_root = NULL;
 static char* current_file_path = NULL;
 
+// Estructura para almacenar los widgets de la aplicación
 typedef struct {
     GtkWindow* main_window;
     GtkSourceBuffer *input_buffer;
@@ -41,6 +43,7 @@ static void on_show_errors_clicked(GtkToolButton* button, gpointer user_data);
 static void on_generate_ast_clicked(GtkToolButton* button, gpointer user_data);
 static void on_ast_export_clicked(GtkButton *button, gpointer user_data);
 
+// Funciones para mostrar las ventanas de reportes
 static void display_error_table_window(GtkWindow* parent);
 static void display_symbol_table_window(GtkWindow* parent);
 static gboolean save_file_content(AppWidgets* widgets, const char* path);
@@ -51,6 +54,7 @@ static gboolean copy_file(const char* src_path, const char* dest_path);
 //=====================================================================
 // LÓGICA DE GESTIÓN DE ARCHIVOS Y EXPORTACIÓN
 //=====================================================================
+// Funcion para abrir un archivo
 static void open_file(AppWidgets* widgets, const char* path) {
     FILE* file = fopen(path, "r");
     if (!file) {
@@ -80,6 +84,7 @@ static void open_file(AppWidgets* widgets, const char* path) {
     g_free(window_title);
 }
 
+// Función para guardar el contenido del archivo
 static gboolean save_file_content(AppWidgets* widgets, const char* path) {
     GtkTextIter start, end;
     gtk_text_buffer_get_bounds(GTK_TEXT_BUFFER(widgets->input_buffer), &start, &end);
@@ -106,7 +111,7 @@ static gboolean save_file_content(AppWidgets* widgets, const char* path) {
     return TRUE;
 }
 
-// Función auxiliar para copiar un archivo (usada para la exportación)
+// Función auxiliar para copiar un archivo 
 static gboolean copy_file(const char* src_path, const char* dest_path) {
     FILE* src = fopen(src_path, "rb");
     if (!src) return FALSE;
@@ -134,7 +139,7 @@ static gboolean copy_file(const char* src_path, const char* dest_path) {
 //=====================================================================
 // DEFINICIONES DE LAS FUNCIONES CALLBACK
 //=====================================================================
-
+// Función para crear un nuevo archivo
 static void on_new_clicked(GtkToolButton* button, gpointer user_data) {
     (void)button;
     AppWidgets* widgets = (AppWidgets*) user_data;
@@ -146,12 +151,13 @@ static void on_new_clicked(GtkToolButton* button, gpointer user_data) {
     gtk_window_set_title(widgets->main_window, "JavaLang Interpreter");
 }
 
+// Funcion para abrir un archivo
 static void on_open_clicked(GtkToolButton* button, gpointer user_data) {
     (void)button;
     AppWidgets* widgets = (AppWidgets*) user_data;
     GtkWidget *dialog = gtk_file_chooser_dialog_new("Abrir Archivo", widgets->main_window, GTK_FILE_CHOOSER_ACTION_OPEN,
-                                         "_Cancelar", GTK_RESPONSE_CANCEL,
-                                         "_Abrir", GTK_RESPONSE_ACCEPT, NULL);
+                                            "_Cancelar", GTK_RESPONSE_CANCEL,
+                                            "_Abrir", GTK_RESPONSE_ACCEPT, NULL);
     GtkFileFilter* filter = gtk_file_filter_new();
     gtk_file_filter_set_name(filter, "Archivos JavaLang (*.usl)");
     gtk_file_filter_add_pattern(filter, "*.usl");
@@ -165,6 +171,7 @@ static void on_open_clicked(GtkToolButton* button, gpointer user_data) {
     gtk_widget_destroy(dialog);
 }
 
+// Funcion para guardar
 static void on_save_clicked(GtkToolButton* button, gpointer user_data) {
     (void)button;
     if (current_file_path == NULL) {
@@ -174,12 +181,13 @@ static void on_save_clicked(GtkToolButton* button, gpointer user_data) {
     }
 }
 
+// Funcion para guardar en 
 static void on_save_as_clicked(GtkToolButton* button, gpointer user_data) {
     (void)button;
     AppWidgets* widgets = (AppWidgets*) user_data;
     GtkWidget *dialog = gtk_file_chooser_dialog_new("Guardar Archivo Como", widgets->main_window, GTK_FILE_CHOOSER_ACTION_SAVE,
-                                         "_Cancelar", GTK_RESPONSE_CANCEL,
-                                         "_Guardar", GTK_RESPONSE_ACCEPT, NULL);
+                                            "_Cancelar", GTK_RESPONSE_CANCEL,
+                                            "_Guardar", GTK_RESPONSE_ACCEPT, NULL);
     GtkFileFilter* filter = gtk_file_filter_new();
     gtk_file_filter_set_name(filter, "Archivos JavaLang (*.usl)");
     gtk_file_filter_add_pattern(filter, "*.usl");
@@ -195,15 +203,21 @@ static void on_save_as_clicked(GtkToolButton* button, gpointer user_data) {
     gtk_widget_destroy(dialog);
 }
 
+//=====================================================================
+// EJECUCIÓN DEL CÓDIGO
+//=====================================================================
+// Funcion para ejecutar el código
 static void on_execute_clicked(GtkToolButton* button, gpointer user_data) {
     (void)button;
     AppWidgets* widgets = (AppWidgets*) user_data;
-    
+
+    // Obtener el texto de entrada
     GtkTextBuffer* buffer = GTK_TEXT_BUFFER(widgets->input_buffer);
     GtkTextIter start, end;
     gtk_text_buffer_get_bounds(buffer, &start, &end);
     gchar* input_text = gtk_text_buffer_get_text(buffer, &start, &end, FALSE);
 
+    // Limpiar los reportes
     clear_output_buffer();
     clear_symbol_report();
     clear_error_report();
@@ -211,11 +225,15 @@ static void on_execute_clicked(GtkToolButton* button, gpointer user_data) {
     yylineno = 1;
     yycolumn = 1;
 
+    // Si hay algo en el texto de entrada
     if (input_text && input_text[0] != '\0') {
         YY_BUFFER_STATE buffer_state = yy_scan_string(input_text);
         yyparse();
-        
+
+        // Verificar errores
         if (get_error_list() == NULL && ast_root) {
+
+            // Si no hay errores, se procede a la interpretación
             Context* contextPadre = nuevoContext(NULL, "global");
             ast_root->interpret(ast_root, contextPadre);
             if (has_semantic_error_been_found()) {
@@ -227,18 +245,20 @@ static void on_execute_clicked(GtkToolButton* button, gpointer user_data) {
         } else if (get_error_list() != NULL) {
             append_to_output("Se encontraron errores léxicos/sintácticos. La ejecución fue abortada.\n");
         } else {
-             append_to_output("No se pudo generar el AST por un error desconocido.\n");
+            append_to_output("No se pudo generar el AST por un error desconocido.\n");
         }
         yy_delete_buffer(buffer_state);
     } else {
         append_to_output("No hay código para ejecutar.\n");
     }
 
+    // Actualizar el buffer de salida
     const char* output_text = get_output_buffer();
     gtk_text_buffer_set_text(widgets->output_buffer, output_text, -1);
     g_free(input_text);
 }
 
+// Funcion para mostrar la tabla de simbolos
 static void on_show_symbols_clicked(GtkToolButton* button, gpointer user_data) {
     (void)button;
     AppWidgets* widgets = (AppWidgets*) user_data;
