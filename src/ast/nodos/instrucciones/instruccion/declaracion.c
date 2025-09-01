@@ -28,8 +28,39 @@ Result interpretDeclaracionVariable(AbstractExpresion* nodo, Context* context) {
         agregarSymbol(context, nuevoVariable(self->nombre, resultado.valor, self->tipo), self->line, self->column);
 
     } else {
-        // Si no hay asignación, se agrega el símbolo con valor NULL
-        agregarSymbol(context, nuevoVariable(self->nombre, NULL, self->tipo), self->line, self->column);
+        // Si no hay asignación (ej. int x;), creamos un valor por defecto.
+        void* default_value = NULL;
+
+        switch (self->tipo) {
+            case INT:
+                default_value = malloc(sizeof(int));
+                *(int*)default_value = 0;
+                break;
+            case DOUBLE:
+                default_value = malloc(sizeof(double));
+                *(double*)default_value = 0.0;
+                break;
+            case FLOAT:
+                default_value = malloc(sizeof(float));
+                *(float*)default_value = 0.0f;
+                break;
+            case CHAR: // El valor por defecto es '\u0000', que es 0
+                default_value = malloc(sizeof(int));
+                *(int*)default_value = 0;
+                break;
+            case BOOLEAN: // El valor por defecto es 'false', que es 0
+                default_value = malloc(sizeof(int));
+                *(int*)default_value = 0;
+                break;
+            case STRING: // El valor por defecto es null
+                default_value = NULL;
+                break;
+            default:
+                break; // No debería ocurrir
+        }
+        // Agregamos el símbolo con su valor por defecto ya asignado.
+        agregarSymbol(context, nuevoVariable(self->nombre, default_value, self->tipo), self->line, self->column);
+
     }
     
     return nuevoValorResultadoVacio();
