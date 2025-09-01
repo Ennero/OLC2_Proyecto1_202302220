@@ -1,13 +1,12 @@
 SRC     := src
 BUILD   := build
-
+ENTRIES := src/entriesTools
 CC      := gcc
 BISON   := bison
 FLEX    := flex
 
 # Se separan las flags de GTK3 y se AÑADEN las de GtkSourceView
 GTK_CFLAGS := $(shell pkg-config --cflags gtk+-3.0 gtksourceview-3.0)
-# <<<< CAMBIO CLAVE: Se añade -lm al final para enlazar la librería matemática >>>>
 GTK_LIBS   := $(shell pkg-config --libs gtk+-3.0 gtksourceview-3.0) -lm
 
 # Se añaden las flags de compilación a la variable CFLAGS principal
@@ -30,22 +29,24 @@ OBJ_SRC := $(patsubst $(SRC)/%.c,$(BUILD)/%.o,$(SRC_FILES))
 OBJ_GEN := $(BUILD)/parser.tab.o $(BUILD)/lex.yy.o
 OBJ_ALL := $(OBJ_SRC) $(OBJ_GEN)
 
-# <<<< NOTA: He cambiado el nombre del ejecutable a 'javalang' para que coincida con tu log de error >>>>
-all: $(BUILD)/javalang
+# Se usará 'javalang' como nombre del ejecutable
+EXECUTABLE := $(BUILD)/javalang
+
+all: $(EXECUTABLE)
 
 $(BUILD):
 	$(MKDIR) $(BUILD)
 
 # Generar parser
-$(BISON_C) $(BISON_H): $(SRC)/entriesTools/parser.y | $(BUILD)
+$(BISON_C) $(BISON_H): $(ENTRIES)/parser.y
 	$(BISON) -d -v --locations -o $(BISON_C) $<
 
 # Generar lexer
-$(LEX_C): $(SRC)/entriesTools/lexer.l $(BISON_H) | $(BUILD)
+$(LEX_C): $(ENTRIES)/lexer.l $(BISON_H)
 	$(FLEX) -o $@ $<
 
 # Compilar .c de src a .o
-$(BUILD)/%.o: $(SRC)/%.c | $(BUILD)
+$(BUILD)/%.o: $(SRC)/%.c
 	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) -c $< -o $@
 
@@ -57,10 +58,14 @@ $(BUILD)/lex.yy.o: $(LEX_C)
 	$(CC) $(CFLAGS) -c $(LEX_C) -o $@
 
 # Enlazar todo
-$(BUILD)/javalang: $(OBJ_ALL)
+$(EXECUTABLE): $(OBJ_ALL)
 	$(CC) $^ -o $@ $(GTK_LIBS)
 
+# Regla de limpieza mejorada y robusta
 clean:
-	$(RM) $(BUILD)
+	@echo "Limpiando archivos..."
+	@$(RM) $(EXECUTABLE)
+	@$(RM) $(BUILD)
+	@echo "Limpieza completa."
 
 .PHONY: all clean

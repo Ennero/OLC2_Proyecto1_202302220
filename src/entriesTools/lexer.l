@@ -36,6 +36,7 @@ float_lit         ({digit}+\.{digit}*[fF])|(\.{digit}+[fF])|({digit}+[fF])
 double_lit        ({digit}+\.{digit}*({exponent})?|\.{digit}+({exponent})?|{digit}+{exponent})
 
 unicode_escape    \\u{hex_digit}{4}
+
 char_lit          \'([^'\\]|\\.|{unicode_escape})\'
 string_lit        \"([^"\\]|\\.|{unicode_escape})*\"
 
@@ -79,8 +80,20 @@ newline           \n
 {hex_integer}           { yylval.string = strdup(yytext); return TOKEN_HEX_INTEGER; }
 {float_lit}             { yylval.string = strdup(yytext); return TOKEN_FLOAT_LIT; }
 {double_lit}            { yylval.string = strdup(yytext); return TOKEN_DOUBLE_LIT; }
-{char_lit}              { yylval.string = strdup(yytext); return TOKEN_CHAR_LITERAL; }
-{string_lit}            { yylval.string = strdup(yytext); return TOKEN_STRING_LITERAL; }
+
+{char_lit}              {
+                            // Elimina las comillas inicial y final
+                            yytext[yyleng-1] = '\0';
+                            yylval.string = strdup(yytext + 1);
+                            return TOKEN_CHAR_LITERAL;
+                        }
+{string_lit}            {
+                            // Elimina las comillas inicial y final
+                            yytext[yyleng-1] = '\0';
+                            yylval.string = strdup(yytext + 1);
+                            return TOKEN_STRING_LITERAL;
+                        }
+
 {identifier}            { yylval.string = strdup(yytext); return TOKEN_IDENTIFIER; }
 "=="               return TOKEN_IGUAL_IGUAL;
 "!="               return TOKEN_DIFERENTE;
