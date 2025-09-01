@@ -41,10 +41,12 @@ void append_to_output(const char* text) {
     length += text_len;
 }
 
+// Devuelve el contenido del búfer de salida
 const char* get_output_buffer() {
     return buffer ? buffer : "";
 }
 
+// Limpia el búfer de salida
 void clear_output_buffer() {
     if (buffer) {
         buffer[0] = '\0';
@@ -52,6 +54,7 @@ void clear_output_buffer() {
     length = 0;
 }
 
+// Libera la memoria utilizada por el búfer de salida
 void free_output_buffer() {
     free(buffer);
     buffer = NULL;

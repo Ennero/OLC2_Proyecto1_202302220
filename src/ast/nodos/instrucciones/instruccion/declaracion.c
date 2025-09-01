@@ -13,13 +13,13 @@ Result interpretDeclaracionVariable(AbstractExpresion* nodo, Context* context) {
     if (nodo->numHijos > 0) {
         Result resultado = nodo->hijos[0]->interpret(nodo->hijos[0], context);
 
-        // <<<< CORRECCIÓN CLAVE: Comprobación de tipos >>>>
+        // Comprobación de tipos
         if (resultado.tipo != self->tipo) {
             char description[256];
             snprintf(description, sizeof(description), "Error de tipos: no se puede asignar un valor de tipo '%s' a la nueva variable '%s' de tipo '%s'.", 
                 labelTipoDato[resultado.tipo], self->nombre, labelTipoDato[self->tipo]);
             
-            // Se reporta el error semántico en lugar de usar printf
+            // Se reporta el error semántico 
             add_error_to_report("Semántico", self->nombre, description, self->line, self->column);
             return nuevoValorResultadoVacio();
         }

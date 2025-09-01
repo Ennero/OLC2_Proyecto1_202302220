@@ -23,7 +23,7 @@ struct Symbol{
 };
 
 struct Context {
-    char* nombre_completo; // <<<<<<< CAMBIO: de int a char*
+    char* nombre_completo; 
     Context* anterior;
     Symbol* ultimoSymbol;
 };

@@ -1,9 +1,9 @@
 #ifndef ERROR_REPORTER_H
 #define ERROR_REPORTER_H
 
-#include <stdbool.h> // <<<< AÑADIR: Para poder usar el tipo 'bool'
+#include <stdbool.h> // Para poder usar el tipo 'bool'
 
-// (La estructura ErrorInfo no cambia)
+// La estructura ErrorInfo no cambia
 typedef struct ErrorInfo {
     int id;
     char* type;
@@ -14,14 +14,14 @@ typedef struct ErrorInfo {
     struct ErrorInfo* next;
 } ErrorInfo;
 
-// (Las funciones existentes no cambian)
+// Las funciones existentes no cambian
 void init_error_report();
 void clear_error_report();
 void free_error_report();
 void add_error_to_report(const char* type, const char* lexeme, const char* description, int line, int column);
 const ErrorInfo* get_error_list();
 
-// <<<< AÑADIR: Nueva función para consultar la bandera de error semántico >>>>
+// Funcion para verificar si se ha encontrado un error semántico
 bool has_semantic_error_been_found();
 
 #endif

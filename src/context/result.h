@@ -5,20 +5,22 @@ typedef enum {
     BOOLEAN,
     CHAR,
     INT,
-    FLOAT,      // <<<< SE MANTIENE
-    DOUBLE,     // <<<< SE MANTIENE
+    FLOAT,
+    DOUBLE,
     STRING,
     NULO,
     TIPO_COUNT
 } TipoDato;
 
 extern char* labelTipoDato[];
-// ... (resto del archivo sin cambios)
+
+// Estructura para el resultado de una expresión
 typedef struct {
     TipoDato tipo;
     void* valor;
 } Result;
 
+// Funciones para manejar resultados
 TipoDato tipoResultante(Result, Result);
 Result nuevoValorResultado(void* valor, TipoDato tipo);
 Result nuevoValorResultadoVacio(void);

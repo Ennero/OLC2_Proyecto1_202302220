@@ -10,9 +10,7 @@ typedef struct ExpresionLenguaje ExpresionLenguaje;
 // Typedef para operaciones BINARIAS (ej. a + b)
 typedef Result (*Operacion)(ExpresionLenguaje*);
 
-// <<<< NUEVO: Typedef para operaciones UNARIAS (ej. -a) >>>>
-// Nota que recibe un 'Result', no un 'ExpresionLenguaje*', porque no
-// necesita acceder a los operandos izquierdo/derecho.
+// Typedef para operaciones UNARIAS (ej. -a)
 typedef Result (*UnaryOperacion)(Result);
 
 struct ExpresionLenguaje{

@@ -25,7 +25,7 @@ void liberarAST(AbstractExpresion* raiz) {
     free(raiz);
 }
 
-// <<<< CAMBIO: Se añade el parámetro 'node_type' >>>>
+// Se añade el parámetro 'node_type'
 void buildAbstractExpresion(AbstractExpresion* base, Interpret interpretPuntero, const char* node_type) {
     base->interpret = interpretPuntero;
     base->node_type = node_type; // Se asigna el nombre

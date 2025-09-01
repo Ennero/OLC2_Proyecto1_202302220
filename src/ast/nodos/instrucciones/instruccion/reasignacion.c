@@ -9,10 +9,10 @@
 Result interpretReasignacion(AbstractExpresion* self, Context* context) {
     ReasignacionExpresion* nodo = (ReasignacionExpresion*) self;
 
-    // 1. Buscar si la variable a reasignar existe en algún ámbito visible.
+    // Buscar si la variable a reasignar existe en algún ámbito visible.
     Symbol* simboloEncontrado = buscarTablaSimbolos(context, nodo->nombre);
 
-    // 2. Comprobación Semántica #1: ¿Existe la variable?
+    // Si no existe la variable, se reporta un error.
     if (!simboloEncontrado) {
         char description[256];
         snprintf(description, sizeof(description), "Error de asignación: la variable '%s' no ha sido declarada.", nodo->nombre);
@@ -20,10 +20,10 @@ Result interpretReasignacion(AbstractExpresion* self, Context* context) {
         return nuevoValorResultadoVacio();
     }
 
-    // 3. Si existe, interpretar la expresión de la derecha para obtener el nuevo valor.
+    // Si existe, interpretar la expresión de la derecha para obtener el nuevo valor
     Result nuevoValorResult = self->hijos[0]->interpret(self->hijos[0], context);
 
-    // 4. Comprobación Semántica #2: ¿Son compatibles los tipos?
+    // Si no son compatibles los tipos se reporta un error.
     if (simboloEncontrado->tipo != nuevoValorResult.tipo) {
         char description[256];
         snprintf(description, sizeof(description), "Error de tipos: no se puede asignar un valor de tipo '%s' a la variable '%s' de tipo '%s'.", 
@@ -32,8 +32,7 @@ Result interpretReasignacion(AbstractExpresion* self, Context* context) {
         return nuevoValorResultadoVacio();
     }
     
-    // 5. Si todo es correcto, se actualiza el valor en la tabla de símbolos.
-    // Es importante liberar la memoria del valor antiguo antes de asignar el nuevo.
+    // Si todo es correcto, se actualiza el valor en la tabla de símbolos.
     if(simboloEncontrado->valor) {
         free(simboloEncontrado->valor);
     }

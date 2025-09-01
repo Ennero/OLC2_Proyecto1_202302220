@@ -55,33 +55,33 @@ newline           \n
 <COMMENT>.         { /* Ignorar */ }
 <COMMENT>\n        { yycolumn = 1; }
 
-"if"               return TOKEN_IF;
-"else"             return TOKEN_ELSE;
-"while"            return TOKEN_WHILE;
-"for"              return TOKEN_FOR;
-"switch"           return TOKEN_SWITCH;
-"case"             return TOKEN_CASE;
-"break"            return TOKEN_BREAK;
-"continue"         return TOKEN_CONTINUE;
-"return"           return TOKEN_RETURN;
-"print"            return TOKEN_PRINT;
-"main"             return TOKEN_MAIN;
-"class"            return TOKEN_CLASS;
-"int"              return TOKEN_DINT;
-"float"            return TOKEN_DFLOAT;
-"double"           return TOKEN_DDOUBLE;
-"boolean"          return TOKEN_DBOOLEAN;
-"char"             return TOKEN_DCHAR;
-"String"           return TOKEN_DSTRING;
-"true"             { yylval.string = strdup(yytext); return TOKEN_TRUE; }
-"false"            { yylval.string = strdup(yytext); return TOKEN_FALSE; }
-{integer}          { yylval.string = strdup(yytext); return TOKEN_INTEGER; }
-{hex_integer}      { yylval.string = strdup(yytext); return TOKEN_HEX_INTEGER; }
-{float_lit}        { yylval.string = strdup(yytext); return TOKEN_FLOAT_LIT; }
-{double_lit}       { yylval.string = strdup(yytext); return TOKEN_DOUBLE_LIT; }
-{char_lit}         { yylval.string = strdup(yytext); return TOKEN_CHAR_LITERAL; }
-{string_lit}       { yylval.string = strdup(yytext); return TOKEN_STRING_LITERAL; }
-{identifier}       { yylval.string = strdup(yytext); return TOKEN_IDENTIFIER; }
+"if"                    return TOKEN_IF;
+"else"                  return TOKEN_ELSE;
+"while"                 return TOKEN_WHILE;
+"for"                   return TOKEN_FOR;
+"switch"                return TOKEN_SWITCH;
+"case"                  return TOKEN_CASE;
+"break"                 return TOKEN_BREAK;
+"continue"              return TOKEN_CONTINUE;
+"return"                return TOKEN_RETURN;
+"System.out.println"    return TOKEN_PRINT;
+"main"                  return TOKEN_MAIN;
+"class"                 return TOKEN_CLASS;
+"int"                   return TOKEN_DINT;
+"float"                 return TOKEN_DFLOAT;
+"double"                return TOKEN_DDOUBLE;
+"boolean"               return TOKEN_DBOOLEAN;
+"char"                  return TOKEN_DCHAR;
+"String"                return TOKEN_DSTRING;
+"true"                  { yylval.string = strdup(yytext); return TOKEN_TRUE; }
+"false"                 { yylval.string = strdup(yytext); return TOKEN_FALSE; }
+{integer}               { yylval.string = strdup(yytext); return TOKEN_INTEGER; }
+{hex_integer}           { yylval.string = strdup(yytext); return TOKEN_HEX_INTEGER; }
+{float_lit}             { yylval.string = strdup(yytext); return TOKEN_FLOAT_LIT; }
+{double_lit}            { yylval.string = strdup(yytext); return TOKEN_DOUBLE_LIT; }
+{char_lit}              { yylval.string = strdup(yytext); return TOKEN_CHAR_LITERAL; }
+{string_lit}            { yylval.string = strdup(yytext); return TOKEN_STRING_LITERAL; }
+{identifier}            { yylval.string = strdup(yytext); return TOKEN_IDENTIFIER; }
 "=="               return TOKEN_IGUAL_IGUAL;
 "!="               return TOKEN_DIFERENTE;
 ">="               return TOKEN_MAYOR_IGUAL;

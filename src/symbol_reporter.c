@@ -7,6 +7,7 @@ static SymbolInfo* symbol_list_head = NULL;
 static SymbolInfo* symbol_list_tail = NULL;
 static int symbol_id_counter = 0;
 
+// Formatea el valor de un símbolo para su representación en el reporte
 static void format_value(char* buffer, size_t size, const void* value, TipoDato type) {
     if (value == NULL) {
         snprintf(buffer, size, "null");
@@ -25,9 +26,8 @@ static void format_value(char* buffer, size_t size, const void* value, TipoDato 
         case STRING:
             snprintf(buffer, size, "\"%s\"", (char*)value);
             break;
-        
-        // <<<< CORRECCIÓN CLAVE >>>>
-        // Se añade lógica para mostrar los caracteres de escape de forma legible.
+
+        // Logica para los caracteres
         case CHAR: {
             int char_val = *(int*)value;
             switch(char_val) {
@@ -57,12 +57,14 @@ static void format_value(char* buffer, size_t size, const void* value, TipoDato 
     }
 }
 
+// Inicializa el reporte de símbolos
 void init_symbol_report() {
     symbol_list_head = NULL;
     symbol_list_tail = NULL;
     symbol_id_counter = 0;
 }
 
+// Limpia el reporte de símbolos
 void clear_symbol_report() {
     SymbolInfo* current = symbol_list_head;
     while (current != NULL) {
@@ -79,10 +81,12 @@ void clear_symbol_report() {
     symbol_id_counter = 0;
 }
 
+// Libera la memoria utilizada por el reporte de símbolos
 void free_symbol_report() {
     clear_symbol_report();
 }
 
+// Añade un símbolo al reporte
 void add_symbol_to_report(const Symbol* symbol, const char* context_name) {
     SymbolInfo* new_info = (SymbolInfo*) malloc(sizeof(SymbolInfo));
     if (!new_info) return;
@@ -108,6 +112,7 @@ void add_symbol_to_report(const Symbol* symbol, const char* context_name) {
     }
 }
 
+// Devuelve la lista de símbolos
 const SymbolInfo* get_symbol_list() {
     return symbol_list_head;
 }

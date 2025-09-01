@@ -8,11 +8,12 @@
 #include "ast/nodos/expresiones/terminales/identificadores.h"
 #include "ast/nodos/instrucciones/instruccion/declaracion.h"
 
-// <<<< FUNCIÓN CORREGIDA: Escapa caracteres para la sintaxis de Graphviz DOT >>>>
+// Escapa caracteres para la sintaxis de Graphviz DOT
 static char* escape_string_for_dot(const char* input) {
     if (!input) return strdup("");
     
     size_t new_len = strlen(input);
+
     // Contar cuántos caracteres necesitan ser escapados
     for (size_t i = 0; input[i] != '\0'; i++) {
         if (input[i] == '"' || input[i] == '\\') {
@@ -20,11 +21,13 @@ static char* escape_string_for_dot(const char* input) {
         }
     }
 
+    // Reservar memoria para la cadena de salida
     char* output = malloc(new_len + 1);
     if (!output) return NULL;
 
     size_t j = 0;
     for (size_t i = 0; input[i] != '\0'; i++) {
+
         // Añadir una barra invertida antes de los caracteres especiales de DOT
         if (input[i] == '"' || input[i] == '\\') {
             output[j++] = '\\';
@@ -43,8 +46,8 @@ static void graph_node_declarations_recursive(AbstractExpresion* node, FILE* fil
 
     if (strcmp(node->node_type, "Primitivo") == 0) {
         PrimitivoExpresion* prim = (PrimitivoExpresion*)node;
-        // <<<< CAMBIO CLAVE: Se escapa el valor crudo del lexer para mostrarlo >>>>
-        // Esto muestra el texto tal como fue escrito (ej. '\n', '\u0041') de forma segura.
+        
+        // Escapa el valor crudo del lexer para mostrarlo
         char* escaped_value = escape_string_for_dot(prim->valor);
         snprintf(label_buf, sizeof(label_buf), "Primitivo\\n(%s)", escaped_value);
         free(escaped_value);

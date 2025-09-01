@@ -2,16 +2,18 @@
 #include <stddef.h>
 #include <stdio.h>
 
+// Etiquetas para los tipos de datos
 char* labelTipoDato[TIPO_COUNT] = {
     [BOOLEAN] = "boolean",
     [CHAR] = "char",
     [INT] = "int",
-    [FLOAT] = "float",      // <<<< SE MANTIENE
+    [FLOAT] = "float",      
     [DOUBLE] = "double",
     [STRING] = "string",
     [NULO] = "null"
 };
-// ... (resto del archivo sin cambios)
+
+// Crear un nuevo valor de resultado
 Result nuevoValorResultado(void* valor, TipoDato tipo) {
     Result resultado;
     resultado.tipo = tipo;
@@ -19,6 +21,7 @@ Result nuevoValorResultado(void* valor, TipoDato tipo) {
     return resultado;
 }
 
+// Crear un nuevo valor de resultado vacío
 Result nuevoValorResultadoVacio() {
     Result resultado;
     resultado.tipo = NULO;
@@ -26,6 +29,7 @@ Result nuevoValorResultadoVacio() {
     return resultado;
 }
 
+// Determinar el tipo resultante de dos valores
 TipoDato tipoResultante(Result valor1, Result valor2) {
     if (valor1.tipo >= valor2.tipo) {
         return valor1.tipo;

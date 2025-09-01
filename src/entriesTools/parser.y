@@ -61,7 +61,6 @@ s: lSentencia  { ast_root = $1; $$ = $1; }
 
 lSentencia: lSentencia sentencia { 
         // Si la sentencia fue un error, $2 será NULL.
-        // Esta comprobación evita que un error corrompa el AST.
         if ($2 != NULL) {
             agregarHijo($1, $2);
         }
@@ -109,13 +108,14 @@ declaracion_var: tipoPrimitivo TOKEN_IDENTIFIER { $$ = nuevoDeclaracionVariables
 reasignacion_var: TOKEN_IDENTIFIER '=' expr { $$ = nuevoReasignacionExpresion($1, $3, @1.first_line, @1.first_column); }
     ;
 
+    // --- REGLAS ARITMÉTICAS ---
 expr: expr '+' expr                  { $$ = nuevoSumaExpresion($1, $3); }
     | expr '-' expr                { $$ = nuevoRestaExpresion($1, $3); }
     | expr '*' expr                { $$ = nuevoMultiplicacionExpresion($1, $3); }
     | expr '/' expr                { $$ = nuevoDivisionExpresion($1, $3); }
     | expr '%' expr                { $$ = nuevoModuloExpresion($1, $3); }
 
-    // --- NUEVAS REGLAS RELACIONALES ---
+    // --- REGLAS RELACIONALES ---
     | expr TOKEN_IGUAL_IGUAL expr  { $$ = nuevoIgualExpresion($1, $3); }
     | expr TOKEN_DIFERENTE expr    { $$ = nuevoDiferenteExpresion($1, $3); }
     | expr '<' expr                { $$ = nuevoMenorQueExpresion($1, $3); }
@@ -123,12 +123,12 @@ expr: expr '+' expr                  { $$ = nuevoSumaExpresion($1, $3); }
     | expr TOKEN_MENOR_IGUAL expr  { $$ = nuevoMenorIgualExpresion($1, $3); }
     | expr TOKEN_MAYOR_IGUAL expr  { $$ = nuevoMayorIgualExpresion($1, $3); }
 
-    // --- NUEVAS REGLAS LÓGICAS ---
+    // --- REGLAS LÓGICAS ---
     | expr TOKEN_AND expr          { $$ = nuevoAndExpresion($1, $3); }
     | expr TOKEN_OR expr           { $$ = nuevoOrExpresion($1, $3); }
     | '!' expr                     { $$ = nuevoNotExpresion($2); }
-    
-    // --- Fin de nuevas reglas ---
+
+    // --- REGLAS UNARIAS ---
     | '(' expr ')'                 { $$ = $2; }
     | '-' expr %prec NEG           { $$ = nuevoUnarioExpresion($2); }
     | primitivo                    { $$ = $1; }

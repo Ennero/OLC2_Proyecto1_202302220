@@ -4,10 +4,10 @@
 #include <stdio.h>
 #include <stdbool.h> 
 
-
 // Punteros a la cabeza y la cola de la lista para inserción eficiente
 static ErrorInfo* error_list_head = NULL;
 static ErrorInfo* error_list_tail = NULL;
+
 // Contador estático para el ID correlativo de los errores
 static int error_id_counter = 0;
 
@@ -16,6 +16,7 @@ static bool semantic_error_found = false;
 
 // Inicializa o reinicia el reportero de errores
 void init_error_report() {
+
     // Si ya hay errores, se limpian primero para evitar fugas de memoria
     if (error_list_head != NULL) {
         clear_error_report();
@@ -32,10 +33,12 @@ void clear_error_report() {
     ErrorInfo* next;
     while (current != NULL) {
         next = current->next;
+
         // Liberar cada cadena de texto copiada dinámicamente
         free(current->type);
         free(current->lexeme);
         free(current->description);
+        
         // Liberar el nodo de la estructura en sí
         free(current);
         current = next;
@@ -55,14 +58,15 @@ void free_error_report() {
 // Añade un nuevo error al final de la lista
 void add_error_to_report(const char* type, const char* lexeme, const char* description, int line, int column) {
 
+    // Si se encuentra un error semántico
     if (strcmp(type, "Semántico") == 0) {
         semantic_error_found = true;
     }
-    // 1. Reservar memoria para el nuevo nodo de error
+    // Reservar memoria para el nuevo nodo de error
     ErrorInfo* new_info = (ErrorInfo*) malloc(sizeof(ErrorInfo));
     if (!new_info) return; // Fallo de asignación de memoria
 
-    // 2. Poblar el nuevo nodo con la información del error
+    // Poblar el nuevo nodo con la información del error
     new_info->id = ++error_id_counter; // Pre-incrementar y asignar el ID único
     new_info->type = strdup(type);
     new_info->lexeme = strdup(lexeme);
@@ -71,14 +75,17 @@ void add_error_to_report(const char* type, const char* lexeme, const char* descr
     new_info->column = column;
     new_info->next = NULL; // Este será el último nodo de la lista
 
-    // 3. Añadir el nodo al final de la lista enlazada
+    // Añadir el nodo al final de la lista enlazada
     if (error_list_head == NULL) {
+
         // Si la lista está vacía, el nuevo nodo es tanto la cabeza como la cola
         error_list_head = new_info;
         error_list_tail = new_info;
     } else {
+
         // Si la lista no está vacía, se enlaza después de la cola actual
         error_list_tail->next = new_info;
+
         // Se actualiza la cola para que apunte al nuevo último nodo
         error_list_tail = new_info;
     }
@@ -89,9 +96,7 @@ const ErrorInfo* get_error_list() {
     return error_list_head;
 }
 
-
-
-// <<<< AÑADIR: La implementación de la nueva función >>>>
+// Bandera de si hay errores semánticos
 bool has_semantic_error_been_found() {
     return semantic_error_found;
 }

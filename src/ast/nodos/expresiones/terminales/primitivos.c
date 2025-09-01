@@ -54,7 +54,7 @@ Result interpretPrimitivoExpresion(AbstractExpresion* self, Context* context) {
             free(nodo->valor);
             return nuevoValorResultado((void*) valor_int, nodo->tipo);
         }
-        case FLOAT: { // <<<< NUEVO
+        case FLOAT: { 
             float* valor_float = malloc(sizeof(float));
             *valor_float = atof(nodo->valor); // atof convierte a double, pero el cast a float es seguro
             free(nodo->valor);

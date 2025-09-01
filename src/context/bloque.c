@@ -4,7 +4,6 @@
 
 // La función de interpretación ahora crea un contexto con nombre
 Result interpretBloque(AbstractExpresion* self, Context* context) {
-    // <<<<<<< CAMBIO: Se pasa "bloque" como el tipo de contexto
     Context* nuevo = nuevoContext(context, "bloque");
 
     if (self->numHijos > 0) {
@@ -13,7 +12,6 @@ Result interpretBloque(AbstractExpresion* self, Context* context) {
     }
 
     // Aquí se liberaría la memoria del 'nuevo' contexto y sus símbolos
-    // (Implementación futura)
     return nuevoValorResultadoVacio();
 }
 

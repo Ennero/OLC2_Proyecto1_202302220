@@ -19,11 +19,11 @@ Result interpretPrintExpresion(AbstractExpresion* self, Context* context) {
             case INT:
                 sprintf(buffer, "%d\n", *(int*)result.valor);
                 break;
-            case FLOAT: // <<<< NUEVO
+            case FLOAT:
                 sprintf(buffer, "%f\n", *(float*)result.valor);
                 break;
             case DOUBLE:
-                // <<<< CAMBIO: Se aumenta la precisión a 15 decimales >>>>
+                // Un double en java tiene 15 decimales
                 sprintf(buffer, "%.15g\n", *(double*)result.valor);
                 break;
             case BOOLEAN:
