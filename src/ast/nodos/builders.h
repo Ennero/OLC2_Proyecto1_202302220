@@ -43,6 +43,8 @@ AbstractExpresion* nuevoMenorQueExpresion(AbstractExpresion* izquierda, Abstract
 AbstractExpresion* nuevoMayorQueExpresion(AbstractExpresion* izquierda, AbstractExpresion* derecha, int line, int column);
 AbstractExpresion* nuevoMenorIgualExpresion(AbstractExpresion* izquierda, AbstractExpresion* derecha, int line, int column);
 AbstractExpresion* nuevoMayorIgualExpresion(AbstractExpresion* izquierda, AbstractExpresion* derecha, int line, int column);
+AbstractExpresion* nuevoEqualsExpresion(AbstractExpresion* izquierda, AbstractExpresion* derecha, int line, int column);
+
 
 /* --- Constructores de Nodos de Expresiones Lógicas --- */
 AbstractExpresion* nuevoAndExpresion(AbstractExpresion* izquierda, AbstractExpresion* derecha, int line, int column);

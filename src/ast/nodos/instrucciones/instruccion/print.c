@@ -45,19 +45,32 @@ static void result_to_string(Result res, char *buffer, size_t size)
     }
 }
 
-Result interpretPrintExpresion(AbstractExpresion *self, Context *context)
-{
-    AbstractExpresion *listaExpresiones = self->hijos[0];
-    for (size_t i = 0; i < listaExpresiones->numHijos; ++i)
-    {
+Result interpretPrintExpresion(AbstractExpresion* self, Context* context) {
+    AbstractExpresion* listaExpresiones = self->hijos[0];
+    for (size_t i = 0; i < listaExpresiones->numHijos; ++i) {
         Result res = listaExpresiones->hijos[i]->interpret(listaExpresiones->hijos[i], context);
+
+
+        // --- DEBUGGING PRINT ---
+        printf("DEBUG [print]: Recibido para imprimir -> Tipo: %s, Puntero a Valor: %p\n", labelTipoDato[res.tipo], res.valor);
+        if (res.valor) {
+            if (res.tipo == BOOLEAN) printf("DEBUG [print]: Valor Booleano es: %s\n", (*(int*)res.valor) ? "true" : "false");
+            if (res.tipo == STRING) printf("DEBUG [print]: Valor String es: '%s'\n", (char*)res.valor);
+        }
+
+
+        if (has_semantic_error_been_found()) {
+            if(res.valor) free(res.valor);
+            return nuevoValorResultadoVacio();
+        }
+
         char print_buffer[1024];
         result_to_string(res, print_buffer, sizeof(print_buffer));
         append_to_output(print_buffer);
-        if (i < listaExpresiones->numHijos - 1)
-        {
-            append_to_output(" ");
-        }
+        
+        if (i < listaExpresiones->numHijos - 1) append_to_output(" ");
+
+        if(res.valor) free(res.valor);
     }
     append_to_output("\n");
     return nuevoValorResultadoVacio();

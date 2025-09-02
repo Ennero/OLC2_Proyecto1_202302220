@@ -42,7 +42,7 @@ Operacion tablaOperacionesIgual[TIPO_COUNT][TIPO_COUNT] = {
     [INT]    = { [INT]=compararIgual, [DOUBLE]=compararIgual, [CHAR]=compararIgual },
     [DOUBLE] = { [INT]=compararIgual, [DOUBLE]=compararIgual, [CHAR]=compararIgual },
     [CHAR]   = { [INT]=compararIgual, [DOUBLE]=compararIgual, [CHAR]=compararIgual },
-    [STRING] = { [STRING]=compararStringsIgual },
+    // [STRING] = { [STRING]=compararStringsIgual },
     [BOOLEAN]= { [BOOLEAN]=compararBooleanosIgual }
 };
 
@@ -50,7 +50,7 @@ Operacion tablaOperacionesDiferente[TIPO_COUNT][TIPO_COUNT] = {
     [INT]    = { [INT]=compararDiferente, [DOUBLE]=compararDiferente, [CHAR]=compararDiferente },
     [DOUBLE] = { [INT]=compararDiferente, [DOUBLE]=compararDiferente, [CHAR]=compararDiferente },
     [CHAR]   = { [INT]=compararDiferente, [DOUBLE]=compararDiferente, [CHAR]=compararDiferente },
-    [STRING] = { [STRING]=compararStringsDiferente },
+    // [STRING] = { [STRING]=compararStringsDiferente },
     [BOOLEAN]= { [BOOLEAN]=compararBooleanosDiferente }
 };
 

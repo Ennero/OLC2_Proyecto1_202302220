@@ -42,12 +42,15 @@
 %token TOKEN_PLUS_ASSIGN TOKEN_MINUS_ASSIGN TOKEN_MULT_ASSIGN TOKEN_DIV_ASSIGN TOKEN_MOD_ASSIGN
 %token TOKEN_AND_ASSIGN TOKEN_OR_ASSIGN TOKEN_XOR_ASSIGN
 %token TOKEN_LSHIFT_ASSIGN TOKEN_RSHIFT_ASSIGN TOKEN_URSHIFT_ASSIGN
+%token TOKEN_DOT
+
 
 /* --- Tipos para No-Terminales --- */
-%type <nodo> s lSentencia sentencia expr imprimir lista_Expr bloque declaracion_var primitivo reasignacion_var
+%type <nodo> s lSentencia sentencia expr imprimir lista_Expr bloque declaracion_var primitivo reasignacion_var primary_expr
 %type <tipoDato> tipoPrimitivo
 
 /* --- Precedencia y Asociatividad de Operadores (MODIFICADO) --- */
+%left TOKEN_DOT
 %right '=' TOKEN_PLUS_ASSIGN TOKEN_MINUS_ASSIGN TOKEN_MULT_ASSIGN TOKEN_DIV_ASSIGN TOKEN_MOD_ASSIGN TOKEN_AND_ASSIGN TOKEN_OR_ASSIGN TOKEN_XOR_ASSIGN TOKEN_LSHIFT_ASSIGN TOKEN_RSHIFT_ASSIGN TOKEN_URSHIFT_ASSIGN
 %left TOKEN_OR
 %left TOKEN_AND
@@ -129,8 +132,9 @@ reasignacion_var: TOKEN_IDENTIFIER '=' expr { $$ = nuevoReasignacionExpresion($1
     | TOKEN_IDENTIFIER TOKEN_URSHIFT_ASSIGN expr { $$ = nuevoAsignacionCompuestaExpresion($1, TOKEN_URSHIFT, $3, @1.first_line, @1.first_column); }
     ;
 
-    // --- REGLAS ARITMÉTICAS ---
-expr: expr '+' expr                  { $$ = nuevoSumaExpresion($1, $3, @2.first_line, @2.first_column); }
+
+
+    expr: expr '+' expr                  { $$ = nuevoSumaExpresion($1, $3, @2.first_line, @2.first_column); }
     | expr '-' expr                { $$ = nuevoRestaExpresion($1, $3, @2.first_line, @2.first_column); }
     | expr '*' expr                { $$ = nuevoMultiplicacionExpresion($1, $3, @2.first_line, @2.first_column); }
     | expr '/' expr                { $$ = nuevoDivisionExpresion($1, $3, @2.first_line, @2.first_column); }
@@ -149,13 +153,30 @@ expr: expr '+' expr                  { $$ = nuevoSumaExpresion($1, $3, @2.first_
     | expr TOKEN_MAYOR_IGUAL expr  { $$ = nuevoMayorIgualExpresion($1, $3, @2.first_line, @2.first_column); }
     | expr TOKEN_AND expr          { $$ = nuevoAndExpresion($1, $3, @2.first_line, @2.first_column); }
     | expr TOKEN_OR expr           { $$ = nuevoOrExpresion($1, $3, @2.first_line, @2.first_column); }
-    | '!' expr                     { $$ = nuevoNotExpresion($2, @1.first_line, @1.first_column); }
-    | '~' expr                     { $$ = nuevoBitwiseNotExpresion($2, @1.first_line, @1.first_column); }
-    | '-' expr %prec NEG           { $$ = nuevoUnarioExpresion($2, @1.first_line, @1.first_column); }
-    | '(' expr ')'                 { $$ = $2; }
+    | primary_expr                 { $$ = $1; } // Una expresión puede ser una expresión primaria
+    ;
+
+// NUEVA REGLA PARA EXPRESIONES PRIMARIAS (las de más alta precedencia)
+primary_expr:
+      '(' expr ')'                 { $$ = $2; }
     | '(' tipoPrimitivo ')' expr   { $$ = nuevoCasteoExpresion($2, $4, @1.first_line, @1.first_column); }
     | TOKEN_IDENTIFIER             { $$ = nuevoIdentificadorExpresion($1, @1.first_line, @1.first_column); }
     | primitivo                    { $$ = $1; }
+    | '-' primary_expr %prec NEG   { $$ = nuevoUnarioExpresion($2, @1.first_line, @1.first_column); }
+    | '!' primary_expr             { $$ = nuevoNotExpresion($2, @1.first_line, @1.first_column); }
+    | '~' primary_expr             { $$ = nuevoBitwiseNotExpresion($2, @1.first_line, @1.first_column); }
+    // La llamada a método ahora solo puede ocurrir sobre una expresión primaria
+    | primary_expr TOKEN_DOT TOKEN_IDENTIFIER '(' expr ')' {
+        if (strcmp($3, "equals") == 0) {
+            $$ = nuevoEqualsExpresion($1, $5, @2.first_line, @2.first_column);
+        } else {
+            char desc[100];
+            sprintf(desc, "El método '%s' no está definido.", $3);
+            yyerror(desc);
+            $$ = NULL;
+        }
+        free($3);
+    }
     ;
 
 primitivo: TOKEN_INTEGER        { $$ = nuevoPrimitivoExpresion($1, INT, @1.first_line, @1.first_column); }
@@ -167,6 +188,9 @@ primitivo: TOKEN_INTEGER        { $$ = nuevoPrimitivoExpresion($1, INT, @1.first
     | TOKEN_TRUE           { $$ = nuevoPrimitivoExpresion($1, BOOLEAN, @1.first_line, @1.first_column); }
     | TOKEN_FALSE          { $$ = nuevoPrimitivoExpresion($1, BOOLEAN, @1.first_line, @1.first_column); }
     ;
+
+
+
 
 tipoPrimitivo: TOKEN_DINT     { $$ = INT; }
     | TOKEN_DFLOAT    { $$ = FLOAT; }

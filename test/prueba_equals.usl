@@ -1,0 +1,37 @@
+// Archivo de prueba para el método .equals() en Strings
+
+System.out.println("--- Pruebas de Comparación de Strings ---");
+
+String s1 = "hola";
+String s2 = "mundo";
+String s3 = "hola";
+int num = 123;
+
+// --- Pruebas Válidas con .equals() ---
+
+// 1. Comparación de dos strings con el mismo contenido
+boolean resultado1 = s1.equals(s3);
+System.out.println("'hola'.equals('hola') -> " + resultado1); // Debería ser true
+
+// 2. Comparación de dos strings con contenido diferente
+boolean resultado2 = s1.equals(s2);
+System.out.println("'hola'.equals('mundo') -> " + resultado2); // Debería ser false
+
+// 3. Se puede usar directamente con un literal
+System.out.println("'hola'.equals(\"hola\") -> " + s1.equals("hola")); // Debería ser true
+System.out.println("");
+
+
+// --- Pruebas que DEBEN producir un Error Semántico ---
+
+System.out.println("Las siguientes pruebas están comentadas porque deben generar errores:");
+
+// Prueba 1: Usar el operador '==' con strings.
+// Esto debería generar un error semántico como:
+// "La operacion 'IgualIgual' no esta definida entre los tipos String y String."
+// boolean error1 = (s1 == s3);
+
+// Prueba 2: Usar el método '.equals()' con un tipo que no es String.
+// Esto debería generar un error semántico como:
+// "El método '.equals()' solo se puede aplicar entre Strings, no entre 'String' y 'int'."
+// boolean error2 = s1.equals(num);

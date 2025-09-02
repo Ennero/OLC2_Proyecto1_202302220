@@ -77,62 +77,32 @@ static char *process_string_escapes(const char *input)
     return output;
 }
 
-// MODIFICADO: La función de interpretación ahora maneja correctamente Hex y Unicode.
-Result interpretPrimitivoExpresion(AbstractExpresion *self, Context *context)
-{
+Result interpretPrimitivoExpresion(AbstractExpresion* self, Context* context) {
     (void)context;
-    PrimitivoExpresion *nodo = (PrimitivoExpresion *)self;
-
-    switch (nodo->tipo)
-    {
-    case INT:
-    {
-        int *valor = malloc(sizeof(int));
-        // MODIFICADO: Usamos strtol con base 0 para detectar automáticamente "0x".
-        // strtol es más robusto que atoi.
-        if (strncmp(nodo->valor, "0x", 2) == 0 || strncmp(nodo->valor, "0X", 2) == 0)
-        {
-            *valor = (int)strtol(nodo->valor, NULL, 16);
+    PrimitivoExpresion* nodo = (PrimitivoExpresion*) self;
+    switch (nodo->tipo) {
+        case INT: {
+            int* valor = malloc(sizeof(int));
+            if (strncmp(nodo->valor, "0x", 2) == 0 || strncmp(nodo->valor, "0X", 2) == 0) {
+                 *valor = (int)strtol(nodo->valor, NULL, 16);
+            } else { *valor = (int)strtol(nodo->valor, NULL, 10); }
+            return nuevoValorResultado(valor, INT);
         }
-        else
-        {
-            *valor = (int)strtol(nodo->valor, NULL, 10);
+        case FLOAT:   { float* v = malloc(sizeof(float)); *v = atof(nodo->valor); return nuevoValorResultado(v, FLOAT); }
+        case DOUBLE:  { double* v = malloc(sizeof(double)); *v = atof(nodo->valor); return nuevoValorResultado(v, DOUBLE); }
+        case BOOLEAN: { int* v = malloc(sizeof(int)); *v = strcmp(nodo->valor, "true") == 0; return nuevoValorResultado(v, BOOLEAN); }
+        case CHAR: {
+            int* valor = malloc(sizeof(int));
+            char* processed = process_string_escapes(nodo->valor);
+            *valor = (int)processed[0];
+            free(processed);
+            return nuevoValorResultado(valor, CHAR);
         }
-        return nuevoValorResultado(valor, INT);
-    }
-    case FLOAT:
-    {
-        float *valor = malloc(sizeof(float));
-        *valor = atof(nodo->valor);
-        return nuevoValorResultado(valor, FLOAT);
-    }
-    case DOUBLE:
-    {
-        double *valor = malloc(sizeof(double));
-        *valor = atof(nodo->valor);
-        return nuevoValorResultado(valor, DOUBLE);
-    }
-    case BOOLEAN:
-    {
-        int *valor = malloc(sizeof(int));
-        *valor = strcmp(nodo->valor, "true") == 0;
-        return nuevoValorResultado(valor, BOOLEAN);
-    }
-    case CHAR:
-    {
-        int *valor = malloc(sizeof(int));
-        char *processed_char_content = process_string_escapes(nodo->valor);
-        *valor = (int)processed_char_content[0];
-        free(processed_char_content);
-        return nuevoValorResultado(valor, CHAR);
-    }
-    case STRING:
-    {
-        char *processed_string = process_string_escapes(nodo->valor);
-        return nuevoValorResultado(processed_string, STRING);
-    }
-    default:
-        return nuevoValorResultadoVacio();
+        case STRING: {
+            // Regla clave: siempre devolvemos una copia nueva.
+            return nuevoValorResultado(process_string_escapes(nodo->valor), STRING);
+        }
+        default: return nuevoValorResultadoVacio();
     }
 }
 

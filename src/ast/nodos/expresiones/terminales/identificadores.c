@@ -1,45 +1,54 @@
 #include "identificadores.h"
-#include "ast/nodos/builders.h"
 #include "context/context.h"
-#include "context/result.h"
-#include "error_reporter.h" // Se incluye para poder reportar errores
-
+#include "error_reporter.h"
 #include <stdlib.h>
-#include <stdio.h>
+#include <string.h>
 
-Result interpretIdentificadorExpresion(AbstractExpresion* self, Context* context) {
-    IdentificadorExpresion* nodo = (IdentificadorExpresion*) self;
-    
-    // Buscar el símbolo en la tabla de símbolos actual y en las anteriores.
-    Symbol* valorEncontrado = buscarTablaSimbolos(context, nodo->nombre);
-    
-    if (valorEncontrado) {
-        // Si se encuentra, se devuelve su valor y tipo.
-        return nuevoValorResultado(valorEncontrado->valor, valorEncontrado->tipo);
+// Función auxiliar para obtener el tamaño en bytes de nuestros tipos de datos
+static size_t get_type_size(TipoDato tipo) {
+    switch(tipo) {
+        case INT: case BOOLEAN: case CHAR: return sizeof(int);
+        case FLOAT: return sizeof(float);
+        case DOUBLE: return sizeof(double);
+        default: return 0; // String se maneja por separado
     }
-    
-    // <<<< LÓGICA SEMÁNTICA CLAVE >>>>
-    // Si no se encuentra el símbolo, es un error semántico.
-    char description[256];
-    snprintf(description, sizeof(description), "La variable '%s' no ha sido declarada en este ámbito.", nodo->nombre);
-    
-    // Se reporta el error con su tipo, el lexema (nombre), la descripción y la ubicación.
-    add_error_to_report("Semántico", nodo->nombre, description, nodo->line, nodo->column, context->nombre_completo);
-    
-    // Se devuelve un valor nulo para evitar que el programa crashee,
-    // aunque la ejecución se detendrá igualmente gracias a la bandera de error.
-    return nuevoValorResultadoVacio();
 }
 
-// <<<< CAMBIO: El constructor ahora recibe la ubicación >>>>
+// Función de interpretación (la que ya tenías)
+Result interpretIdentificadorExpresion(AbstractExpresion* self, Context* context) {
+    IdentificadorExpresion* nodo = (IdentificadorExpresion*) self;
+    Symbol* simbolo = buscarTablaSimbolos(context, nodo->nombre);
+
+    if (!simbolo) {
+        char description[256];
+        snprintf(description, sizeof(description), "La variable '%s' no ha sido declarada.", nodo->nombre);
+        add_error_to_report("Semántico", nodo->nombre, description, nodo->line, nodo->column, context->nombre_completo);
+        return nuevoValorResultadoVacio();
+    }
+    
+    if (simbolo->valor == NULL) {
+         return nuevoValorResultado(NULL, simbolo->tipo);
+    }
+
+    // Devolvemos una COPIA del valor, protegiendo la tabla de símbolos.
+    if (simbolo->tipo == STRING) {
+        return nuevoValorResultado(strdup((char*)simbolo->valor), STRING);
+    } else {
+        size_t size = get_type_size(simbolo->tipo);
+        void* valor_copiado = malloc(size);
+        if (!valor_copiado) return nuevoValorResultadoVacio();
+        memcpy(valor_copiado, simbolo->valor, size);
+        return nuevoValorResultado(valor_copiado, simbolo->tipo);
+    }
+}
+
+// <<<< FUNCIÓN CONSTRUCTORA AÑADIDA >>>>
 AbstractExpresion* nuevoIdentificadorExpresion(char* nombre, int line, int column) {
     IdentificadorExpresion* nodo = malloc(sizeof(IdentificadorExpresion));
     if (!nodo) return NULL;
 
     buildAbstractExpresion(&nodo->base, interpretIdentificadorExpresion, "Identificador", line, column);
-
     nodo->nombre = nombre;
-    // Se guardan la línea y la columna en la estructura del nodo.
     nodo->line = line;
     nodo->column = column;
     

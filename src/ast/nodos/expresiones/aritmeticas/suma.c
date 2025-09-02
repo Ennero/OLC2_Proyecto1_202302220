@@ -3,8 +3,10 @@
 #include "ast/nodos/expresiones/expresiones.h"
 #include "context/result.h"
 #include <stdlib.h>
+#include <stdio.h>   // <<<< AÑADIDO: Necesario para sprintf
+#include <string.h>  // <<<< AÑADIDO: Necesario para strlen, strcpy, strcat
 
-// --- Implementaciones ---
+// --- Funciones de Suma Numérica (sin cambios) ---
 Result sumarIntInt(ExpresionLenguaje* self) {
     int* res = malloc(sizeof(int));
     *res =  *((int*)self->izquierda.valor) + *((int*)self->derecha.valor);
@@ -60,8 +62,8 @@ Result sumarDoubleFloat(ExpresionLenguaje* self) {
 }
 
 
+// --- FUNCIONES DE CONCATENACIÓN (LIMPIAS Y ESPECÍFICAS) ---
 
-// --- FUNCIONES DE CONCATENACIÓN ---
 Result concatenarStringString(ExpresionLenguaje* self) {
     char* s1 = (char*)self->izquierda.valor;
     char* s2 = (char*)self->derecha.valor;
@@ -71,74 +73,97 @@ Result concatenarStringString(ExpresionLenguaje* self) {
     return nuevoValorResultado(res, STRING);
 }
 
-
-// Convierte el operando derecho a string y luego concatena
-Result concatenarString_X(ExpresionLenguaje* self, const char* formato) {
+// Lado Derecho no es String
+Result concatenarStringInt(ExpresionLenguaje* self) {
+    char s2_buffer[64];
+    sprintf(s2_buffer, "%d", *(int*)self->derecha.valor);
     char* s1 = (char*)self->izquierda.valor;
-    char s2_buffer[64]; // Buffer para el número o booleano convertido
-
-    switch(self->derecha.tipo) {
-        case INT:    sprintf(s2_buffer, formato, *(int*)self->derecha.valor); break;
-        case CHAR:   sprintf(s2_buffer, formato, (char)(*(int*)self->derecha.valor)); break;
-        case FLOAT:  sprintf(s2_buffer, formato, *(float*)self->derecha.valor); break;
-        case DOUBLE: sprintf(s2_buffer, formato, *(double*)self->derecha.valor); break;
-        case BOOLEAN: sprintf(s2_buffer, "%s", (*(int*)self->derecha.valor ? "true" : "false")); break;
-        default: return nuevoValorResultadoVacio(); // No debería ocurrir
-    }
-
     char* res = malloc(strlen(s1) + strlen(s2_buffer) + 1);
-    strcpy(res, s1);
-    strcat(res, s2_buffer);
+    strcpy(res, s1); strcat(res, s2_buffer);
     return nuevoValorResultado(res, STRING);
 }
+Result concatenarStringDouble(ExpresionLenguaje* self) {
+    char s2_buffer[64];
+    sprintf(s2_buffer, "%g", *(double*)self->derecha.valor);
+    char* s1 = (char*)self->izquierda.valor;
+    char* res = malloc(strlen(s1) + strlen(s2_buffer) + 1);
+    strcpy(res, s1); strcat(res, s2_buffer);
+    return nuevoValorResultado(res, STRING);
+}
+Result concatenarStringChar(ExpresionLenguaje* self) {
+    char* s1 = (char*)self->izquierda.valor;
+    char c2 = (char)(*(int*)self->derecha.valor);
+    char* res = malloc(strlen(s1) + 2);
+    sprintf(res, "%s%c", s1, c2);
+    return nuevoValorResultado(res, STRING);
+}
+Result concatenarStringBoolean(ExpresionLenguaje* self) {
 
-// Convierte el operando izquierdo a string y luego concatena
-Result concatenar_X_String(ExpresionLenguaje* self, const char* formato) {
-    char* s2 = (char*)self->derecha.valor;
-    char s1_buffer[64];
-
-    switch(self->izquierda.tipo) {
-        case INT:     sprintf(s1_buffer, formato, *(int*)self->izquierda.valor); break;
-        case CHAR:    sprintf(s1_buffer, formato, (char)(*(int*)self->izquierda.valor)); break;
-        case FLOAT:   sprintf(s1_buffer, formato, *(float*)self->izquierda.valor); break;
-        case DOUBLE:  sprintf(s1_buffer, formato, *(double*)self->izquierda.valor); break;
-        case BOOLEAN: sprintf(s1_buffer, "%s", (*(int*)self->izquierda.valor ? "true" : "false")); break;
-        default: return nuevoValorResultadoVacio();
+    printf("DEBUG [suma]: La función de concatenar String+Boolean recibió:\n");
+    printf("DEBUG [suma]: Lado Izquierdo (String): '%s'\n", (char*)self->izquierda.valor);
+    if (self->derecha.valor) {
+        printf("DEBUG [suma]: Lado Derecho (Boolean): %s\n", (*(int*)self->derecha.valor) ? "true" : "false");
+    } else {
+        printf("DEBUG [suma]: Lado Derecho (Boolean): NULL\n");
     }
-    
+
+
+    char* s1 = (char*)self->izquierda.valor;
+    const char* s2_texto = (*(int*)self->derecha.valor) ? "true" : "false";
+    char* res = malloc(strlen(s1) + strlen(s2_texto) + 1);
+    strcpy(res, s1); strcat(res, s2_texto);
+    // NO HAY FREE AQUÍ. El que nos llamó se encarga de la memoria.
+    return nuevoValorResultado(res, STRING);
+}
+
+// Lado Izquierdo no es String
+Result concatenarIntString(ExpresionLenguaje* self) {
+    char s1_buffer[64];
+    sprintf(s1_buffer, "%d", *(int*)self->izquierda.valor);
+    char* s2 = (char*)self->derecha.valor;
     char* res = malloc(strlen(s1_buffer) + strlen(s2) + 1);
-    strcpy(res, s1_buffer);
-    strcat(res, s2);
+    strcpy(res, s1_buffer); strcat(res, s2);
+    return nuevoValorResultado(res, STRING);
+}
+Result concatenarDoubleString(ExpresionLenguaje* self) {
+    char s1_buffer[64];
+    sprintf(s1_buffer, "%g", *(double*)self->izquierda.valor);
+    char* s2 = (char*)self->derecha.valor;
+    char* res = malloc(strlen(s1_buffer) + strlen(s2) + 1);
+    strcpy(res, s1_buffer); strcat(res, s2);
+    return nuevoValorResultado(res, STRING);
+}
+Result concatenarCharString(ExpresionLenguaje* self) {
+    char* s2 = (char*)self->derecha.valor;
+    char c1 = (char)(*(int*)self->izquierda.valor);
+    char* res = malloc(strlen(s2) + 2);
+    sprintf(res, "%c%s", c1, s2);
+    return nuevoValorResultado(res, STRING);
+}
+Result concatenarBooleanString(ExpresionLenguaje* self) {
+    const char* s1_texto = (*(int*)self->izquierda.valor) ? "true" : "false";
+    char* s2 = (char*)self->derecha.valor;
+    char* res = malloc(strlen(s1_texto) + strlen(s2) + 1);
+    strcpy(res, s1_texto); strcat(res, s2);
+
+    // NO liberamos self->izquierda.valor aquí.
+
     return nuevoValorResultado(res, STRING);
 }
 
 
-// Wrappers para llamar a las funciones genéricas con el formato correcto
-Result concatenarStringInt(ExpresionLenguaje* self) { return concatenarString_X(self, "%d"); }
-Result concatenarStringChar(ExpresionLenguaje* self) { return concatenarString_X(self, "%c"); }
-Result concatenarStringDouble(ExpresionLenguaje* self) { return concatenarString_X(self, "%g"); }
-Result concatenarStringBoolean(ExpresionLenguaje* self) { return concatenarString_X(self, NULL); }
-
-Result concatenarIntString(ExpresionLenguaje* self) { return concatenar_X_String(self, "%d"); }
-Result concatenarCharString(ExpresionLenguaje* self) { return concatenar_X_String(self, "%c"); }
-Result concatenarDoubleString(ExpresionLenguaje* self) { return concatenar_X_String(self, "%g"); }
-Result concatenarBooleanString(ExpresionLenguaje* self) { return concatenar_X_String(self, NULL); }
-
-
-
-// --- TABLA DE OPERACIONES DE SUMA COMPLETAMENTE CORREGIDA ---
+// --- TABLA DE OPERACIONES DE SUMA (FINAL Y CORRECTA) ---
 Operacion tablaOperacionesSuma[TIPO_COUNT][TIPO_COUNT] = {
-    // Columna:   BOOLEAN,                    CHAR,                  INT,                   FLOAT,                     DOUBLE,                    STRING
-    /* Fila */
     [BOOLEAN] = { [STRING] = concatenarBooleanString },
     [CHAR]    = { [CHAR] = sumarIntInt,      [INT] = sumarIntInt,     [FLOAT] = sumarFloatInt, [DOUBLE] = sumarDoubleInt,  [STRING] = concatenarCharString },
     [INT]     = { [CHAR] = sumarIntInt,      [INT] = sumarIntInt,     [FLOAT] = sumarIntFloat, [DOUBLE] = sumarIntDouble,  [STRING] = concatenarIntString },
     [FLOAT]   = { [CHAR] = sumarFloatInt,    [INT] = sumarFloatInt,   [FLOAT] = sumarFloatFloat,[DOUBLE] = sumarFloatDouble,[STRING] = concatenarDoubleString },
     [DOUBLE]  = { [CHAR] = sumarDoubleInt,   [INT] = sumarDoubleInt,  [FLOAT] = sumarDoubleFloat,[DOUBLE]= sumarDoubleDouble,[STRING] = concatenarDoubleString },
-    [STRING]  = { [BOOLEAN] = concatenarStringBoolean, [CHAR] = concatenarStringChar, [INT] = concatenarStringInt, [FLOAT] = concatenarStringDouble, [DOUBLE] = concatenarStringDouble, [STRING] = concatenarStringString }
+    [STRING]  = { [BOOLEAN] = concatenarStringBoolean, [CHAR] = concatenarStringChar, [INT] = concatenarStringInt, [FLOAT] = concatenarDoubleString, [DOUBLE] = concatenarDoubleString, [STRING] = concatenarStringString }
 };
 
 
+// --- Constructor (Definido una sola vez) ---
 AbstractExpresion* nuevoSumaExpresion(AbstractExpresion* izquierda, AbstractExpresion* derecha, int line, int column) {
     ExpresionLenguaje* sumaExpresion = nuevoExpresionLenguaje(interpretExpresionLenguaje, izquierda, derecha, line, column);
     sumaExpresion->base.node_type = "Suma";

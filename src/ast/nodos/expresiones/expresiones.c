@@ -8,70 +8,89 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+// en src/ast/nodos/expresiones/expresiones.c
+
 Result interpretExpresionLenguaje(AbstractExpresion* self, Context* context) {
-    ExpresionLenguaje* nodo = (ExpresionLenguaje*) self;
-    calcularResultados(nodo, context);
+    ExpresionLenguaje* nodo = (ExpresionLenguaje*)self;
 
-    // Verificar si se encontró un error semántico
+    Result izquierda = self->hijos[0]->interpret(self->hijos[0], context);
+    Result derecha = self->hijos[1]->interpret(self->hijos[1], context);
+
     if (has_semantic_error_been_found()) {
-            return nuevoValorResultadoVacio();
-        }
-
-    Operacion op = (*nodo->tablaOperaciones)[nodo->izquierda.tipo][nodo->derecha.tipo];
-    if (op == NULL) {
-        char description[256];
-        snprintf(description, sizeof(description), "La operacion '%s' no esta definida entre los tipos %s y %s.",
-            self->node_type,
-            labelTipoDato[nodo->izquierda.tipo], 
-            labelTipoDato[nodo->derecha.tipo]
-        );
-        add_error_to_report("Semantico", self->node_type, description, self->line, self->column, context->nombre_completo);
+        free(izquierda.valor); free(derecha.valor);
         return nuevoValorResultadoVacio();
     }
-    return op(nodo);
+    
+    // Almacenamos los resultados temporalmente en el nodo para pasarlos a la función de operación
+    nodo->izquierda = izquierda;
+    nodo->derecha = derecha;
+
+    Operacion op = (*nodo->tablaOperaciones)[izquierda.tipo][derecha.tipo];
+    if (op == NULL) {
+        char desc[256];
+        snprintf(desc, sizeof(desc), "La operacion '%s' no esta definida entre los tipos %s y %s.", self->node_type, labelTipoDato[izquierda.tipo], labelTipoDato[derecha.tipo]);
+        add_error_to_report("Semantico", self->node_type, desc, self->line, self->column, context->nombre_completo);
+        free(izquierda.valor); free(derecha.valor);
+        return nuevoValorResultadoVacio();
+    }
+    
+    Result resultado_final = op(nodo);
+    
+    free(izquierda.valor);
+    free(derecha.valor);
+    
+    return resultado_final;
 }
 
-Result interpretUnarioLenguaje(AbstractExpresion* self, Context* context) {
-    ExpresionLenguaje* nodo = (ExpresionLenguaje*) self;
+Result interpretUnarioLenguaje(AbstractExpresion *self, Context *context)
+{
+    ExpresionLenguaje *nodo = (ExpresionLenguaje *)self;
     calcularResultadoIzquierdo(nodo, context);
 
     Operacion op = (*nodo->tablaOperaciones)[nodo->izquierda.tipo][NULO];
-    if (op == NULL) {
+    if (op == NULL)
+    {
         char description[256];
         snprintf(description, sizeof(description), "La operacion unaria '%s' no esta definida para el tipo %s.",
-            self->node_type,
-            labelTipoDato[nodo->izquierda.tipo]
-        );
+                    self->node_type,
+                    labelTipoDato[nodo->izquierda.tipo]);
         add_error_to_report("Semantico", self->node_type, description, self->line, self->column, context->nombre_completo);
         return nuevoValorResultadoVacio();
     }
     return op(nodo);
 }
 
-ExpresionLenguaje* nuevoExpresionLenguaje(Interpret funcionEspecifica, AbstractExpresion* izquierda, AbstractExpresion* derecha, int line, int column) {
+ExpresionLenguaje *nuevoExpresionLenguaje(Interpret funcionEspecifica, AbstractExpresion *izquierda, AbstractExpresion *derecha, int line, int column)
+{
     // reservar el espacio en memoria y obtener el puntero a este
-    ExpresionLenguaje* nodo = malloc(sizeof(ExpresionLenguaje));
-    if (!nodo) return NULL;
+    ExpresionLenguaje *nodo = malloc(sizeof(ExpresionLenguaje));
+    if (!nodo)
+        return NULL;
 
-    //asignar valores
+    // asignar valores
     buildAbstractExpresion(&nodo->base, funcionEspecifica, "ExpresionLenguaje", line, column);
 
-    //guardar los punteros en lo hijos de este arbol a los lados de la expresion
-    if (izquierda) agregarHijo((AbstractExpresion*) nodo, izquierda);
-    if (derecha) agregarHijo((AbstractExpresion*) nodo, derecha);
-    
+    // guardar los punteros en lo hijos de este arbol a los lados de la expresion
+    if (izquierda)
+        agregarHijo((AbstractExpresion *)nodo, izquierda);
+    if (derecha)
+        agregarHijo((AbstractExpresion *)nodo, derecha);
+
     return nodo;
 }
 
-void calcularResultadoIzquierdo(ExpresionLenguaje* self, Context* context) {
+void calcularResultadoIzquierdo(ExpresionLenguaje *self, Context *context)
+{
     self->izquierda = self->base.hijos[0]->interpret(self->base.hijos[0], context);
 }
 
-void calcularResultadoDerecho(ExpresionLenguaje* self, Context* context) {
+void calcularResultadoDerecho(ExpresionLenguaje *self, Context *context)
+{
     self->derecha = self->base.hijos[1]->interpret(self->base.hijos[1], context);
 }
 
-void calcularResultados(ExpresionLenguaje* self, Context* context) {
+void calcularResultados(ExpresionLenguaje *self, Context *context)
+{
     calcularResultadoIzquierdo(self, context);
     calcularResultadoDerecho(self, context);
 }
