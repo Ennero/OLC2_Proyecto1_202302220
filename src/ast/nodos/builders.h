@@ -75,5 +75,8 @@ AbstractExpresion* nuevoBreakExpresion(int line, int column);
 AbstractExpresion* nuevoContinueExpresion(int line, int column);
 AbstractExpresion* nuevoReturnExpresion(AbstractExpresion* expresion, int line, int column);
 
+/* --- Constructores de Nodos de Estructura --- */
+AbstractExpresion* nuevoMainFunctionNode(AbstractExpresion* bloque, int line, int column);
+
 #endif
 

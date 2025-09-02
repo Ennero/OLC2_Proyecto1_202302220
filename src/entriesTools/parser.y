@@ -31,6 +31,7 @@
 }
 
 /* --- Declaración de Tokens --- */
+%token TOKEN_PUBLIC TOKEN_STATIC TOKEN_VOID
 %token TOKEN_IF TOKEN_ELSE TOKEN_WHILE TOKEN_FOR TOKEN_SWITCH TOKEN_CASE
 %token TOKEN_BREAK TOKEN_CONTINUE TOKEN_RETURN TOKEN_PRINT TOKEN_MAIN TOKEN_CLASS
 %token TOKEN_DINT TOKEN_DFLOAT TOKEN_DDOUBLE TOKEN_DBOOLEAN TOKEN_DCHAR TOKEN_DSTRING
@@ -48,7 +49,7 @@
 
 
 /* --- Tipos para No-Terminales --- */
-%type <nodo> s lSentencia sentencia expr imprimir lista_Expr bloque declaracion_var primitivo reasignacion_var primary_expr if_stmt switch_stmt case_list case_stmt lSentencia_opt
+%type <nodo> s lSentencia sentencia expr imprimir lista_Expr bloque declaracion_var primitivo reasignacion_var primary_expr if_stmt switch_stmt case_list case_stmt lSentencia_opt programa declaracion_main
 %type <tipoDato> tipoPrimitivo
 
 /* --- Precedencia y Asociatividad de Operadores (MODIFICADO) --- */
@@ -69,7 +70,19 @@
 
 %%
 
-%start s;
+%start programa;
+
+
+programa: declaracion_main { ast_root = $1; $$ = $1; }
+        ;
+
+
+// Regla para la sintaxis "public static void main(String[] args) { ... }"
+declaracion_main: TOKEN_PUBLIC TOKEN_STATIC TOKEN_VOID TOKEN_MAIN 
+                    '(' TOKEN_DSTRING '[' ']' TOKEN_IDENTIFIER ')' bloque {
+                        $$ = nuevoMainFunctionNode($11, @1.first_line, @1.first_column);
+                    }
+                ;
 
 s: lSentencia  { ast_root = $1; $$ = $1; }
     ;
