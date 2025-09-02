@@ -1,0 +1,37 @@
+// Archivo de prueba para verificar el ámbito (scope) del if
+
+// 1. Declaramos una variable en el ámbito global/principal
+int x = 10;
+String y = "afuera";
+
+System.out.println("Antes del if, x vale: " + x); // Debería imprimir 10
+System.out.println("Antes del if, y vale: " + y); // Debería imprimir "afuera"
+
+if (true) {
+    // 2. Entramos en un nuevo ámbito creado por las llaves {}
+    System.out.println("--- Dentro del if ---");
+
+    // 3. Declaramos una NUEVA variable 'x' que "oculta" a la exterior.
+    // Esta 'x' solo existe aquí dentro.
+    int x = 99;
+    
+    // 4. La 'y' exterior sigue siendo visible. La reasignamos.
+    y = "adentro";
+
+    // 5. Declaramos 'z', que solo vivirá dentro de este bloque.
+    String z = "variable local";
+
+    System.out.println("Dentro del if, x vale: " + x); // Debería imprimir 99 (la local)
+    System.out.println("Dentro del if, y vale: " + y); // Debería imprimir "adentro"
+    System.out.println("Dentro del if, z vale: " + z); // Debería imprimir "variable local"
+
+    System.out.println("--- Saliendo del if ---");
+} // 6. Al llegar aquí, la 'x' local (99) y la 'z' mueren.
+
+System.out.println("Después del if, x vale: " + x); // Debería imprimir 10 (la original, no fue afectada)
+System.out.println("Después del if, y vale: " + y); // Debería imprimir "adentro" (fue reasignada)
+
+// 7. Prueba de error (comentada)
+// La siguiente línea DEBE producir un error semántico de "variable no declarada"
+// porque 'z' ya no existe fuera del bloque del if.
+// System.out.println("¿z existe aquí? " + z);

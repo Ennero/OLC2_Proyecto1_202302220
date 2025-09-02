@@ -13,36 +13,49 @@ Context* nuevoContext(Context* anterior, const char* nombre_contexto) {
     // Inicializar campos
     nuevo->anterior = anterior;
     nuevo->ultimoSymbol = NULL;
+    
+    // Lógica para el puntero raíz y el contador (esto está bien)
+    if (anterior) {
+        nuevo->raiz = anterior->raiz;
+    } else {
+        nuevo->raiz = nuevo;
+        nuevo->proximo_id_bloque = 1;
+    }
 
+    // --- BLOQUE CORREGIDO ---
     // Crear nombre completo
     if (anterior && anterior->nombre_completo) {
+        // 1. (RESTAURADO) Calcular el tamaño necesario para el nuevo nombre
         size_t len_padre = strlen(anterior->nombre_completo);
         size_t len_nuevo = strlen(nombre_contexto);
+        
+        // 2. (RESTAURADO) Reservar la memoria
         nuevo->nombre_completo = malloc(len_padre + len_nuevo + 2); // +2 para '_' y '\0'
+        
+        // 3. (AHORA ES SEGURO) Escribir en la memoria reservada
         if (nuevo->nombre_completo) {
             sprintf(nuevo->nombre_completo, "%s_%s", anterior->nombre_completo, nombre_contexto);
         }
     } else {
-
-        // Si no hay padre, este es el contexto global
+        // Esto estaba bien: para el contexto global, strdup ya reserva la memoria
         nuevo->nombre_completo = strdup(nombre_contexto);
     }
     
     return nuevo;
 }
 
+
+
 void liberarContext(Context* context) {
     if (!context) return;
-
     Symbol* actual = context->ultimoSymbol;
     while(actual) {
         Symbol* temp = actual->anterior;
-        // Aquí se debería liberar la memoria del valor si fue asignado con malloc
-        // Por ahora, solo liberamos la estructura del símbolo
+        // La lógica de liberación de memoria de los valores ahora la hacen los nodos
+        free(actual->nombre); // Asumiendo que el nombre siempre es copiado
         free(actual);
         actual = temp;
     }
-
     free(context->nombre_completo);
     free(context);
 }
