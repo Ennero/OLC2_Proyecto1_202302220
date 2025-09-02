@@ -133,8 +133,7 @@ reasignacion_var: TOKEN_IDENTIFIER '=' expr { $$ = nuevoReasignacionExpresion($1
     ;
 
 
-
-    expr: expr '+' expr                  { $$ = nuevoSumaExpresion($1, $3, @2.first_line, @2.first_column); }
+expr: expr '+' expr                { $$ = nuevoSumaExpresion($1, $3, @2.first_line, @2.first_column); }
     | expr '-' expr                { $$ = nuevoRestaExpresion($1, $3, @2.first_line, @2.first_column); }
     | expr '*' expr                { $$ = nuevoMultiplicacionExpresion($1, $3, @2.first_line, @2.first_column); }
     | expr '/' expr                { $$ = nuevoDivisionExpresion($1, $3, @2.first_line, @2.first_column); }
