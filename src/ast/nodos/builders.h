@@ -50,6 +50,11 @@ AbstractExpresion* nuevoBitwiseOrExpresion(AbstractExpresion* izquierda, Abstrac
 AbstractExpresion* nuevoBitwiseXorExpresion(AbstractExpresion* izquierda, AbstractExpresion* derecha, int line, int column);
 AbstractExpresion* nuevoBitwiseNotExpresion(AbstractExpresion* expresion, int line, int column);
 
+// <<<< AÑADIR ESTAS LÍNEAS >>>>
+AbstractExpresion* nuevoLeftShiftExpresion(AbstractExpresion* izquierda, AbstractExpresion* derecha, int line, int column);
+AbstractExpresion* nuevoRightShiftExpresion(AbstractExpresion* izquierda, AbstractExpresion* derecha, int line, int column);
+AbstractExpresion* nuevoUnsignedRightShiftExpresion(AbstractExpresion* izquierda, AbstractExpresion* derecha, int line, int column);
+
 
 #endif
 

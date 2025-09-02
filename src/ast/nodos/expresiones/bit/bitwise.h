@@ -8,4 +8,9 @@ extern Operacion tablaOperacionesBitwiseAnd[TIPO_COUNT][TIPO_COUNT];
 extern Operacion tablaOperacionesBitwiseOr[TIPO_COUNT][TIPO_COUNT];
 extern Operacion tablaOperacionesBitwiseXor[TIPO_COUNT][TIPO_COUNT];
 
+extern Operacion tablaOperacionesLeftShift[TIPO_COUNT][TIPO_COUNT];
+extern Operacion tablaOperacionesRightShift[TIPO_COUNT][TIPO_COUNT];
+extern Operacion tablaOperacionesUnsignedRightShift[TIPO_COUNT][TIPO_COUNT];
+
+
 #endif //BITWISE_H

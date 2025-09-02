@@ -28,6 +28,31 @@ static Result opBitwiseAnd(ExpresionLenguaje* self) { return bitwiseOperacion(se
 static Result opBitwiseOr(ExpresionLenguaje* self)  { return bitwiseOperacion(self, '|'); }
 static Result opBitwiseXor(ExpresionLenguaje* self) { return bitwiseOperacion(self, '^'); }
 
+static Result opLeftShift(ExpresionLenguaje* self) {
+    int v1 = *(int*)self->izquierda.valor;
+    int v2 = *(int*)self->derecha.valor;
+    int* res_val = malloc(sizeof(int));
+    *res_val = v1 << v2;
+    return nuevoValorResultado(res_val, INT);
+}
+
+static Result opRightShift(ExpresionLenguaje* self) {
+    int v1 = *(int*)self->izquierda.valor;
+    int v2 = *(int*)self->derecha.valor;
+    int* res_val = malloc(sizeof(int));
+    // El >> en C sobre un int con signo suele ser un desplazamiento aritmético (con signo)
+    *res_val = v1 >> v2;
+    return nuevoValorResultado(res_val, INT);
+}
+
+static Result opUnsignedRightShift(ExpresionLenguaje* self) {
+    int v1 = *(int*)self->izquierda.valor;
+    int v2 = *(int*)self->derecha.valor;
+    int* res_val = malloc(sizeof(int));
+    // Para simular >>>, casteamos el operando izquierdo a unsigned antes de desplazar
+    *res_val = (unsigned int)v1 >> v2;
+    return nuevoValorResultado(res_val, INT);
+}
 
 // --- Tablas de Operaciones ---
 // Solo se permiten operaciones entre INT y CHAR, que internamente son ambos INT.
@@ -45,6 +70,22 @@ Operacion tablaOperacionesBitwiseOr[TIPO_COUNT][TIPO_COUNT] = {
 Operacion tablaOperacionesBitwiseXor[TIPO_COUNT][TIPO_COUNT] = {
     [INT]  = { [INT] = opBitwiseXor, [CHAR] = opBitwiseXor },
     [CHAR] = { [INT] = opBitwiseXor, [CHAR] = opBitwiseXor }
+};
+
+// Los operadores de desplazamiento solo aceptan operandos enteros (int o char)
+Operacion tablaOperacionesLeftShift[TIPO_COUNT][TIPO_COUNT] = {
+    [INT]  = { [INT] = opLeftShift, [CHAR] = opLeftShift },
+    [CHAR] = { [INT] = opLeftShift, [CHAR] = opLeftShift }
+};
+
+Operacion tablaOperacionesRightShift[TIPO_COUNT][TIPO_COUNT] = {
+    [INT]  = { [INT] = opRightShift, [CHAR] = opRightShift },
+    [CHAR] = { [INT] = opRightShift, [CHAR] = opRightShift }
+};
+
+Operacion tablaOperacionesUnsignedRightShift[TIPO_COUNT][TIPO_COUNT] = {
+    [INT]  = { [INT] = opUnsignedRightShift, [CHAR] = opUnsignedRightShift },
+    [CHAR] = { [INT] = opUnsignedRightShift, [CHAR] = opUnsignedRightShift }
 };
 
 
@@ -101,4 +142,26 @@ AbstractExpresion* nuevoBitwiseNotExpresion(AbstractExpresion* expresion, int li
     agregarHijo(notExpresion, expresion);
 
     return notExpresion;
+}
+
+// Constructores shift 
+AbstractExpresion* nuevoLeftShiftExpresion(AbstractExpresion* i, AbstractExpresion* d, int line, int column) {
+    ExpresionLenguaje* expr = nuevoExpresionLenguaje(interpretExpresionLenguaje, i, d, line, column);
+    expr->base.node_type = "LeftShift";
+    expr->tablaOperaciones = &tablaOperacionesLeftShift;
+    return (AbstractExpresion*) expr;
+}
+
+AbstractExpresion* nuevoRightShiftExpresion(AbstractExpresion* i, AbstractExpresion* d, int line, int column) {
+    ExpresionLenguaje* expr = nuevoExpresionLenguaje(interpretExpresionLenguaje, i, d, line, column);
+    expr->base.node_type = "RightShift";
+    expr->tablaOperaciones = &tablaOperacionesRightShift;
+    return (AbstractExpresion*) expr;
+}
+
+AbstractExpresion* nuevoUnsignedRightShiftExpresion(AbstractExpresion* i, AbstractExpresion* d, int line, int column) {
+    ExpresionLenguaje* expr = nuevoExpresionLenguaje(interpretExpresionLenguaje, i, d, line, column);
+    expr->base.node_type = "UnsignedRightShift";
+    expr->tablaOperaciones = &tablaOperacionesUnsignedRightShift;
+    return (AbstractExpresion*) expr;
 }

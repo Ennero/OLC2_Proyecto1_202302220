@@ -1,0 +1,33 @@
+// Archivo de prueba para los operadores de desplazamiento
+
+System.out.println("--- Pruebas de Operadores de Desplazamiento ---");
+
+int x = 10;     // Binario: ...0000 1010
+int neg = -10;  // Binario (32-bit): 1111 1111 1111 1111 1111 1111 1111 0110
+
+// --- Prueba de Left Shift (<<) ---
+// 10 << 2  ->  ...0010 1000  (40)
+int res_left = x << 2;
+System.out.println("10 << 2 = " + res_left); // Debería imprimir 40
+
+
+// --- Prueba de Right Shift (>>) con signo ---
+// -10 >> 2
+// El bit de signo (1) se copia a la izquierda
+// Resultado: 1111 1111 ... 1111 1101  (-3)
+int res_right_signed = neg >> 2;
+System.out.println("-10 >> 2 = " + res_right_signed); // Debería imprimir -3
+
+
+// --- Prueba de Unsigned Right Shift (>>>) sin signo ---
+// -10 >>> 2
+// Se insertan ceros (0) a la izquierda
+// Resultado: 0011 1111 ... 1111 1101  (un número positivo muy grande)
+int res_right_unsigned = neg >>> 2;
+System.out.println("-10 >>> 2 = " + res_right_unsigned); // Debería imprimir 1073741821
+
+
+// --- Prueba con Char ---
+// 'A' (65) << 1 -> 130
+int res_char_shift = 'A' << 1;
+System.out.println("'A' << 1 = " + res_char_shift); // Debería imprimir 130

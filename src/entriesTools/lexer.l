@@ -95,6 +95,10 @@ newline           \n
                         }
 
 {identifier}            { yylval.string = strdup(yytext); return TOKEN_IDENTIFIER; }
+
+">>>"              return TOKEN_URSHIFT;   // Unsigned Right Shift
+">>"               return TOKEN_RSHIFT;    // Right Shift
+"<<"               return TOKEN_LSHIFT;    // Left Shift
 "=="               return TOKEN_IGUAL_IGUAL;
 "!="               return TOKEN_DIFERENTE;
 ">="               return TOKEN_MAYOR_IGUAL;
