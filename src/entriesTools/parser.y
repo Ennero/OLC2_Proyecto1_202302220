@@ -46,7 +46,7 @@
 
 
 /* --- Tipos para No-Terminales --- */
-%type <nodo> s lSentencia sentencia expr imprimir lista_Expr bloque declaracion_var primitivo reasignacion_var primary_expr
+%type <nodo> s lSentencia sentencia expr imprimir lista_Expr bloque declaracion_var primitivo reasignacion_var primary_expr if_stmt
 %type <tipoDato> tipoPrimitivo
 
 /* --- Precedencia y Asociatividad de Operadores (MODIFICADO) --- */
@@ -93,6 +93,7 @@ sentencia: imprimir ';'        { $$ = $1; }
     | bloque               { $$ = $1; }
     | declaracion_var ';'  { $$ = $1; }
     | reasignacion_var ';'  { $$ = $1; }
+    | if_stmt              { $$ = $1; }
     | error ';' { 
         yyerrok; 
         $$ = NULL; 
@@ -198,6 +199,26 @@ tipoPrimitivo: TOKEN_DINT     { $$ = INT; }
     | TOKEN_DCHAR     { $$ = CHAR; }
     | TOKEN_DBOOLEAN  { $$ = BOOLEAN; }
     ;
+
+
+
+
+if_stmt: TOKEN_IF '(' expr ')' bloque { 
+            // Regla para un if simple: if (cond) { ... }
+            $$ = nuevoIfExpresion($3, $5, NULL, @1.first_line, @1.first_column);
+        }
+    | TOKEN_IF '(' expr ')' bloque TOKEN_ELSE bloque {
+            // Regla para un if-else: if (cond) { ... } else { ... }
+            $$ = nuevoIfExpresion($3, $5, $7, @1.first_line, @1.first_column);
+        }
+    | TOKEN_IF '(' expr ')' bloque TOKEN_ELSE if_stmt {
+            // Regla para un else-if: if (cond) { ... } else if (...)
+            $$ = nuevoIfExpresion($3, $5, $7, @1.first_line, @1.first_column);
+        }
+    ;
+
+
+
 
 %%
 

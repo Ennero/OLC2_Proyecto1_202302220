@@ -57,11 +57,13 @@ AbstractExpresion* nuevoBitwiseOrExpresion(AbstractExpresion* izquierda, Abstrac
 AbstractExpresion* nuevoBitwiseXorExpresion(AbstractExpresion* izquierda, AbstractExpresion* derecha, int line, int column);
 AbstractExpresion* nuevoBitwiseNotExpresion(AbstractExpresion* expresion, int line, int column);
 
-// <<<< AÑADIR ESTAS LÍNEAS >>>>
+// Constructores de Nodos de Desplazamiento de Bits
 AbstractExpresion* nuevoLeftShiftExpresion(AbstractExpresion* izquierda, AbstractExpresion* derecha, int line, int column);
 AbstractExpresion* nuevoRightShiftExpresion(AbstractExpresion* izquierda, AbstractExpresion* derecha, int line, int column);
 AbstractExpresion* nuevoUnsignedRightShiftExpresion(AbstractExpresion* izquierda, AbstractExpresion* derecha, int line, int column);
 
+/* --- Constructores de Nodos de Control de Flujo --- */
+AbstractExpresion* nuevoIfExpresion(AbstractExpresion* condicion, AbstractExpresion* bloque_if, AbstractExpresion* bloque_else, int line, int column);
 
 #endif
 

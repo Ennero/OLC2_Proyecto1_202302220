@@ -1,0 +1,37 @@
+// Archivo de prueba para Operadores Lógicos y Relacionales
+
+System.out.println("--- Pruebas de Operadores Lógicos y Relacionales ---");
+
+int x = 5;
+int y = 10;
+int z = 5;
+boolean t = true;
+
+// --- Pruebas con AND (&&) ---
+// El resultado de una comparación es un booleano, que puede ser usado por &&.
+System.out.println("(x < y) && (y > z) -> " + ((x < y) && (y > z))); // true && true -> true
+System.out.println("(x == y) && (y > z) -> " + ((x == y) && (y > z))); // false && true -> false
+System.out.println("t && (x == z) -> " + (t && (x == z)));             // true && true -> true
+System.out.println("");
+
+// --- Pruebas con OR (||) ---
+System.out.println("(x > y) || (y > z) -> " + ((x > y) || (y > z))); // false || true -> true
+System.out.println("(x == y) || (x != z) -> " + ((x == y) || (x != z))); // false || false -> false
+System.out.println("!t || (x <= z) -> " + (!t || (x <= z)));           // false || true -> true
+System.out.println("");
+
+// --- Pruebas con NOT (!) ---
+System.out.println("!(x == z) -> " + !(x == z)); // !(true) -> false
+System.out.println("!(x > y) -> " + !(x > y)); // !(false) -> true
+System.out.println("!t -> " + !t);       // !(true) -> false
+System.out.println("");
+
+// --- Pruebas de Precedencia (&& se evalúa antes que ||) ---
+// La expresión es: false || (true && true) -> false || true -> true
+System.out.println("x == y || x == z && y > z -> " + (x == y || x == z && y > z));
+System.out.println("");
+
+// --- Prueba de Error Semántico (comentada) ---
+// La siguiente línea debería dar un error porque los operadores lógicos
+// solo funcionan con booleanos, no con números.
+// System.out.println(x && y);
