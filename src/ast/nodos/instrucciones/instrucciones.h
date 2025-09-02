@@ -2,16 +2,13 @@
 #define INSTRUCCIONES_H
 
 #include "ast/AbstractExpresion.h"
-#include "context/result.h"
-#include "context/context.h"
 
-
-/* bloque (lista de instrucciones) */
+// Estructura para un nodo que contiene una lista de instrucciones
 typedef struct {
     AbstractExpresion base;
 } InstruccionesExpresion;
 
-AbstractExpresion* nuevoInstruccionesExpresion(void);
-Result interpretInstrucciones(AbstractExpresion* self, Context* context);
+// Prototipo/declaración del constructor
+AbstractExpresion* nuevoInstruccionesExpresion();
 
-#endif
+#endif //INSTRUCCIONES_H

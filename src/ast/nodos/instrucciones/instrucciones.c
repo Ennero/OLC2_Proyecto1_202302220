@@ -7,32 +7,37 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-Result interpretInstrucciones(AbstractExpresion* self, Context* context) {
-    // Comprueba la bandera de error antes de ejecutar cada instrucción
+Result interpretInstruccionesExpresion(AbstractExpresion* self, Context* context) {
+    Result res = nuevoValorResultadoVacio();
+
     for (size_t i = 0; i < self->numHijos; ++i) {
+        // Liberamos el resultado de la iteración anterior para evitar fugas
+        if(i > 0) free(res.valor); 
 
-        // Si en una iteración anterior se encontró un error semántico, la bandera se habrá activado.
-        if (has_semantic_error_been_found()) {
+        res = self->hijos[i]->interpret(self->hijos[i], context);
 
-            // Se detiene la ejecución.
-            return nuevoValorResultadoVacio();
+        if (res.tipo == BREAK_T || res.tipo == CONTINUE_T || res.tipo == RETURN_T) {
+            return res;
         }
-
-        // Si no hay error, se interpreta la instrucción actual.
-        self->hijos[i]->interpret(self->hijos[i], context);
+        if (has_semantic_error_been_found()) {
+            // El 'res' de una expresión errónea ya tiene valor NULL, no hay que liberarlo.
+            return res;
+        }
     }
 
-    // Si se llegó aquí, significa que no hubo errores semánticos.
+    // Liberamos el resultado de la última instrucción válida
+    free(res.valor);
+
+    // Un bloque de instrucciones como tal no devuelve valor
     return nuevoValorResultadoVacio();
 }
 
-// Constructor para un nuevo nodo de instrucciones
 AbstractExpresion* nuevoInstruccionesExpresion() {
     InstruccionesExpresion* nodo = malloc(sizeof(InstruccionesExpresion));
     if (!nodo) return NULL;
 
-    buildAbstractExpresion(&nodo->base, interpretInstrucciones, "Instrucciones", 0, 0);
+    // <<<< CORRECCIÓN DEL TYPO AQUÍ >>>>
+    buildAbstractExpresion(&nodo->base, interpretInstruccionesExpresion, "Instrucciones", 0, 0);
 
     return (AbstractExpresion*) nodo;
 }
-

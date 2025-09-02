@@ -8,6 +8,9 @@ typedef enum {
     FLOAT,
     DOUBLE,
     STRING,
+    BREAK_T,    
+    CONTINUE_T, 
+    RETURN_T,
     NULO,
     TIPO_COUNT
 } TipoDato;

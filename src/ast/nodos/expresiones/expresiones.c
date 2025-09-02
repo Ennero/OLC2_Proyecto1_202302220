@@ -42,39 +42,16 @@ Result interpretExpresionLenguaje(AbstractExpresion* self, Context* context) {
     return resultado_final;
 }
 
-Result interpretUnarioLenguaje(AbstractExpresion *self, Context *context)
-{
-    ExpresionLenguaje *nodo = (ExpresionLenguaje *)self;
-    calcularResultadoIzquierdo(nodo, context);
-
-    Operacion op = (*nodo->tablaOperaciones)[nodo->izquierda.tipo][NULO];
-    if (op == NULL)
-    {
-        char description[256];
-        snprintf(description, sizeof(description), "La operacion unaria '%s' no esta definida para el tipo %s.",
-                    self->node_type,
-                    labelTipoDato[nodo->izquierda.tipo]);
-        add_error_to_report("Semantico", self->node_type, description, self->line, self->column, context->nombre_completo);
-        return nuevoValorResultadoVacio();
-    }
-    return op(nodo);
-}
 
 ExpresionLenguaje *nuevoExpresionLenguaje(Interpret funcionEspecifica, AbstractExpresion *izquierda, AbstractExpresion *derecha, int line, int column)
 {
-    // reservar el espacio en memoria y obtener el puntero a este
     ExpresionLenguaje *nodo = malloc(sizeof(ExpresionLenguaje));
-    if (!nodo)
-        return NULL;
+    if (!nodo) return NULL;
 
-    // asignar valores
     buildAbstractExpresion(&nodo->base, funcionEspecifica, "ExpresionLenguaje", line, column);
 
-    // guardar los punteros en lo hijos de este arbol a los lados de la expresion
-    if (izquierda)
-        agregarHijo((AbstractExpresion *)nodo, izquierda);
-    if (derecha)
-        agregarHijo((AbstractExpresion *)nodo, derecha);
+    if (izquierda) agregarHijo((AbstractExpresion *)nodo, izquierda);
+    if (derecha) agregarHijo((AbstractExpresion *)nodo, derecha);
 
     return nodo;
 }

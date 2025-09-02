@@ -63,6 +63,7 @@ newline           \n
 "switch"                return TOKEN_SWITCH;
 "case"                  return TOKEN_CASE;
 "break"                 return TOKEN_BREAK;
+"default"               return TOKEN_DEFAULT;
 "continue"              return TOKEN_CONTINUE;
 "return"                return TOKEN_RETURN;
 "System.out.println"    return TOKEN_PRINT;
@@ -129,7 +130,7 @@ newline           \n
 "-"                { return '-'; }  // Reconoce el token '-' individualmente
 "."                return TOKEN_DOT;
 
-[+*/%<>()\[\]{};,=.!&|^~] { return yytext[0]; }
+[+*/%<>()\[\]{};,=.!&|^~:] { return yytext[0]; }
 .                  { add_error_to_report("Léxico", yytext, "Caracter ilegal no reconocido.", yylineno, yycolumn, NULL); }
 
 %%

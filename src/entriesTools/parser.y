@@ -43,10 +43,12 @@
 %token TOKEN_AND_ASSIGN TOKEN_OR_ASSIGN TOKEN_XOR_ASSIGN
 %token TOKEN_LSHIFT_ASSIGN TOKEN_RSHIFT_ASSIGN TOKEN_URSHIFT_ASSIGN
 %token TOKEN_DOT
+%token TOKEN_DEFAULT
+
 
 
 /* --- Tipos para No-Terminales --- */
-%type <nodo> s lSentencia sentencia expr imprimir lista_Expr bloque declaracion_var primitivo reasignacion_var primary_expr if_stmt
+%type <nodo> s lSentencia sentencia expr imprimir lista_Expr bloque declaracion_var primitivo reasignacion_var primary_expr if_stmt switch_stmt case_list case_stmt lSentencia_opt
 %type <tipoDato> tipoPrimitivo
 
 /* --- Precedencia y Asociatividad de Operadores (MODIFICADO) --- */
@@ -89,11 +91,16 @@ lSentencia: lSentencia sentencia {
     }
     ;
 
-sentencia: imprimir ';'        { $$ = $1; }
-    | bloque               { $$ = $1; }
-    | declaracion_var ';'  { $$ = $1; }
+sentencia: imprimir ';'     { $$ = $1; }
+    | bloque                { $$ = $1; }
+    | declaracion_var ';'   { $$ = $1; }
     | reasignacion_var ';'  { $$ = $1; }
-    | if_stmt              { $$ = $1; }
+    | if_stmt               { $$ = $1; }
+    | switch_stmt           { $$ = $1; }
+    | TOKEN_BREAK ';'       { $$ = nuevoBreakExpresion(@1.first_line, @1.first_column); }
+    | TOKEN_CONTINUE ';'    { $$ = nuevoContinueExpresion(@1.first_line, @1.first_column); }
+    | TOKEN_RETURN expr ';' { $$ = nuevoReturnExpresion($2, @1.first_line, @1.first_column); }
+    | TOKEN_RETURN ';'      { $$ = nuevoReturnExpresion(NULL, @1.first_line, @1.first_column); } 
     | error ';' { 
         yyerrok; 
         $$ = NULL; 
@@ -218,6 +225,35 @@ if_stmt: TOKEN_IF '(' expr ')' bloque {
     ;
 
 
+switch_stmt: TOKEN_SWITCH '(' expr ')' '{' case_list '}' {
+                $$ = nuevoSwitchExpresion($3, $6, @1.first_line, @1.first_column);
+            };
+
+
+// Regla para una lista de uno o más casos (case o default)
+case_list: case_list case_stmt { agregarHijo($1, $2); $$ = $1; }
+        | case_stmt         { 
+                                AbstractExpresion* lista = nuevoListaExpresiones();
+                                agregarHijo(lista, $1);
+                                $$ = lista;
+                            }
+        ;
+
+// Regla para un caso individual, ya sea 'case' o 'default'
+case_stmt: TOKEN_CASE expr ':' lSentencia_opt { 
+               // Un 'case' con una expresión y una lista OPCIONAL de sentencias
+            $$ = nuevoCaseExpresion($2, $4, @1.first_line, @1.first_column);
+            }
+        | TOKEN_DEFAULT ':' lSentencia_opt {
+               // El caso 'default' con una lista OPCIONAL de sentencias
+                $$ = nuevoDefaultExpresion($3, @1.first_line, @1.first_column);
+        }
+        ;
+
+
+lSentencia_opt: lSentencia { $$ = $1; } // Si hay sentencias, las usamos.
+              | %empty   { $$ = NULL; } // Si no hay nada, devolvemos NULL.
+            ;
 
 
 %%
