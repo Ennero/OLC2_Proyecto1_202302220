@@ -14,7 +14,12 @@ AbstractExpresion* nuevoInstruccionesExpresion(void);
 AbstractExpresion* nuevoPrintExpresion(AbstractExpresion* listaExpresiones, int line, int column);
 AbstractExpresion* nuevoListaExpresiones(void);
 AbstractExpresion* nuevoDeclaracionVariables(TipoDato tipo, char* nombre, AbstractExpresion* expresion, int line, int column);
+
+
 AbstractExpresion* nuevoReasignacionExpresion(char* nombre, AbstractExpresion* expresion, int line, int column);
+AbstractExpresion* nuevoAsignacionCompuestaExpresion(char* nombre, char op_type, AbstractExpresion* expresion, int line, int column);
+
+
 AbstractExpresion* nuevoBloqueExpresion(AbstractExpresion* lSentencia, int line, int column);
 AbstractExpresion* nuevoCasteoExpresion(TipoDato tipo_destino, AbstractExpresion* expresion, int line, int column);
 

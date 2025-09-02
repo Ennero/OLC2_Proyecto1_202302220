@@ -39,14 +39,14 @@
 %token TOKEN_IGUAL_IGUAL TOKEN_DIFERENTE TOKEN_MAYOR_IGUAL TOKEN_MENOR_IGUAL
 %token TOKEN_AND TOKEN_OR TOKEN_INCREMENTO TOKEN_DECREMENTO
 %token TOKEN_LSHIFT TOKEN_RSHIFT TOKEN_URSHIFT 
-
+%token TOKEN_PLUS_ASSIGN TOKEN_MINUS_ASSIGN TOKEN_MULT_ASSIGN TOKEN_DIV_ASSIGN TOKEN_MOD_ASSIGN
 
 /* --- Tipos para No-Terminales --- */
 %type <nodo> s lSentencia sentencia expr imprimir lista_Expr bloque declaracion_var primitivo reasignacion_var
 %type <tipoDato> tipoPrimitivo
 
 /* --- Precedencia y Asociatividad de Operadores (MODIFICADO) --- */
-%right '='
+%right '=' TOKEN_PLUS_ASSIGN TOKEN_MINUS_ASSIGN TOKEN_MULT_ASSIGN TOKEN_DIV_ASSIGN TOKEN_MOD_ASSIGN
 %left TOKEN_OR
 %left TOKEN_AND
 %left '|'
@@ -114,6 +114,11 @@ declaracion_var: tipoPrimitivo TOKEN_IDENTIFIER { $$ = nuevoDeclaracionVariables
     ;
 
 reasignacion_var: TOKEN_IDENTIFIER '=' expr { $$ = nuevoReasignacionExpresion($1, $3, @1.first_line, @1.first_column); }
+    | TOKEN_IDENTIFIER TOKEN_PLUS_ASSIGN expr  { $$ = nuevoAsignacionCompuestaExpresion($1, '+', $3, @1.first_line, @1.first_column); }
+    | TOKEN_IDENTIFIER TOKEN_MINUS_ASSIGN expr { $$ = nuevoAsignacionCompuestaExpresion($1, '-', $3, @1.first_line, @1.first_column); }
+    | TOKEN_IDENTIFIER TOKEN_MULT_ASSIGN expr  { $$ = nuevoAsignacionCompuestaExpresion($1, '*', $3, @1.first_line, @1.first_column); }
+    | TOKEN_IDENTIFIER TOKEN_DIV_ASSIGN expr   { $$ = nuevoAsignacionCompuestaExpresion($1, '/', $3, @1.first_line, @1.first_column); }
+    | TOKEN_IDENTIFIER TOKEN_MOD_ASSIGN expr   { $$ = nuevoAsignacionCompuestaExpresion($1, '%', $3, @1.first_line, @1.first_column); }
     ;
 
     // --- REGLAS ARITMÉTICAS ---

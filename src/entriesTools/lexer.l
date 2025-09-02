@@ -108,6 +108,12 @@ newline           \n
 "++"               return TOKEN_INCREMENTO;
 "--"               return TOKEN_DECREMENTO;
 
+"+="               return TOKEN_PLUS_ASSIGN;
+"-="               return TOKEN_MINUS_ASSIGN;
+"*="               return TOKEN_MULT_ASSIGN;
+"/="               return TOKEN_DIV_ASSIGN;
+"%="               return TOKEN_MOD_ASSIGN;
+
 "-"                { return '-'; }  // Reconoce el token '-' individualmente
 [+*/%<>()\[\]{};,=.!&|^~] { return yytext[0]; }
 .                  { add_error_to_report("Léxico", yytext, "Caracter ilegal no reconocido.", yylineno, yycolumn, NULL); }
