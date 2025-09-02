@@ -1,3 +1,8 @@
+# ===================================================================
+# Makefile para el Intérprete de JavaLang
+# ===================================================================
+
+# --- Variables de Directorios y Programas ---
 SRC     := src
 BUILD   := build
 ENTRIES := src/entriesTools
@@ -5,66 +10,84 @@ CC      := gcc
 BISON   := bison
 FLEX    := flex
 
-# Se separan las flags de GTK3 y se AÑADEN las de GtkSourceView
+# --- Banderas de Compilación y Enlazado ---
+
+# Banderas para GTK3 y GtkSourceView
 GTK_CFLAGS := $(shell pkg-config --cflags gtk+-3.0 gtksourceview-3.0)
 GTK_LIBS   := $(shell pkg-config --libs gtk+-3.0 gtksourceview-3.0) -lm
 
-# Se añaden las flags de compilación a la variable CFLAGS principal
-CFLAGS  := -I$(SRC) -I$(BUILD) -Wall -Wextra $(GTK_CFLAGS)
+# Rutas de inclusión:
+# -I$(SRC)   -> Permite includes como #include "context/context.h"
+# -I$(BUILD) -> Permite includes como #include "parser.tab.h"
+INCLUDE_PATHS := -I$(SRC) -I$(BUILD)
+
+# Banderas del compilador de C
+CFLAGS  := $(INCLUDE_PATHS) -g -Wall -Wextra $(GTK_CFLAGS)
+
+# --- Comandos ---
 RM      := rm -rf
 MKDIR   := mkdir -p
 
 .DEFAULT_GOAL := all
 
-# Buscar todos los .c en src.
+# --- Definición de Archivos ---
 SRC_FILES := $(shell find $(SRC) -name '*.c')
 
-# Archivos generados por Bison y Flex
+# Archivos generados que irán a la carpeta build/
 BISON_C := $(BUILD)/parser.tab.c
 BISON_H := $(BUILD)/parser.tab.h
 LEX_C   := $(BUILD)/lex.yy.c
 
-# Objetos finales
+# Archivos objeto
 OBJ_SRC := $(patsubst $(SRC)/%.c,$(BUILD)/%.o,$(SRC_FILES))
 OBJ_GEN := $(BUILD)/parser.tab.o $(BUILD)/lex.yy.o
 OBJ_ALL := $(OBJ_SRC) $(OBJ_GEN)
 
-# Se usará 'javalang' como nombre del ejecutable
+# Nombre del ejecutable
 EXECUTABLE := $(BUILD)/javalang
 
+# --- Reglas de Construcción ---
+
+# Regla principal
 all: $(EXECUTABLE)
 
+# Crear el directorio de compilación
 $(BUILD):
-	$(MKDIR) $(BUILD)
+	$(MKDIR) $(BUILD) # <-- ESTA LÍNEA DEBE EMPEZAR CON UN TAB
 
 # Generar parser
-$(BISON_C) $(BISON_H): $(ENTRIES)/parser.y
+$(BISON_C) $(BISON_H): $(ENTRIES)/parser.y | $(BUILD)
+	@echo "Generando Parser..."
 	$(BISON) -d -v --locations -o $(BISON_C) $<
 
 # Generar lexer
-$(LEX_C): $(ENTRIES)/lexer.l $(BISON_H)
+$(LEX_C): $(ENTRIES)/lexer.l $(BISON_H) | $(BUILD)
+	@echo "Generando Lexer..."
 	$(FLEX) -o $@ $<
 
-# Compilar .c de src a .o
-$(BUILD)/%.o: $(SRC)/%.c
-	@mkdir -p $(dir $@)
+# Añadimos $(BISON_H) como dependencia para asegurar que se genere primero.
+$(BUILD)/%.o: $(SRC)/%.c $(BISON_H)
+	@echo "Compilando $<..."
+	@$(MKDIR) -p $(dir $@)
 	$(CC) $(CFLAGS) -c $< -o $@
 
-# Compilar .c generados por Bison/Flex a .o
+# Compilar archivos .c generados
 $(BUILD)/parser.tab.o: $(BISON_C) $(BISON_H)
+	@echo "Compilando Parser..."
 	$(CC) $(CFLAGS) -c $(BISON_C) -o $@
 
 $(BUILD)/lex.yy.o: $(LEX_C)
+	@echo "Compilando Lexer..."
 	$(CC) $(CFLAGS) -c $(LEX_C) -o $@
 
-# Enlazar todo
+# Enlazar todo para crear el ejecutable
 $(EXECUTABLE): $(OBJ_ALL)
+	@echo "Enlazando ejecutable..."
 	$(CC) $^ -o $@ $(GTK_LIBS)
 
-# Regla de limpieza mejorada y robusta
+# Regla de limpieza
 clean:
-	@echo "Limpiando archivos..."
-	@$(RM) $(EXECUTABLE)
+	@echo "Limpiando archivos de compilación..."
 	@$(RM) $(BUILD)
 	@echo "Limpieza completa."
 

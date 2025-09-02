@@ -7,7 +7,7 @@
 typedef struct {
     AbstractExpresion base;
     char* nombre;
-    char op_type; // Almacena el carácter del operador: '+', '-', '*', etc.
+    int op_type;
     int line;
     int column;
 } AsignacionCompuestaExpresion;

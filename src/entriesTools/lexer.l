@@ -96,9 +96,27 @@ newline           \n
 
 {identifier}            { yylval.string = strdup(yytext); return TOKEN_IDENTIFIER; }
 
-">>>"              return TOKEN_URSHIFT;   // Unsigned Right Shift
-">>"               return TOKEN_RSHIFT;    // Right Shift
-"<<"               return TOKEN_LSHIFT;    // Left Shift
+
+
+
+">>="              return TOKEN_RSHIFT_ASSIGN;
+">>>="             return TOKEN_URSHIFT_ASSIGN;
+"<<="              return TOKEN_LSHIFT_ASSIGN;
+
+
+"&="               return TOKEN_AND_ASSIGN;
+"|="               return TOKEN_OR_ASSIGN;
+"^="               return TOKEN_XOR_ASSIGN;
+"+="               return TOKEN_PLUS_ASSIGN;
+"-="               return TOKEN_MINUS_ASSIGN;
+"*="               return TOKEN_MULT_ASSIGN;
+"/="               return TOKEN_DIV_ASSIGN;
+"%="               return TOKEN_MOD_ASSIGN;
+
+
+">>>"              return TOKEN_URSHIFT;
+">>"               return TOKEN_RSHIFT;
+"<<"               return TOKEN_LSHIFT;
 "=="               return TOKEN_IGUAL_IGUAL;
 "!="               return TOKEN_DIFERENTE;
 ">="               return TOKEN_MAYOR_IGUAL;
@@ -108,13 +126,8 @@ newline           \n
 "++"               return TOKEN_INCREMENTO;
 "--"               return TOKEN_DECREMENTO;
 
-"+="               return TOKEN_PLUS_ASSIGN;
-"-="               return TOKEN_MINUS_ASSIGN;
-"*="               return TOKEN_MULT_ASSIGN;
-"/="               return TOKEN_DIV_ASSIGN;
-"%="               return TOKEN_MOD_ASSIGN;
-
 "-"                { return '-'; }  // Reconoce el token '-' individualmente
+
 [+*/%<>()\[\]{};,=.!&|^~] { return yytext[0]; }
 .                  { add_error_to_report("Léxico", yytext, "Caracter ilegal no reconocido.", yylineno, yycolumn, NULL); }
 

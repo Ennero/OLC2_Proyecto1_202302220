@@ -23,8 +23,19 @@ Result interpretReasignacion(AbstractExpresion* self, Context* context) {
     // Si existe, interpretar la expresión de la derecha para obtener el nuevo valor
     Result nuevoValorResult = self->hijos[0]->interpret(self->hijos[0], context);
 
-    // Si no son compatibles los tipos se reporta un error.
-    if (simboloEncontrado->tipo != nuevoValorResult.tipo) {
+    if (has_semantic_error_been_found()) return nuevoValorResultadoVacio();
+
+    // <<<< BLOQUE DE CÓDIGO MODIFICADO >>>>
+    // Comprobar si los tipos son compatibles para la asignación.
+    bool es_compatible = (simboloEncontrado->tipo == nuevoValorResult.tipo);
+
+    // Excepción: Se permite asignar un valor INT a una variable CHAR.
+    if (simboloEncontrado->tipo == CHAR && nuevoValorResult.tipo == INT) {
+        es_compatible = true;
+    }
+
+    // Si no son compatibles, se reporta un error.
+    if (!es_compatible) {
         char description[256];
         snprintf(description, sizeof(description), "Error de tipos: no se puede asignar un valor de tipo '%s' a la variable '%s' de tipo '%s'.", 
             labelTipoDato[nuevoValorResult.tipo], nodo->nombre, labelTipoDato[simboloEncontrado->tipo]);

@@ -40,13 +40,15 @@
 %token TOKEN_AND TOKEN_OR TOKEN_INCREMENTO TOKEN_DECREMENTO
 %token TOKEN_LSHIFT TOKEN_RSHIFT TOKEN_URSHIFT 
 %token TOKEN_PLUS_ASSIGN TOKEN_MINUS_ASSIGN TOKEN_MULT_ASSIGN TOKEN_DIV_ASSIGN TOKEN_MOD_ASSIGN
+%token TOKEN_AND_ASSIGN TOKEN_OR_ASSIGN TOKEN_XOR_ASSIGN
+%token TOKEN_LSHIFT_ASSIGN TOKEN_RSHIFT_ASSIGN TOKEN_URSHIFT_ASSIGN
 
 /* --- Tipos para No-Terminales --- */
 %type <nodo> s lSentencia sentencia expr imprimir lista_Expr bloque declaracion_var primitivo reasignacion_var
 %type <tipoDato> tipoPrimitivo
 
 /* --- Precedencia y Asociatividad de Operadores (MODIFICADO) --- */
-%right '=' TOKEN_PLUS_ASSIGN TOKEN_MINUS_ASSIGN TOKEN_MULT_ASSIGN TOKEN_DIV_ASSIGN TOKEN_MOD_ASSIGN
+%right '=' TOKEN_PLUS_ASSIGN TOKEN_MINUS_ASSIGN TOKEN_MULT_ASSIGN TOKEN_DIV_ASSIGN TOKEN_MOD_ASSIGN TOKEN_AND_ASSIGN TOKEN_OR_ASSIGN TOKEN_XOR_ASSIGN TOKEN_LSHIFT_ASSIGN TOKEN_RSHIFT_ASSIGN TOKEN_URSHIFT_ASSIGN
 %left TOKEN_OR
 %left TOKEN_AND
 %left '|'
@@ -119,6 +121,12 @@ reasignacion_var: TOKEN_IDENTIFIER '=' expr { $$ = nuevoReasignacionExpresion($1
     | TOKEN_IDENTIFIER TOKEN_MULT_ASSIGN expr  { $$ = nuevoAsignacionCompuestaExpresion($1, '*', $3, @1.first_line, @1.first_column); }
     | TOKEN_IDENTIFIER TOKEN_DIV_ASSIGN expr   { $$ = nuevoAsignacionCompuestaExpresion($1, '/', $3, @1.first_line, @1.first_column); }
     | TOKEN_IDENTIFIER TOKEN_MOD_ASSIGN expr   { $$ = nuevoAsignacionCompuestaExpresion($1, '%', $3, @1.first_line, @1.first_column); }
+    | TOKEN_IDENTIFIER TOKEN_AND_ASSIGN expr    { $$ = nuevoAsignacionCompuestaExpresion($1, '&', $3, @1.first_line, @1.first_column); }
+    | TOKEN_IDENTIFIER TOKEN_OR_ASSIGN expr     { $$ = nuevoAsignacionCompuestaExpresion($1, '|', $3, @1.first_line, @1.first_column); }
+    | TOKEN_IDENTIFIER TOKEN_XOR_ASSIGN expr     { $$ = nuevoAsignacionCompuestaExpresion($1, '^', $3, @1.first_line, @1.first_column); }
+    | TOKEN_IDENTIFIER TOKEN_LSHIFT_ASSIGN expr  { $$ = nuevoAsignacionCompuestaExpresion($1, TOKEN_LSHIFT, $3, @1.first_line, @1.first_column); }
+    | TOKEN_IDENTIFIER TOKEN_RSHIFT_ASSIGN expr  { $$ = nuevoAsignacionCompuestaExpresion($1, TOKEN_RSHIFT, $3, @1.first_line, @1.first_column); }
+    | TOKEN_IDENTIFIER TOKEN_URSHIFT_ASSIGN expr { $$ = nuevoAsignacionCompuestaExpresion($1, TOKEN_URSHIFT, $3, @1.first_line, @1.first_column); }
     ;
 
     // --- REGLAS ARITMÉTICAS ---

@@ -17,7 +17,7 @@ AbstractExpresion* nuevoDeclaracionVariables(TipoDato tipo, char* nombre, Abstra
 
 
 AbstractExpresion* nuevoReasignacionExpresion(char* nombre, AbstractExpresion* expresion, int line, int column);
-AbstractExpresion* nuevoAsignacionCompuestaExpresion(char* nombre, char op_type, AbstractExpresion* expresion, int line, int column);
+AbstractExpresion* nuevoAsignacionCompuestaExpresion(char* nombre, int op_type, AbstractExpresion* expresion, int line, int column);
 
 
 AbstractExpresion* nuevoBloqueExpresion(AbstractExpresion* lSentencia, int line, int column);
