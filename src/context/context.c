@@ -64,11 +64,12 @@ void liberarContext(Context* context) {
 Symbol* nuevoVariable(char* nombre, void* valor, TipoDato tipo) {
     Symbol* nuevo = malloc(sizeof(Symbol));
     nuevo->nombre = nombre;
-    nuevo->valor = valor;
     nuevo->tipo = tipo;
     nuevo->clase = VARIABLE;
+    nuevo->info.var.valor = valor; // <<<< Se asigna el valor DENTRO de la union
     nuevo->line = 0;
     nuevo->column = 0;
+    nuevo->anterior = NULL;
     return nuevo;
 }
 

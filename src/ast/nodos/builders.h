@@ -78,5 +78,10 @@ AbstractExpresion* nuevoReturnExpresion(AbstractExpresion* expresion, int line, 
 /* --- Constructores de Nodos de Estructura --- */
 AbstractExpresion* nuevoMainFunctionNode(AbstractExpresion* bloque, int line, int column);
 
+/* Funciones*/
+AbstractExpresion* nuevoDeclaracionFuncion(TipoDato tipo_retorno, char* nombre, AbstractExpresion* params, AbstractExpresion* bloque, int line, int column);
+AbstractExpresion* nuevoParametro(TipoDato tipo, char* nombre);
+AbstractExpresion* nuevoLlamadaFuncion(char* nombre, AbstractExpresion* args, int line, int column);
+
 #endif
 

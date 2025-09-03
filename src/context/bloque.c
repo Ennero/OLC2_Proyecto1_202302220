@@ -2,45 +2,39 @@
 #include "ast/nodos/builders.h"
 #include "context/context.h"
 #include <stdlib.h>
-#include <stdio.h> // Necesario para sprintf
+#include <stdio.h>
 
-// La función que interpreta un bloque de sentencias
+// La función que interpreta un bloque de sentencias (CORREGIDA)
 Result interpretBloqueExpresion(AbstractExpresion* self, Context* context) {
-    // <<<< LÓGICA MODIFICADA >>>>
-    // 1. Obtenemos el contexto raíz para acceder al contador global
-    Context* raiz = context->raiz;
-
-    // 2. Generar el nombre para el nuevo bloque usando el contador de la RAÍZ
+    // 1. Generar el nombre para el nuevo bloque
     char nombre_buffer[32];
-    sprintf(nombre_buffer, "bloque%d", raiz->proximo_id_bloque);
-    
-    // 3. Incrementar el contador en la RAÍZ para el siguiente bloque en cualquier parte del programa
-    raiz->proximo_id_bloque++;
+    sprintf(nombre_buffer, "bloque%d", context->raiz->proximo_id_bloque);
+    context->raiz->proximo_id_bloque++;
 
-    // 4. Crear el nuevo contexto para este bloque, pasándole el nombre único
+    // 2. Crear el nuevo contexto para este bloque
     Context* nuevo_contexto = nuevoContext(context, nombre_buffer);
     
-    // 5. Interpretar las sentencias hijas (si las hay) dentro del NUEVO contexto
+    // 3. (CAMBIO CLAVE) Interpretar las sentencias y CAPTURAR su resultado
+    Result res_bloque = nuevoValorResultadoVacio(); // Valor por defecto si el bloque está vacío
     if (self->hijos[0]) {
-        self->hijos[0]->interpret(self->hijos[0], nuevo_contexto);
+        res_bloque = self->hijos[0]->interpret(self->hijos[0], nuevo_contexto);
     }
     
-    // 6. Liberar el nuevo contexto y todos sus símbolos
+    // 4. Liberar el nuevo contexto
     liberarContext(nuevo_contexto);
 
-    return nuevoValorResultadoVacio();
+    // 5. (CAMBIO CLAVE) Devolver el resultado capturado del bloque.
+    // Si hubo un return, res_bloque contendrá la señal RETURN_T.
+    return res_bloque;
 }
 
-// El constructor del nodo de bloque
-AbstractExpresion* nuevoBloqueExpresion(AbstractExpresion* instrucciones, int line, int column) {
+// El constructor del nodo de bloque (sin cambios)
+AbstractExpresion* nuevoBloqueExpresion(AbstractExpresion* lSentencia, int line, int column) {
     BloqueExpresion* nodo = malloc(sizeof(BloqueExpresion));
     if (!nodo) return NULL;
-
-    // (MODIFICADO) Aseguramos que el constructor use el nombre correcto de la función.
     buildAbstractExpresion(&nodo->base, interpretBloqueExpresion, "Bloque", line, column);
-    
-    if (instrucciones) {
-        agregarHijo((AbstractExpresion*)nodo, instrucciones);
+    if(lSentencia) {
+        agregarHijo((AbstractExpresion*)nodo, lSentencia);
     }
-    return (AbstractExpresion*) nodo;
+    return (AbstractExpresion*)nodo;
 }

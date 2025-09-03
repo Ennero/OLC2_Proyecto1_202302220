@@ -88,27 +88,42 @@ void free_symbol_report() {
 
 // Añade un símbolo al reporte
 void add_symbol_to_report(const Symbol* symbol, const char* context_name) {
-    SymbolInfo* new_info = (SymbolInfo*) malloc(sizeof(SymbolInfo));
+    SymbolInfo* new_info = malloc(sizeof(SymbolInfo));
     if (!new_info) return;
 
-    char value_buffer[256];
-    format_value(value_buffer, sizeof(value_buffer), symbol->valor, symbol->tipo);
-    
-    new_info->id = ++symbol_id_counter;
+    new_info->id = symbol_id_counter++;
     new_info->name = strdup(symbol->nombre);
     new_info->type = strdup(labelTipoDato[symbol->tipo]);
-    new_info->value = strdup(value_buffer);
     new_info->context_name = strdup(context_name);
     new_info->line = symbol->line;
     new_info->column = symbol->column;
     new_info->next = NULL;
 
-    if (symbol_list_head == NULL) {
+    char value_buffer[256] = "N/A"; // Valor por defecto
+
+    // <<<< LÓGICA MODIFICADA Y MÁS INTELIGENTE >>>>
+    // Primero, comprobamos la clase del símbolo.
+    if (symbol->clase == VARIABLE) {
+        // Si es una variable, formateamos su valor como antes,
+        // pero accediendo a través de la union.
+        format_value(value_buffer, sizeof(value_buffer), symbol->info.var.valor, symbol->tipo);
+    } else if (symbol->clase == FUNCION) {
+        // Si es una función, su "valor" es su firma.
+        // Por ahora, simplemente mostraremos "<funcion>".
+        snprintf(value_buffer, sizeof(value_buffer), "<funcion>");
+    }
+
+    new_info->value = strdup(value_buffer);
+
+    // El resto de la lógica para añadir a la lista enlazada se queda igual...
+    if (!symbol_list_head) {
         symbol_list_head = new_info;
-        symbol_list_tail = new_info;
     } else {
-        symbol_list_tail->next = new_info;
-        symbol_list_tail = new_info;
+        SymbolInfo* current = symbol_list_head;
+        while (current->next) {
+            current = current->next;
+        }
+        current->next = new_info;
     }
 }
 

@@ -49,7 +49,7 @@
 
 
 /* --- Tipos para No-Terminales --- */
-%type <nodo> s lSentencia sentencia expr imprimir lista_Expr bloque declaracion_var primitivo reasignacion_var primary_expr if_stmt switch_stmt case_list case_stmt lSentencia_opt programa declaracion_main
+%type <nodo> s lSentencia sentencia expr imprimir lista_Expr bloque declaracion_var primitivo reasignacion_var primary_expr if_stmt switch_stmt case_list case_stmt lSentencia_opt programa lista_declaraciones declaracion declaracion_funcion lista_parametros_opt lista_parametros parametro lista_argumentos_opt declaracion_main
 %type <tipoDato> tipoPrimitivo
 
 /* --- Precedencia y Asociatividad de Operadores (MODIFICADO) --- */
@@ -69,12 +69,28 @@
 %right '(' ')'
 
 %%
-
 %start programa;
 
+programa: lista_declaraciones { ast_root = $1; $$ = $1; };
 
-programa: declaracion_main { ast_root = $1; $$ = $1; }
-        ;
+lista_declaraciones: lista_declaraciones declaracion { agregarHijo($1, $2); $$ = $1; }
+                    | declaracion { AbstractExpresion* lista = nuevoInstruccionesExpresion(); agregarHijo(lista, $1); $$ = lista; };
+
+declaracion: declaracion_funcion { $$ = $1; }
+            | declaracion_main { $$ = $1; };
+
+declaracion_funcion: tipoPrimitivo TOKEN_IDENTIFIER '(' lista_parametros_opt ')' bloque {
+                        $$ = nuevoDeclaracionFuncion($1, $2, $4, $6, @1.first_line, @1.first_column);
+                        };
+
+lista_parametros_opt: lista_parametros { $$ = $1; }
+                    | %empty { $$ = nuevoListaExpresiones(); };
+
+// <<<< REGLA AÑADIDA: Para reconocer uno o más parámetros separados por comas >>>>
+lista_parametros: lista_parametros ',' parametro { agregarHijo($1, $3); $$ = $1; }
+                | parametro { AbstractExpresion* lista = nuevoListaExpresiones(); agregarHijo(lista, $1); $$ = lista; };
+
+parametro: tipoPrimitivo TOKEN_IDENTIFIER { $$ = nuevoParametro($1, $2); };
 
 
 // Regla para la sintaxis "public static void main(String[] args) { ... }"
@@ -83,6 +99,12 @@ declaracion_main: TOKEN_PUBLIC TOKEN_STATIC TOKEN_VOID TOKEN_MAIN
                         $$ = nuevoMainFunctionNode($11, @1.first_line, @1.first_column);
                     }
                 ;
+
+
+// <<<< REGLA AÑADIDA: Para argumentos en una llamada a función >>>>
+lista_argumentos_opt: lista_Expr { $$ = $1; }
+                    | %empty   { $$ = NULL; };
+
 
 s: lSentencia  { ast_root = $1; $$ = $1; }
     ;
@@ -114,6 +136,7 @@ sentencia: imprimir ';'     { $$ = $1; }
     | TOKEN_CONTINUE ';'    { $$ = nuevoContinueExpresion(@1.first_line, @1.first_column); }
     | TOKEN_RETURN expr ';' { $$ = nuevoReturnExpresion($2, @1.first_line, @1.first_column); }
     | TOKEN_RETURN ';'      { $$ = nuevoReturnExpresion(NULL, @1.first_line, @1.first_column); } 
+    | expr ';'              { $$ = $1; }
     | error ';' { 
         yyerrok; 
         $$ = NULL; 
@@ -178,9 +201,11 @@ expr: expr '+' expr                { $$ = nuevoSumaExpresion($1, $3, @2.first_li
 
 // NUEVA REGLA PARA EXPRESIONES PRIMARIAS (las de más alta precedencia)
 primary_expr:
-      '(' expr ')'                 { $$ = $2; }
+    '(' expr ')'                 { $$ = $2; }
     | '(' tipoPrimitivo ')' expr   { $$ = nuevoCasteoExpresion($2, $4, @1.first_line, @1.first_column); }
     | TOKEN_IDENTIFIER             { $$ = nuevoIdentificadorExpresion($1, @1.first_line, @1.first_column); }
+    // <<<< REGLA AÑADIDA: Para reconocer una llamada a función como una expresión >>>>
+    | TOKEN_IDENTIFIER '(' lista_argumentos_opt ')' { $$ = nuevoLlamadaFuncion($1, $3, @1.first_line, @1.first_column); }
     | primitivo                    { $$ = $1; }
     | '-' primary_expr %prec NEG   { $$ = nuevoUnarioExpresion($2, @1.first_line, @1.first_column); }
     | '!' primary_expr             { $$ = nuevoNotExpresion($2, @1.first_line, @1.first_column); }

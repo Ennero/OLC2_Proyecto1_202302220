@@ -2,6 +2,10 @@
 #define CONTEXT_H
 
 #include "result.h"
+#include <stddef.h> // <<<< AÑADIDO: Define el tipo 'size_t'
+
+typedef struct AbstractExpresion AbstractExpresion; 
+
 
 typedef enum {
     VARIABLE,
@@ -9,14 +13,34 @@ typedef enum {
     STRUCT,
 } Clase;
 
+typedef struct {
+    TipoDato tipo;
+    char* nombre;
+} Parametro;
+
+typedef struct {
+    void* valor; // El valor de la variable
+} VariableInfo;
+
+typedef struct {
+    TipoDato tipo_retorno;
+    Parametro* parametros;
+    size_t num_parametros;
+    AbstractExpresion* cuerpo; // Puntero al AST del bloque de la función
+} FuncionInfo;
+
 typedef struct Symbol Symbol;
 typedef struct Context Context;
 
 struct Symbol{
     char* nombre;
-    void* valor;
-    TipoDato tipo;
-    Clase clase;
+    Clase clase; 
+    TipoDato tipo; // Para var: su tipo. Para func: su tipo de retorno.
+    // void* valor; <<<< ESTA LÍNEA SE ELIMINA
+    union {
+        VariableInfo var;
+        FuncionInfo func;
+    } info;
     int line;
     int column;
     Symbol* anterior;

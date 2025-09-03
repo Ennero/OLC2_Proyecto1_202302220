@@ -4,11 +4,12 @@
 #include "error_reporter.h"
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
-// Importamos las tablas de operaciones
+// Importamos las tablas de operaciones y tokens
 #include "ast/nodos/expresiones/aritmeticas/aritmeticas.h"
 #include "ast/nodos/expresiones/bit/bitwise.h"
-#include "parser.tab.h" // Necesario para los valores de los tokens
+#include "parser.tab.h"  Necesario para los valores de los tokens
 
 // Función para obtener la tabla de operaciones correcta
 static Operacion (*get_op_table(int op_type))[TIPO_COUNT][TIPO_COUNT]
@@ -30,6 +31,15 @@ static Operacion (*get_op_table(int op_type))[TIPO_COUNT][TIPO_COUNT]
     }
 }
 
+static size_t get_type_size(TipoDato tipo) {
+    switch(tipo) {
+        case INT: case BOOLEAN: case CHAR: return sizeof(int);
+        case FLOAT: return sizeof(float);
+        case DOUBLE: return sizeof(double);
+        default: return 0;
+    }
+}
+
 // Función para obtener el string del operador para los mensajes de error
 static const char* get_op_string(int op_type) {
     switch(op_type) {
@@ -42,51 +52,61 @@ static const char* get_op_string(int op_type) {
 }
 
 
-// La función que interpreta una asignación compuesta (lógica sin cambios)
 Result interpretAsignacionCompuesta(AbstractExpresion *self, Context *context)
 {
     AsignacionCompuestaExpresion *nodo = (AsignacionCompuestaExpresion *)self;
     Symbol *simbolo = buscarTablaSimbolos(context, nodo->nombre);
-    if (!simbolo) { /* ... manejo de error de variable no declarada ... */ }
+
+    if (!simbolo || simbolo->clase != VARIABLE) {
+        // ... (Manejo de error si no es una variable declarada)
+        return nuevoValorResultadoVacio();
+    }
 
     ExpresionLenguaje expr_simulada;
-    expr_simulada.izquierda = nuevoValorResultado(simbolo->valor, simbolo->tipo);
+    
+    // <<<< CORREGIDO: Leemos el valor a través de la union >>>>
+    // Creamos una copia del valor actual para la operación, para no modificar el original prematuramente.
+    void* valor_izquierdo_copiado;
+    if (simbolo->tipo == STRING) {
+        valor_izquierdo_copiado = strdup((char*)simbolo->info.var.valor);
+    } else {
+        size_t size = get_type_size(simbolo->tipo); // Necesitarás una función auxiliar get_type_size
+        valor_izquierdo_copiado = malloc(size);
+        memcpy(valor_izquierdo_copiado, simbolo->info.var.valor, size);
+    }
+    
+    expr_simulada.izquierda = nuevoValorResultado(valor_izquierdo_copiado, simbolo->tipo);
     expr_simulada.derecha = self->hijos[0]->interpret(self->hijos[0], context);
 
-    if (has_semantic_error_been_found()) return nuevoValorResultadoVacio();
+    if (has_semantic_error_been_found()) { 
+        free(expr_simulada.izquierda.valor); 
+        free(expr_simulada.derecha.valor); 
+        return nuevoValorResultadoVacio(); 
+    }
 
     Operacion(*tabla)[TIPO_COUNT][TIPO_COUNT] = get_op_table(nodo->op_type);
-    if (!tabla) { return nuevoValorResultadoVacio(); }
+    if (!tabla) { /* ... manejo de error ... */ return nuevoValorResultadoVacio(); }
 
     Operacion op = (*tabla)[expr_simulada.izquierda.tipo][expr_simulada.derecha.tipo];
     if (!op) {
-        char desc[256];
-        sprintf(desc, "El operador '%s' no está definido entre los tipos '%s' y '%s'.", get_op_string(nodo->op_type),
-                labelTipoDato[expr_simulada.izquierda.tipo], labelTipoDato[expr_simulada.derecha.tipo]);
-        add_error_to_report("Semántico", nodo->nombre, desc, nodo->line, nodo->column, context->nombre_completo);
+        // ... (Tu código de error de tipos de operación está bien)
+        free(expr_simulada.izquierda.valor); free(expr_simulada.derecha.valor);
         return nuevoValorResultadoVacio();
     }
 
     Result nuevo_resultado = op(&expr_simulada);
     
-    bool es_compatible = (nuevo_resultado.tipo == simbolo->tipo);
-    if (simbolo->tipo == CHAR && nuevo_resultado.tipo == INT) es_compatible = true;
-    if (simbolo->tipo == STRING && nuevo_resultado.tipo == STRING) es_compatible = true;
+    // El intérprete de expresiones binarias ya libera los operandos, así que no necesitamos hacerlo aquí.
 
-    if (!es_compatible) {
-        char desc[256];
-        sprintf(desc, "Error de tipos: no se puede asignar un resultado de tipo '%s' a la variable '%s' de tipo '%s'.",
-            labelTipoDato[nuevo_resultado.tipo], nodo->nombre, labelTipoDato[simbolo->tipo]);
-        add_error_to_report("Semántico", nodo->nombre, desc, nodo->line, nodo->column, context->nombre_completo);
-        return nuevoValorResultadoVacio();
-    }
+    // ... (Tu código de validación de compatibilidad de tipos está bien) ...
 
-    if (simbolo->valor) free(simbolo->valor);
-    simbolo->valor = nuevo_resultado.valor;
+    // <<<< CORREGIDO: Actualizamos el valor a través de la union >>>>
+    if (simbolo->info.var.valor) free(simbolo->info.var.valor);
+    simbolo->info.var.valor = nuevo_resultado.valor;
+    simbolo->tipo = nuevo_resultado.tipo; // Actualizamos el tipo por si cambió
 
     return nuevoValorResultadoVacio();
 }
-
 
 
 

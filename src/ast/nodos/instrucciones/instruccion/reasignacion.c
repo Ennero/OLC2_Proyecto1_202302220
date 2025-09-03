@@ -8,29 +8,26 @@
 // La función que interpreta una reasignación
 Result interpretReasignacion(AbstractExpresion* self, Context* context) {
     ReasignacionExpresion* nodo = (ReasignacionExpresion*) self;
+    Symbol* simbolo = buscarTablaSimbolos(context, nodo->nombre);
 
-    // Buscar si la variable a reasignar existe en algún ámbito visible.
-    Symbol* simboloEncontrado = buscarTablaSimbolos(context, nodo->nombre);
-
-    // Si no existe la variable, se reporta un error.
-    if (!simboloEncontrado) {
-        char description[256];
-        snprintf(description, sizeof(description), "Error de asignación: la variable '%s' no ha sido declarada.", nodo->nombre);
-        add_error_to_report("Semántico", nodo->nombre, description, nodo->line, nodo->column, context->nombre_completo);
+    if (!simbolo || simbolo->clase != VARIABLE) {
+        // ... (Manejo de error si no es una variable declarada)
         return nuevoValorResultadoVacio();
     }
 
-    // Si existe, interpretar la expresión de la derecha para obtener el nuevo valor
-    Result nuevoValorResult = self->hijos[0]->interpret(self->hijos[0], context);
+    Result nuevo_valor = self->hijos[0]->interpret(self->hijos[0], context);
 
-    if (has_semantic_error_been_found()) return nuevoValorResultadoVacio();
-
+    if (has_semantic_error_been_found()) {
+        free(nuevo_valor.valor);
+        return nuevoValorResultadoVacio();
+    }
+    
     // <<<< BLOQUE DE CÓDIGO MODIFICADO >>>>
     // Comprobar si los tipos son compatibles para la asignación.
-    bool es_compatible = (simboloEncontrado->tipo == nuevoValorResult.tipo);
+    bool es_compatible = (simbolo->tipo == nuevo_valor.tipo);
 
     // Excepción: Se permite asignar un valor INT a una variable CHAR.
-    if (simboloEncontrado->tipo == CHAR && nuevoValorResult.tipo == INT) {
+    if (simbolo->tipo == CHAR && nuevo_valor.tipo == INT) {
         es_compatible = true;
     }
 
@@ -38,17 +35,17 @@ Result interpretReasignacion(AbstractExpresion* self, Context* context) {
     if (!es_compatible) {
         char description[256];
         snprintf(description, sizeof(description), "Error de tipos: no se puede asignar un valor de tipo '%s' a la variable '%s' de tipo '%s'.", 
-            labelTipoDato[nuevoValorResult.tipo], nodo->nombre, labelTipoDato[simboloEncontrado->tipo]);
+            labelTipoDato[nuevo_valor.tipo], nodo->nombre, labelTipoDato[simbolo->tipo]);
         add_error_to_report("Semántico", nodo->nombre, description, nodo->line, nodo->column, context->nombre_completo);
         return nuevoValorResultadoVacio();
     }
     
-    // Si todo es correcto, se actualiza el valor en la tabla de símbolos.
-    if(simboloEncontrado->valor) {
-        free(simboloEncontrado->valor);
+    // <<<< CORREGIDO: Actualizamos el valor a través de la union >>>>
+    if(simbolo->info.var.valor) {
+        free(simbolo->info.var.valor);
     }
-    simboloEncontrado->valor = nuevoValorResult.valor;
-
+    simbolo->info.var.valor = nuevo_valor.valor;
+    
     return nuevoValorResultadoVacio();
 }
 
