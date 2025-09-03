@@ -77,7 +77,9 @@ lista_declaraciones: lista_declaraciones declaracion { agregarHijo($1, $2); $$ =
                     | declaracion { AbstractExpresion* lista = nuevoInstruccionesExpresion(); agregarHijo(lista, $1); $$ = lista; };
 
 declaracion: declaracion_funcion { $$ = $1; }
-            | declaracion_main { $$ = $1; };
+            | declaracion_main    { $$ = $1; }
+            | declaracion_var ';' { $$ = $1; }
+            ;
 
 declaracion_funcion: tipoPrimitivo TOKEN_IDENTIFIER '(' lista_parametros_opt ')' bloque {
                         $$ = nuevoDeclaracionFuncion($1, $2, $4, $6, @1.first_line, @1.first_column);
