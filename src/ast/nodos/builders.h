@@ -69,6 +69,8 @@ AbstractExpresion* nuevoIfExpresion(AbstractExpresion* condicion, AbstractExpres
 // AÑADE ESTA LÍNEA
 AbstractExpresion* nuevoWhileExpresion(AbstractExpresion* condicion, AbstractExpresion* bloque, int line, int column);
 
+// Ciclo for
+AbstractExpresion* nuevoForExpresion(AbstractExpresion* init, AbstractExpresion* cond, AbstractExpresion* update, AbstractExpresion* bloque, int line, int column);
 
 
 

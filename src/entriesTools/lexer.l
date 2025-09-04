@@ -68,7 +68,6 @@ newline           \n
 "return"                return TOKEN_RETURN;
 "System.out.println"    return TOKEN_PRINT;
 "main"                  return TOKEN_MAIN;
-"class"                 return TOKEN_CLASS;
 "public"                return TOKEN_PUBLIC;   
 "static"                return TOKEN_STATIC;   
 "void"                  return TOKEN_VOID;     

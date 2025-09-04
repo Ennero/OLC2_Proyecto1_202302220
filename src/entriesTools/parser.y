@@ -33,7 +33,7 @@
 /* --- Declaración de Tokens --- */
 %token TOKEN_PUBLIC TOKEN_STATIC TOKEN_VOID
 %token TOKEN_IF TOKEN_ELSE TOKEN_WHILE TOKEN_FOR TOKEN_SWITCH TOKEN_CASE
-%token TOKEN_BREAK TOKEN_CONTINUE TOKEN_RETURN TOKEN_PRINT TOKEN_MAIN TOKEN_CLASS
+%token TOKEN_BREAK TOKEN_CONTINUE TOKEN_RETURN TOKEN_PRINT TOKEN_MAIN
 %token TOKEN_DINT TOKEN_DFLOAT TOKEN_DDOUBLE TOKEN_DBOOLEAN TOKEN_DCHAR TOKEN_DSTRING
 %token <string> TOKEN_IDENTIFIER TOKEN_INTEGER TOKEN_HEX_INTEGER TOKEN_DOUBLE_LIT
 %token <string> TOKEN_CHAR_LITERAL TOKEN_STRING_LITERAL TOKEN_TRUE TOKEN_FALSE TOKEN_FLOAT_LIT
@@ -49,7 +49,7 @@
 
 
 /* --- Tipos para No-Terminales --- */
-%type <nodo> s lSentencia sentencia expr imprimir lista_Expr bloque declaracion_var primitivo reasignacion_var primary_expr if_stmt switch_stmt case_list case_stmt lSentencia_opt programa lista_declaraciones declaracion declaracion_funcion lista_parametros_opt lista_parametros parametro lista_argumentos_opt declaracion_main while_stmt
+%type <nodo> s lSentencia sentencia expr lista_Expr bloque declaracion_var primitivo reasignacion_var primary_expr if_stmt switch_stmt case_list case_stmt lSentencia_opt programa lista_declaraciones declaracion declaracion_funcion lista_parametros_opt lista_parametros parametro lista_argumentos_opt declaracion_main while_stmt for_stmt for_init_opt for_expr_opt
 %type <tipoDato> tipoPrimitivo
 
 /* --- Precedencia y Asociatividad de Operadores (MODIFICADO) --- */
@@ -128,21 +128,20 @@ lSentencia: lSentencia sentencia {
     }
     ;
 
-sentencia: imprimir ';'     { $$ = $1; }
-    | bloque                { $$ = $1; }
+sentencia: bloque           { $$ = $1; }
     | declaracion_var ';'   { $$ = $1; }
-    | reasignacion_var ';'  { $$ = $1; }
     | if_stmt               { $$ = $1; }
-    | while_stmt            { $$ = $1; } // <--- 2. AÑADE ESTA LÍNEA
+    | while_stmt            { $$ = $1; }
+    | for_stmt              { $$ = $1; }
     | switch_stmt           { $$ = $1; }
     | TOKEN_BREAK ';'       { $$ = nuevoBreakExpresion(@1.first_line, @1.first_column); }
     | TOKEN_CONTINUE ';'    { $$ = nuevoContinueExpresion(@1.first_line, @1.first_column); }
     | TOKEN_RETURN expr ';' { $$ = nuevoReturnExpresion($2, @1.first_line, @1.first_column); }
-    | TOKEN_RETURN ';'      { $$ = nuevoReturnExpresion(NULL, @1.first_line, @1.first_column); }
+    | TOKEN_RETURN ';'      { $$ = nuevoReturnExpresion(NULL, @1.first_line, @1.first_column); } 
     | expr ';'              { $$ = $1; }
-    | error ';' {
-        yyerrok;
-        $$ = NULL;
+    | error ';' { 
+        yyerrok; 
+        $$ = NULL; 
     }
     ;
 
@@ -152,9 +151,6 @@ lista_Expr: lista_Expr ',' expr { agregarHijo($1, $3); $$ = $1; }
         agregarHijo(b, $1);
         $$ = b;
     }
-    ;
-
-imprimir: TOKEN_PRINT '(' lista_Expr ')' { $$ = nuevoPrintExpresion($3, @1.first_line, @1.first_column); }
     ;
 
 bloque: '{' lSentencia '}' { $$ = nuevoBloqueExpresion($2, @1.first_line, @1.first_column); }
@@ -180,7 +176,8 @@ reasignacion_var: TOKEN_IDENTIFIER '=' expr { $$ = nuevoReasignacionExpresion($1
     ;
 
 
-expr: expr '+' expr                { $$ = nuevoSumaExpresion($1, $3, @2.first_line, @2.first_column); }
+expr: reasignacion_var             { $$ = $1; }
+    | expr '+' expr                { $$ = nuevoSumaExpresion($1, $3, @2.first_line, @2.first_column); }
     | expr '-' expr                { $$ = nuevoRestaExpresion($1, $3, @2.first_line, @2.first_column); }
     | expr '*' expr                { $$ = nuevoMultiplicacionExpresion($1, $3, @2.first_line, @2.first_column); }
     | expr '/' expr                { $$ = nuevoDivisionExpresion($1, $3, @2.first_line, @2.first_column); }
@@ -209,6 +206,8 @@ primary_expr:
     | TOKEN_IDENTIFIER             { $$ = nuevoIdentificadorExpresion($1, @1.first_line, @1.first_column); }
     // <<<< REGLA AÑADIDA: Para reconocer una llamada a función como una expresión >>>>
     | TOKEN_IDENTIFIER '(' lista_argumentos_opt ')' { $$ = nuevoLlamadaFuncion($1, $3, @1.first_line, @1.first_column); }
+    | TOKEN_PRINT '(' lista_Expr ')' { $$ = nuevoPrintExpresion($3, @1.first_line, @1.first_column); }
+
     | primitivo                    { $$ = $1; }
     | '-' primary_expr %prec NEG   { $$ = nuevoUnarioExpresion($2, @1.first_line, @1.first_column); }
     | '!' primary_expr             { $$ = nuevoNotExpresion($2, @1.first_line, @1.first_column); }
@@ -269,6 +268,21 @@ if_stmt: TOKEN_IF '(' expr ')' bloque {
 // 3. AÑADE ESTA NUEVA REGLA COMPLETA
 while_stmt: TOKEN_WHILE '(' expr ')' bloque {
                 $$ = nuevoWhileExpresion($3, $5, @1.first_line, @1.first_column);
+            };
+
+
+
+for_init_opt: declaracion_var { $$ = $1; }
+            | expr            { $$ = $1; }
+            | %empty          { $$ = NULL; };
+
+// Regla para la condición y actualización (puede ser expresión o nada)
+for_expr_opt: expr            { $$ = $1; }
+            | %empty          { $$ = NULL; };
+
+// Regla principal para la sentencia for
+for_stmt: TOKEN_FOR '(' for_init_opt ';' for_expr_opt ';' for_expr_opt ')' bloque {
+                $$ = nuevoForExpresion($3, $5, $7, $9, @1.first_line, @1.first_column);
             };
 
 
