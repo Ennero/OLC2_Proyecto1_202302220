@@ -49,7 +49,7 @@
 
 
 /* --- Tipos para No-Terminales --- */
-%type <nodo> s lSentencia sentencia expr lista_Expr bloque declaracion_var primitivo reasignacion_var primary_expr if_stmt switch_stmt case_list case_stmt lSentencia_opt programa lista_declaraciones declaracion declaracion_funcion lista_parametros_opt lista_parametros parametro lista_argumentos_opt declaracion_main while_stmt for_stmt for_init_opt for_expr_opt
+%type <nodo> s lSentencia sentencia expr lista_Expr bloque declaracion_var primitivo reasignacion_var primary_expr if_stmt switch_stmt case_list case_stmt lSentencia_opt programa lista_declaraciones declaracion declaracion_funcion lista_parametros_opt lista_parametros parametro lista_argumentos_opt declaracion_main while_stmt for_stmt for_init for_expr_opt
 %type <tipoDato> tipoPrimitivo
 
 /* --- Precedencia y Asociatividad de Operadores (MODIFICADO) --- */
@@ -272,19 +272,17 @@ while_stmt: TOKEN_WHILE '(' expr ')' bloque {
 
 
 
-for_init_opt: declaracion_var { $$ = $1; }
-            | expr            { $$ = $1; }
-            | %empty          { $$ = NULL; };
+for_init: declaracion_var { $$ = $1; }
+        | expr            { $$ = $1; };
 
 // Regla para la condición y actualización (puede ser expresión o nada)
 for_expr_opt: expr            { $$ = $1; }
             | %empty          { $$ = NULL; };
 
 // Regla principal para la sentencia for
-for_stmt: TOKEN_FOR '(' for_init_opt ';' for_expr_opt ';' for_expr_opt ')' bloque {
+for_stmt: TOKEN_FOR '(' for_init ';' for_expr_opt ';' for_expr_opt ')' bloque {
                 $$ = nuevoForExpresion($3, $5, $7, $9, @1.first_line, @1.first_column);
             };
-
 
 switch_stmt: TOKEN_SWITCH '(' expr ')' '{' case_list '}' {
                 $$ = nuevoSwitchExpresion($3, $6, @1.first_line, @1.first_column);
