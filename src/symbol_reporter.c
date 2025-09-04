@@ -92,6 +92,7 @@ void add_symbol_to_report(const Symbol* symbol, const char* context_name) {
     if (!new_info) return;
 
     new_info->id = symbol_id_counter++;
+    // 'symbol->nombre' es propiedad de la tabla de símbolos (ya duplicada al insertar).
     new_info->name = strdup(symbol->nombre);
     new_info->type = strdup(labelTipoDato[symbol->tipo]);
     new_info->context_name = strdup(context_name);

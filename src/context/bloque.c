@@ -15,8 +15,9 @@ Result interpretBloqueExpresion(AbstractExpresion* self, Context* context) {
     Context* nuevo_contexto = nuevoContext(context, nombre_buffer);
     
     // 3. (CAMBIO CLAVE) Interpretar las sentencias y CAPTURAR su resultado
+    //    Validar que exista al menos un hijo antes de indexar.
     Result res_bloque = nuevoValorResultadoVacio(); // Valor por defecto si el bloque está vacío
-    if (self->hijos[0]) {
+    if (self->numHijos > 0 && self->hijos != NULL && self->hijos[0] != NULL) {
         res_bloque = self->hijos[0]->interpret(self->hijos[0], nuevo_contexto);
     }
     

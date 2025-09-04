@@ -83,7 +83,10 @@ void liberarContext(Context* context) {
 // Función para crear una nueva variable
 Symbol* nuevoVariable(char* nombre, void* valor, TipoDato tipo) {
     Symbol* nuevo = malloc(sizeof(Symbol));
-    nuevo->nombre = nombre;
+    if (!nuevo) return NULL;
+    // Duplicar el nombre para que el AST y la tabla de símbolos no compartan memoria.
+    // Esto evita usar punteros liberados cuando el mismo nodo AST se re-ejecuta (por ejemplo, en for anidados).
+    nuevo->nombre = strdup(nombre);
     nuevo->tipo = tipo;
     nuevo->clase = VARIABLE;
     nuevo->info.var.valor = valor; // <<<< Se asigna el valor DENTRO de la union
@@ -129,6 +132,11 @@ void agregarSymbol(Context* actual, Symbol* symbol, int line, int column) {
         add_error_to_report("Semántico", symbol->nombre, description, line, column, actual->nombre_completo);
         
         // Se libera la memoria del símbolo recién creado que no se usará.
+        // Como 'nuevoVariable' duplica el nombre, hay que liberarlo aquí.
+        if (symbol->clase == VARIABLE && symbol->info.var.valor) {
+            free(symbol->info.var.valor);
+        }
+        free(symbol->nombre);
         free(symbol);
         return;
     }

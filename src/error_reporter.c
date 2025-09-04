@@ -59,8 +59,8 @@ void free_error_report() {
 // Añade un nuevo error al final de la lista
 void add_error_to_report(const char* type, const char* lexeme, const char* description, int line, int column, const char* context_name) {
 
-    // Si se encuentra un error semántico
-    if (strcmp(type, "Semantico") == 0) {
+    // Si se encuentra un error semántico (con o sin tilde)
+    if (strcmp(type, "Semantico") == 0 || strcmp(type, "Semántico") == 0) {
         semantic_error_found = true;
     }
     // Reservar memoria para el nuevo nodo de error

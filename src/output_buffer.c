@@ -24,10 +24,14 @@ void append_to_output(const char* text) {
         init_output_buffer();
     }
     size_t text_len = strlen(text);
-    if (length + text_len + 1 > capacity) {
-        
-        // Duplicar la capacidad si no hay espacio suficiente
-        size_t new_capacity = capacity * 2;
+
+    // Asegurar capacidad suficiente (puede requerir múltiples duplicaciones)
+    size_t required = length + text_len + 1; // +1 para el terminador NUL
+    if (required > capacity) {
+        size_t new_capacity = capacity ? capacity : 1024;
+        while (required > new_capacity) {
+            new_capacity *= 2;
+        }
         char* new_buffer = realloc(buffer, new_capacity);
         if (!new_buffer) {
             perror("realloc output buffer");
@@ -36,9 +40,11 @@ void append_to_output(const char* text) {
         buffer = new_buffer;
         capacity = new_capacity;
     }
-    // Copia el nuevo texto al final
-    strcat(buffer, text);
+
+    // Copiar eficientemente y mantener el NUL al final
+    memcpy(buffer + length, text, text_len);
     length += text_len;
+    buffer[length] = '\0';
 }
 
 // Devuelve el contenido del búfer de salida
