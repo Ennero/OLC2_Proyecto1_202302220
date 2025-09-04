@@ -49,7 +49,7 @@
 
 
 /* --- Tipos para No-Terminales --- */
-%type <nodo> s lSentencia sentencia expr imprimir lista_Expr bloque declaracion_var primitivo reasignacion_var primary_expr if_stmt switch_stmt case_list case_stmt lSentencia_opt programa lista_declaraciones declaracion declaracion_funcion lista_parametros_opt lista_parametros parametro lista_argumentos_opt declaracion_main
+%type <nodo> s lSentencia sentencia expr imprimir lista_Expr bloque declaracion_var primitivo reasignacion_var primary_expr if_stmt switch_stmt case_list case_stmt lSentencia_opt programa lista_declaraciones declaracion declaracion_funcion lista_parametros_opt lista_parametros parametro lista_argumentos_opt declaracion_main while_stmt
 %type <tipoDato> tipoPrimitivo
 
 /* --- Precedencia y Asociatividad de Operadores (MODIFICADO) --- */
@@ -133,15 +133,16 @@ sentencia: imprimir ';'     { $$ = $1; }
     | declaracion_var ';'   { $$ = $1; }
     | reasignacion_var ';'  { $$ = $1; }
     | if_stmt               { $$ = $1; }
+    | while_stmt            { $$ = $1; } // <--- 2. AÑADE ESTA LÍNEA
     | switch_stmt           { $$ = $1; }
     | TOKEN_BREAK ';'       { $$ = nuevoBreakExpresion(@1.first_line, @1.first_column); }
     | TOKEN_CONTINUE ';'    { $$ = nuevoContinueExpresion(@1.first_line, @1.first_column); }
     | TOKEN_RETURN expr ';' { $$ = nuevoReturnExpresion($2, @1.first_line, @1.first_column); }
-    | TOKEN_RETURN ';'      { $$ = nuevoReturnExpresion(NULL, @1.first_line, @1.first_column); } 
+    | TOKEN_RETURN ';'      { $$ = nuevoReturnExpresion(NULL, @1.first_line, @1.first_column); }
     | expr ';'              { $$ = $1; }
-    | error ';' { 
-        yyerrok; 
-        $$ = NULL; 
+    | error ';' {
+        yyerrok;
+        $$ = NULL;
     }
     ;
 
@@ -265,9 +266,18 @@ if_stmt: TOKEN_IF '(' expr ')' bloque {
     ;
 
 
+// 3. AÑADE ESTA NUEVA REGLA COMPLETA
+while_stmt: TOKEN_WHILE '(' expr ')' bloque {
+                $$ = nuevoWhileExpresion($3, $5, @1.first_line, @1.first_column);
+            };
+
+
 switch_stmt: TOKEN_SWITCH '(' expr ')' '{' case_list '}' {
                 $$ = nuevoSwitchExpresion($3, $6, @1.first_line, @1.first_column);
             };
+
+
+
 
 
 // Regla para una lista de uno o más casos (case o default)

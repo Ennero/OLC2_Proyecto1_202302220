@@ -9,12 +9,11 @@ Result interpretIfExpresion(AbstractExpresion* self, Context* context) {
     // 1. Interpretar la condición
     Result res_cond = self->hijos[0]->interpret(self->hijos[0], context);
 
+    // Comprobaciones de error semántico y de tipo (esto ya estaba bien)
     if (has_semantic_error_been_found()) {
         free(res_cond.valor);
         return nuevoValorResultadoVacio();
     }
-
-    // 2. Comprobar que la condición sea de tipo booleano
     if (res_cond.tipo != BOOLEAN) {
         char desc[256];
         snprintf(desc, sizeof(desc), "Se esperaba una expresión booleana en la condición del if, pero se encontró un valor de tipo '%s'.", labelTipoDato[res_cond.tipo]);
@@ -23,26 +22,38 @@ Result interpretIfExpresion(AbstractExpresion* self, Context* context) {
         return nuevoValorResultadoVacio();
     }
     
-    // Obtenemos el valor booleano (0 o 1)
     int condicion_val = *(int*)res_cond.valor;
-
-    // Liberamos la memoria del resultado temporal de la condición
     free(res_cond.valor);
 
-    // 3. Ejecutar el bloque correspondiente
+    // --- INICIO DE LA LÓGICA CORREGIDA Y ROBUSTA ---
+
+    Result resultado_bloque = nuevoValorResultadoVacio();
+
+    // 2. Ejecutar el bloque correspondiente si la condición se cumple
     if (condicion_val) {
-        // La condición es verdadera, ejecutar el bloque "if"
-        return self->hijos[1]->interpret(self->hijos[1], context);
-    } else {
-        // La condición es falsa, comprobar si hay un bloque "else"
-        if (self->hijos[2] != NULL) {
-            // Ejecutar el bloque "else" (que puede ser otro if_stmt o un bloque final)
-            return self->hijos[2]->interpret(self->hijos[2], context);
-        }
+        // El hijo 1 es el bloque del 'if'
+        resultado_bloque = self->hijos[1]->interpret(self->hijos[1], context);
+    } else if (self->numHijos > 2 && self->hijos[2] != NULL) {
+        // El hijo 2 es el bloque 'else' (que podría ser otro 'if')
+        resultado_bloque = self->hijos[2]->interpret(self->hijos[2], context);
     }
 
-    // Si no se cumple la condición y no hay else, no se hace nada.
+    // 3. El 'if' como sentencia toma posesión del resultado del bloque.
+    //    Su única responsabilidad es propagar las señales de control.
+    if (resultado_bloque.tipo == BREAK_T || 
+        resultado_bloque.tipo == CONTINUE_T || 
+        resultado_bloque.tipo == RETURN_T) {
+        // Propaga la señal hacia arriba.
+        return resultado_bloque;
+    }
+
+    // 4. Si el resultado del bloque no fue una señal, su valor ya no es necesario.
+    //    El 'if' lo descarta y limpia la memoria.
+    free(resultado_bloque.valor);
+
+    // La sentencia 'if' como tal no produce ningún valor.
     return nuevoValorResultadoVacio();
+    // --- FIN DE LA LÓGICA CORREGIDA ---
 }
 
 // Constructor para el nodo IF

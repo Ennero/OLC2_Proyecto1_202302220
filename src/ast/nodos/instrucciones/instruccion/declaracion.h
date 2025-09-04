@@ -1,5 +1,5 @@
-#ifndef PRINT_H
-#define PRINT_H
+#ifndef DECLARACION_H // <-- CORREGIDO
+#define DECLARACION_H // <-- CORREGIDO
 
 #include "ast/AbstractExpresion.h"
 #include "context/context.h"
@@ -15,4 +15,4 @@ typedef struct {
 
 Result interpretDeclaracionVariable(AbstractExpresion*, Context*);
 
-#endif
+#endif // DECLARACION_H <-- CORREGIDO

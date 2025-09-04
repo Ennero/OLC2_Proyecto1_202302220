@@ -48,18 +48,38 @@ Context* nuevoContext(Context* anterior, const char* nombre_contexto) {
 
 void liberarContext(Context* context) {
     if (!context) return;
+
     Symbol* actual = context->ultimoSymbol;
     while(actual) {
         Symbol* temp = actual->anterior;
-        // La lógica de liberación de memoria de los valores ahora la hacen los nodos
-        free(actual->nombre); // Asumiendo que el nombre siempre es copiado
+
+        // --- INICIO DE LA CORRECCIÓN CRÍTICA ---
+
+        // Si el símbolo es una VARIABLE y su valor no es NULL,
+        // debemos liberar la memoria que reservamos para ese valor.
+        if (actual->clase == VARIABLE && actual->info.var.valor != NULL) {
+            free(actual->info.var.valor);
+        }
+
+        // Si el símbolo es una FUNCIÓN, debemos liberar los nombres de sus parámetros
+        if (actual->clase == FUNCION) {
+            for (size_t i = 0; i < actual->info.func.num_parametros; i++) {
+                free(actual->info.func.parametros[i].nombre);
+            }
+            free(actual->info.func.parametros);
+        }
+
+        // --- FIN DE LA CORRECCIÓN CRÍTICA ---
+
+        // Ahora liberamos el nombre del símbolo y la estructura Symbol en sí
+        free(actual->nombre);
         free(actual);
         actual = temp;
     }
+
     free(context->nombre_completo);
     free(context);
 }
-
 // Función para crear una nueva variable
 Symbol* nuevoVariable(char* nombre, void* valor, TipoDato tipo) {
     Symbol* nuevo = malloc(sizeof(Symbol));

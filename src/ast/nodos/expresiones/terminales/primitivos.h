@@ -1,5 +1,5 @@
-#ifndef EXPRESIONES_H
-#define EXPRESIONES_H
+#ifndef PRIMITIVOS_H // <-- CORREGIDO
+#define PRIMITIVOS_H // <-- CORREGIDO
 
 #include "ast/AbstractExpresion.h"
 #include "context/context.h"
@@ -12,4 +12,4 @@ typedef struct {
 } PrimitivoExpresion;
 
 Result interpretPrimitivoExpresion(AbstractExpresion*, Context*);
-#endif
+#endif // PRIMITIVOS_H <-- CORREGIDO

@@ -65,6 +65,13 @@ AbstractExpresion* nuevoUnsignedRightShiftExpresion(AbstractExpresion* izquierda
 /* --- Constructores de Nodos de Control de Flujo --- */
 AbstractExpresion* nuevoIfExpresion(AbstractExpresion* condicion, AbstractExpresion* bloque_if, AbstractExpresion* bloque_else, int line, int column);
 
+
+// AÑADE ESTA LÍNEA
+AbstractExpresion* nuevoWhileExpresion(AbstractExpresion* condicion, AbstractExpresion* bloque, int line, int column);
+
+
+
+
 /* Switch */
 AbstractExpresion* nuevoSwitchExpresion(AbstractExpresion* expresion, AbstractExpresion* case_list, int line, int column);
 AbstractExpresion* nuevoCaseExpresion(AbstractExpresion* expresion, AbstractExpresion* sentencias, int line, int column);
