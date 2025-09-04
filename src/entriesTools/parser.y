@@ -66,7 +66,6 @@
 %left '+' '-'
 %left '*' '/' '%'
 %right '!' '~' NEG  // NEG es el alias para la negación unaria
-%right '(' ')'
 
 %%
 %start programa;
