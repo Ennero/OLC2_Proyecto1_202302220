@@ -82,7 +82,12 @@ declaracion: declaracion_funcion { $$ = $1; }
 
 declaracion_funcion: tipoPrimitivo TOKEN_IDENTIFIER '(' lista_parametros_opt ')' bloque {
                         $$ = nuevoDeclaracionFuncion($1, $2, $4, $6, @1.first_line, @1.first_column);
-                        };
+                        }
+                    | TOKEN_VOID TOKEN_IDENTIFIER '(' lista_parametros_opt ')' bloque {
+                        // Usamos NULO para representar 'void' como tipo de retorno
+                        $$ = nuevoDeclaracionFuncion(NULO, $2, $4, $6, @1.first_line, @1.first_column);
+                        }
+                    ;
 
 lista_parametros_opt: lista_parametros { $$ = $1; }
                     | %empty { $$ = nuevoListaExpresiones(); };

@@ -43,7 +43,9 @@ Result interpretLlamadaFuncion(AbstractExpresion* self, Context* context) {
     for(size_t i = 0; i < num_args; i++) {
         Parametro param = func_symbol->info.func.parametros[i];
         if (param.tipo != argumentos_evaluados[i].tipo) {
-            // Error semántico de tipos
+            char desc[128];
+            sprintf(desc, "Tipo de argumento %zu incompatible: se esperaba %s y se recibió %s.", i+1, labelTipoDato[param.tipo], labelTipoDato[argumentos_evaluados[i].tipo]);
+            add_error_to_report("Semantico", nombre_func, desc, self->line, self->column, context->nombre_completo);
         }
         
         // Creamos una copia del valor del argumento para la nueva variable
@@ -55,7 +57,8 @@ Result interpretLlamadaFuncion(AbstractExpresion* self, Context* context) {
             valor_copiado = malloc(size);
             memcpy(valor_copiado, argumentos_evaluados[i].valor, size);
         }
-        agregarSymbol(func_context, nuevoVariable(strdup(param.nombre), valor_copiado, param.tipo), 0, 0);
+        // nuevoVariable duplica el nombre, no es necesario strdup aquí
+        agregarSymbol(func_context, nuevoVariable(param.nombre, valor_copiado, param.tipo), 0, 0);
     }
     
     for(size_t i = 0; i < num_args; i++) { free(argumentos_evaluados[i].valor); }
@@ -70,14 +73,38 @@ Result interpretLlamadaFuncion(AbstractExpresion* self, Context* context) {
         Result res_final = *res_final_ptr;
         free(res_final_ptr);
 
-        if (res_final.tipo != func_symbol->info.func.tipo_retorno) {
-            // Error semántico de tipo de retorno
+        if (func_symbol->info.func.tipo_retorno == NULO) {
+            // Función void no debe devolver valor
+            if (res_final.tipo != NULO) {
+                char desc[160];
+                sprintf(desc, "La función void '%s' no debe retornar un valor.", nombre_func);
+                add_error_to_report("Semantico", nombre_func, desc, self->line, self->column, context->nombre_completo);
+                // descartamos el valor retornado para mantener consistencia
+                free(res_final.valor);
+                return nuevoValorResultadoVacio();
+            }
+            return nuevoValorResultadoVacio();
+        } else {
+            if (res_final.tipo != func_symbol->info.func.tipo_retorno) {
+                char desc[160];
+                sprintf(desc, "Tipo de retorno incompatible en '%s': se esperaba %s y se recibió %s.", nombre_func, labelTipoDato[func_symbol->info.func.tipo_retorno], labelTipoDato[res_final.tipo]);
+                add_error_to_report("Semantico", nombre_func, desc, self->line, self->column, context->nombre_completo);
+            }
+            return res_final;
         }
-        return res_final;
     }
     
-    // Si la función no tuvo return (funciones void)
-    return nuevoValorResultadoVacio();
+    // Si la función no tuvo return:
+    // - si es void (NULO), está bien y devuelve vacío;
+    // - si no es void, reportamos error de falta de retorno.
+    if (func_symbol->info.func.tipo_retorno == NULO) {
+        return nuevoValorResultadoVacio();
+    } else {
+        char desc[160];
+        sprintf(desc, "La función '%s' debe retornar un valor de tipo %s.", nombre_func, labelTipoDato[func_symbol->info.func.tipo_retorno]);
+        add_error_to_report("Semantico", nombre_func, desc, self->line, self->column, context->nombre_completo);
+        return nuevoValorResultadoVacio();
+    }
 }
 
 AbstractExpresion* nuevoLlamadaFuncion(char* nombre, AbstractExpresion* args, int line, int column) {

@@ -13,7 +13,8 @@ Result interpretDeclaracionFuncion(AbstractExpresion* self, Context* context) {
 
     // Se crea un símbolo de tipo FUNCION para guardarlo en la tabla
     Symbol* func_symbol = malloc(sizeof(Symbol));
-    func_symbol->nombre = nodo->nombre;
+    // Duplicamos el nombre para que el símbolo sea dueño de su memoria
+    func_symbol->nombre = strdup(nodo->nombre);
     func_symbol->clase = FUNCION;
     func_symbol->tipo = nodo->tipo_retorno; // El tipo del símbolo es el tipo de retorno
     
