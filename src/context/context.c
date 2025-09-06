@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include "array_value.h"
 
 // Crea un contexto
 Context* nuevoContext(Context* anterior, const char* nombre_contexto) {
@@ -21,18 +22,16 @@ Context* nuevoContext(Context* anterior, const char* nombre_contexto) {
         nuevo->raiz = nuevo;
         nuevo->proximo_id_bloque = 1;
     }
-
-    // --- BLOQUE CORREGIDO ---
     // Crear nombre completo
     if (anterior && anterior->nombre_completo) {
-        // 1. (RESTAURADO) Calcular el tamaño necesario para el nuevo nombre
+        // Calcular el tamaño necesario para el nuevo nombre
         size_t len_padre = strlen(anterior->nombre_completo);
         size_t len_nuevo = strlen(nombre_contexto);
-        
-        // 2. (RESTAURADO) Reservar la memoria
+
+        // Reservar la memoria
         nuevo->nombre_completo = malloc(len_padre + len_nuevo + 2); // +2 para '_' y '\0'
         
-        // 3. (AHORA ES SEGURO) Escribir en la memoria reservada
+        // Escribir en la memoria reservada
         if (nuevo->nombre_completo) {
             sprintf(nuevo->nombre_completo, "%s_%s", anterior->nombre_completo, nombre_contexto);
         }
@@ -52,13 +51,14 @@ void liberarContext(Context* context) {
     Symbol* actual = context->ultimoSymbol;
     while(actual) {
         Symbol* temp = actual->anterior;
+        
+        if (actual->clase == VARIABLE) {
 
-        // --- INICIO DE LA CORRECCIÓN CRÍTICA ---
-
-        // Si el símbolo es una VARIABLE y su valor no es NULL,
-        // debemos liberar la memoria que reservamos para ese valor.
-        if (actual->clase == VARIABLE && actual->info.var.valor != NULL) {
-            free(actual->info.var.valor);
+            if (actual->tipo == ARRAY && actual->info.var.valor != NULL) {
+                liberarArray((ArrayValue*)actual->info.var.valor);
+            } else if (actual->info.var.valor != NULL) {
+                free(actual->info.var.valor);
+            }
         }
 
         // Si el símbolo es una FUNCIÓN, debemos liberar los nombres de sus parámetros
@@ -68,8 +68,6 @@ void liberarContext(Context* context) {
             }
             free(actual->info.func.parametros);
         }
-
-        // --- FIN DE LA CORRECCIÓN CRÍTICA ---
 
         // Ahora liberamos el nombre del símbolo y la estructura Symbol en sí
         free(actual->nombre);
@@ -89,7 +87,7 @@ Symbol* nuevoVariable(char* nombre, void* valor, TipoDato tipo) {
     nuevo->nombre = strdup(nombre);
     nuevo->tipo = tipo;
     nuevo->clase = VARIABLE;
-    nuevo->info.var.valor = valor; // <<<< Se asigna el valor DENTRO de la union
+    nuevo->info.var.valor = valor;
     nuevo->line = 0;
     nuevo->column = 0;
     nuevo->anterior = NULL;
@@ -120,7 +118,6 @@ Symbol* buscarTablaSimbolos(Context* actual, char* nombre) {
 }
 
 
-// LÓGICA SEMÁNTICA CLAVE
 void agregarSymbol(Context* actual, Symbol* symbol, int line, int column) {
     
     // buscarSymbol solo busca en el ámbito (contexto) actual.
@@ -132,7 +129,6 @@ void agregarSymbol(Context* actual, Symbol* symbol, int line, int column) {
         add_error_to_report("Semántico", symbol->nombre, description, line, column, actual->nombre_completo);
         
         // Se libera la memoria del símbolo recién creado que no se usará.
-        // Como 'nuevoVariable' duplica el nombre, hay que liberarlo aquí.
         if (symbol->clase == VARIABLE && symbol->info.var.valor) {
             free(symbol->info.var.valor);
         }

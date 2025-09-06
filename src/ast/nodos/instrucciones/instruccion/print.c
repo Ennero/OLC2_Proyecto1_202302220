@@ -7,6 +7,7 @@
 #include <stdio.h>
 
 #include "output_buffer.h"
+#include "error_reporter.h"
 #include <stdlib.h>
 #include <stdio.h>
 

@@ -18,6 +18,30 @@
     #include "error_reporter.h"
     #include "ast/nodos/instrucciones/instruccion/casteos.h"
     #include "ast/nodos/instrucciones/instruccion/reasignacion.h"
+    #include "ast/nodos/expresiones/terminales/identificadores.h"
+    #include <string.h>
+}
+
+
+%code {
+    // Estructuras de datos temporales para ayudar al parser a construir
+    // la declaración de una variable compleja. NO son parte del AST final.
+    typedef struct {
+        AbstractExpresion base;
+        int dimensiones;
+        AbstractExpresion* inicializador;
+        char* nombre; // Guardaremos el nombre aquí
+    } DeclaradorNode;
+
+    // Constructor para el nodo temporal
+    AbstractExpresion* nuevoDeclaradorNode(char* nombre, int dims, AbstractExpresion* init) {
+        DeclaradorNode* n = malloc(sizeof(DeclaradorNode));
+        buildAbstractExpresion(&n->base, NULL, "TempDeclarator", 0, 0);
+        n->nombre = nombre;
+        n->dimensiones = dims;
+        n->inicializador = init;
+        return (AbstractExpresion*)n;
+    }
 }
 
 /* Habilitar el seguimiento de ubicaciones (línea/columna) */
@@ -28,6 +52,7 @@
     char* string;
     AbstractExpresion* nodo;
     TipoDato tipoDato;
+    int num; // NUEVO: Para contar dimensiones
 }
 
 /* --- Declaración de Tokens --- */
@@ -45,14 +70,18 @@
 %token TOKEN_LSHIFT_ASSIGN TOKEN_RSHIFT_ASSIGN TOKEN_URSHIFT_ASSIGN
 %token TOKEN_DOT
 %token TOKEN_DEFAULT
+%token TOKEN_NEW
 
 
 
 /* --- Tipos para No-Terminales --- */
-%type <nodo> s lSentencia sentencia expr lista_Expr bloque declaracion_var primitivo reasignacion_var primary_expr if_stmt switch_stmt case_list case_stmt lSentencia_opt programa lista_declaraciones declaracion declaracion_funcion lista_parametros_opt lista_parametros parametro lista_argumentos_opt declaracion_main while_stmt for_stmt for_init for_expr_opt
+%type <nodo> lSentencia sentencia expr lista_Expr bloque declaracion_var primitivo primary_expr if_stmt switch_stmt case_list case_stmt lSentencia_opt programa lista_declaraciones declaracion declaracion_funcion lista_parametros_opt lista_parametros parametro lista_argumentos_opt declaracion_main while_stmt for_stmt for_init for_expr_opt
+%type <nodo> inicializador_arreglo expresion_creacion_arreglo lista_dims_expr asignacion_expr
+%type <nodo> declarador_completo // NUEVA REGLA
+%type <num> corchetes_lista
 %type <tipoDato> tipoPrimitivo
 
-/* --- Precedencia y Asociatividad de Operadores (MODIFICADO) --- */
+/* --- Precedencia y Asociatividad de Operadores --- */
 %left TOKEN_DOT
 %right '=' TOKEN_PLUS_ASSIGN TOKEN_MINUS_ASSIGN TOKEN_MULT_ASSIGN TOKEN_DIV_ASSIGN TOKEN_MOD_ASSIGN TOKEN_AND_ASSIGN TOKEN_OR_ASSIGN TOKEN_XOR_ASSIGN TOKEN_LSHIFT_ASSIGN TOKEN_RSHIFT_ASSIGN TOKEN_URSHIFT_ASSIGN
 %left TOKEN_OR
@@ -65,7 +94,7 @@
 %left TOKEN_LSHIFT TOKEN_RSHIFT TOKEN_URSHIFT 
 %left '+' '-'
 %left '*' '/' '%'
-%right '!' '~' NEG  // NEG es el alias para la negación unaria
+%right '!' '~' NEG 
 
 %%
 %start programa;
@@ -111,9 +140,6 @@ declaracion_main: TOKEN_PUBLIC TOKEN_STATIC TOKEN_VOID TOKEN_MAIN
 lista_argumentos_opt: lista_Expr { $$ = $1; }
                     | %empty   { $$ = NULL; };
 
-
-s: lSentencia  { ast_root = $1; $$ = $1; }
-    ;
 
 lSentencia: lSentencia sentencia { 
         // Si la sentencia fue un error, $2 será NULL.
@@ -161,11 +187,38 @@ bloque: '{' lSentencia '}' { $$ = nuevoBloqueExpresion($2, @1.first_line, @1.fir
     | '{' '}' { $$ = nuevoBloqueExpresion(NULL, @1.first_line, @1.first_column); }
     ;
 
-declaracion_var: tipoPrimitivo TOKEN_IDENTIFIER { $$ = nuevoDeclaracionVariables($1, $2, NULL, @2.first_line, @2.first_column); }
-    | tipoPrimitivo TOKEN_IDENTIFIER '=' expr { $$ = nuevoDeclaracionVariables($1, $2, $4, @2.first_line, @2.first_column); }
+// REEMPLAZA LA REGLA declaracion_var con esto:
+declaracion_var
+    : tipoPrimitivo declarador_completo {
+        DeclaradorNode* declarador_info = (DeclaradorNode*)$2;
+        $$ = nuevoDeclaracionVariable($1, declarador_info->dimensiones, declarador_info->nombre, declarador_info->inicializador, @2.first_line, @2.first_column);
+        free(declarador_info);
+    }
     ;
 
-reasignacion_var: TOKEN_IDENTIFIER '=' expr { $$ = nuevoReasignacionExpresion($1, $3, @1.first_line, @1.first_column); }
+
+declarador_completo
+    : corchetes_lista TOKEN_IDENTIFIER corchetes_lista '=' expr {
+        $$ = nuevoDeclaradorNode($2, $1 + $3, $5);
+    }
+    | corchetes_lista TOKEN_IDENTIFIER corchetes_lista {
+        $$ = nuevoDeclaradorNode($2, $1 + $3, NULL);
+    }
+    ;
+
+corchetes_lista
+    : corchetes_lista '[' ']' { $$ = $1 + 1; }
+    | %empty { $$ = 0; }
+    ;
+
+inicializador_arreglo
+    : '{' lista_Expr '}' { $$ = nuevoInicializadorArreglo($2, @1.first_line, @1.first_column); }
+    | '{' '}' { $$ = nuevoInicializadorArreglo(NULL, @1.first_line, @1.first_column); }
+    ;
+
+
+asignacion_expr: TOKEN_IDENTIFIER '=' expr { $$ = nuevoReasignacionExpresion($1, $3, @1.first_line, @1.first_column); }
+    | primary_expr '[' expr ']' '=' expr { $$ = nuevoAsignacionArreglo($1, $3, $6, @5.first_line, @5.first_column); }
     | TOKEN_IDENTIFIER TOKEN_PLUS_ASSIGN expr  { $$ = nuevoAsignacionCompuestaExpresion($1, '+', $3, @1.first_line, @1.first_column); }
     | TOKEN_IDENTIFIER TOKEN_MINUS_ASSIGN expr { $$ = nuevoAsignacionCompuestaExpresion($1, '-', $3, @1.first_line, @1.first_column); }
     | TOKEN_IDENTIFIER TOKEN_MULT_ASSIGN expr  { $$ = nuevoAsignacionCompuestaExpresion($1, '*', $3, @1.first_line, @1.first_column); }
@@ -180,27 +233,29 @@ reasignacion_var: TOKEN_IDENTIFIER '=' expr { $$ = nuevoReasignacionExpresion($1
     ;
 
 
-expr: reasignacion_var             { $$ = $1; }
-    | expr '+' expr                { $$ = nuevoSumaExpresion($1, $3, @2.first_line, @2.first_column); }
-    | expr '-' expr                { $$ = nuevoRestaExpresion($1, $3, @2.first_line, @2.first_column); }
-    | expr '*' expr                { $$ = nuevoMultiplicacionExpresion($1, $3, @2.first_line, @2.first_column); }
-    | expr '/' expr                { $$ = nuevoDivisionExpresion($1, $3, @2.first_line, @2.first_column); }
-    | expr '%' expr                { $$ = nuevoModuloExpresion($1, $3, @2.first_line, @2.first_column); }
-    | expr TOKEN_LSHIFT expr       { $$ = nuevoLeftShiftExpresion($1, $3, @2.first_line, @2.first_column); }
-    | expr TOKEN_RSHIFT expr       { $$ = nuevoRightShiftExpresion($1, $3, @2.first_line, @2.first_column); }
-    | expr TOKEN_URSHIFT expr      { $$ = nuevoUnsignedRightShiftExpresion($1, $3, @2.first_line, @2.first_column); }
-    | expr '&' expr                { $$ = nuevoBitwiseAndExpresion($1, $3, @2.first_line, @2.first_column); }
+expr: asignacion_expr              { $$ = $1; }
+    | expr '?' expr ':' expr       { /* Lógica para operador ternario (opcional) */ }
+    | expr TOKEN_OR expr           { $$ = nuevoOrExpresion($1, $3, @2.first_line, @2.first_column); }
+    | expr TOKEN_AND expr          { $$ = nuevoAndExpresion($1, $3, @2.first_line, @2.first_column); }
     | expr '|' expr                { $$ = nuevoBitwiseOrExpresion($1, $3, @2.first_line, @2.first_column); }
     | expr '^' expr                { $$ = nuevoBitwiseXorExpresion($1, $3, @2.first_line, @2.first_column); }
+    | expr '&' expr                { $$ = nuevoBitwiseAndExpresion($1, $3, @2.first_line, @2.first_column); }
     | expr TOKEN_IGUAL_IGUAL expr  { $$ = nuevoIgualExpresion($1, $3, @2.first_line, @2.first_column); }
     | expr TOKEN_DIFERENTE expr    { $$ = nuevoDiferenteExpresion($1, $3, @2.first_line, @2.first_column); }
     | expr '<' expr                { $$ = nuevoMenorQueExpresion($1, $3, @2.first_line, @2.first_column); }
     | expr '>' expr                { $$ = nuevoMayorQueExpresion($1, $3, @2.first_line, @2.first_column); }
     | expr TOKEN_MENOR_IGUAL expr  { $$ = nuevoMenorIgualExpresion($1, $3, @2.first_line, @2.first_column); }
     | expr TOKEN_MAYOR_IGUAL expr  { $$ = nuevoMayorIgualExpresion($1, $3, @2.first_line, @2.first_column); }
-    | expr TOKEN_AND expr          { $$ = nuevoAndExpresion($1, $3, @2.first_line, @2.first_column); }
-    | expr TOKEN_OR expr           { $$ = nuevoOrExpresion($1, $3, @2.first_line, @2.first_column); }
-    | primary_expr                 { $$ = $1; } // Una expresión puede ser una expresión primaria
+    | expr TOKEN_LSHIFT expr       { $$ = nuevoLeftShiftExpresion($1, $3, @2.first_line, @2.first_column); }
+    | expr TOKEN_RSHIFT expr       { $$ = nuevoRightShiftExpresion($1, $3, @2.first_line, @2.first_column); }
+    | expr TOKEN_URSHIFT expr      { $$ = nuevoUnsignedRightShiftExpresion($1, $3, @2.first_line, @2.first_column); }
+    | expr '+' expr                { $$ = nuevoSumaExpresion($1, $3, @2.first_line, @2.first_column); }
+    | expr '-' expr                { $$ = nuevoRestaExpresion($1, $3, @2.first_line, @2.first_column); }
+    | expr '*' expr                { $$ = nuevoMultiplicacionExpresion($1, $3, @2.first_line, @2.first_column); }
+    | expr '/' expr                { $$ = nuevoDivisionExpresion($1, $3, @2.first_line, @2.first_column); }
+    | expr '%' expr                { $$ = nuevoModuloExpresion($1, $3, @2.first_line, @2.first_column); }
+    | primary_expr                 { $$ = $1; }
+    | inicializador_arreglo        { $$ = $1; }
     ;
 
 // NUEVA REGLA PARA EXPRESIONES PRIMARIAS (las de más alta precedencia)
@@ -208,7 +263,8 @@ primary_expr:
     '(' expr ')'                 { $$ = $2; }
     | '(' tipoPrimitivo ')' expr   { $$ = nuevoCasteoExpresion($2, $4, @1.first_line, @1.first_column); }
     | TOKEN_IDENTIFIER             { $$ = nuevoIdentificadorExpresion($1, @1.first_line, @1.first_column); }
-    // <<<< REGLA AÑADIDA: Para reconocer una llamada a función como una expresión >>>>
+    | primary_expr '[' expr ']'      { $$ = nuevoAccesoArreglo($1, $3, @2.first_line, @2.first_column); }
+    | expresion_creacion_arreglo     { $$ = $1; }
     | TOKEN_IDENTIFIER '(' lista_argumentos_opt ')' { $$ = nuevoLlamadaFuncion($1, $3, @1.first_line, @1.first_column); }
     | TOKEN_PRINT '(' lista_Expr ')' { $$ = nuevoPrintExpresion($3, @1.first_line, @1.first_column); }
 
@@ -216,7 +272,6 @@ primary_expr:
     | '-' primary_expr %prec NEG   { $$ = nuevoUnarioExpresion($2, @1.first_line, @1.first_column); }
     | '!' primary_expr             { $$ = nuevoNotExpresion($2, @1.first_line, @1.first_column); }
     | '~' primary_expr             { $$ = nuevoBitwiseNotExpresion($2, @1.first_line, @1.first_column); }
-    // La llamada a método ahora solo puede ocurrir sobre una expresión primaria
     | primary_expr TOKEN_DOT TOKEN_IDENTIFIER '(' expr ')' {
         if (strcmp($3, "equals") == 0) {
             $$ = nuevoEqualsExpresion($1, $5, @2.first_line, @2.first_column);
@@ -320,6 +375,25 @@ case_stmt: TOKEN_CASE expr ':' lSentencia_opt {
 lSentencia_opt: lSentencia { $$ = $1; } // Si hay sentencias, las usamos.
               | %empty   { $$ = NULL; } // Si no hay nada, devolvemos NULL.
             ;
+
+
+
+expresion_creacion_arreglo
+    : TOKEN_NEW tipoPrimitivo lista_dims_expr {
+        AbstractExpresion* tipo_nodo = nuevoTipoNode($2); // Nodo temporal para pasar el tipo
+        $$ = nuevoCreacionArreglo(tipo_nodo, $3, @1.first_line, @1.first_column);
+    }
+    ;
+
+lista_dims_expr
+    : lista_dims_expr '[' expr ']' { agregarHijo($1, $3); $$ = $1; }
+    | '[' expr ']' {
+        AbstractExpresion* lista = nuevoListaExpresiones();
+        agregarHijo(lista, $2);
+        $$ = lista;
+    }
+    ;
+
 
 
 %%

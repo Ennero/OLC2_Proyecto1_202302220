@@ -1,5 +1,5 @@
-#ifndef DECLARACION_H // <-- CORREGIDO
-#define DECLARACION_H // <-- CORREGIDO
+#ifndef DECLARACION_H
+#define DECLARACION_H
 
 #include "ast/AbstractExpresion.h"
 #include "context/context.h"
@@ -9,10 +9,13 @@ typedef struct {
     AbstractExpresion base;
     char* nombre;
     TipoDato tipo;
+    int dimensiones;
     int line;
     int column;
 } DeclaracionVariable;
 
 Result interpretDeclaracionVariable(AbstractExpresion*, Context*);
+AbstractExpresion* nuevoDeclaracionVariable(TipoDato tipo, int dimensiones, char* nombre, AbstractExpresion* expresion, int line, int column);
 
-#endif // DECLARACION_H <-- CORREGIDO
+
+#endif // DECLARACION_H

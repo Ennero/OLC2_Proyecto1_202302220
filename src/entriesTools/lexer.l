@@ -66,6 +66,7 @@ newline           \n
 "default"               return TOKEN_DEFAULT;
 "continue"              return TOKEN_CONTINUE;
 "return"                return TOKEN_RETURN;
+"new"                   return TOKEN_NEW;
 "System.out.println"    return TOKEN_PRINT;
 "main"                  return TOKEN_MAIN;
 "public"                return TOKEN_PUBLIC;   

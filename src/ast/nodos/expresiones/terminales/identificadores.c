@@ -38,6 +38,14 @@ Result interpretIdentificadorExpresion(AbstractExpresion *self, Context *context
         return nuevoValorResultadoVacio();
     }
 
+    // Si la variable es un arreglo, devolvemos la REFERENCIA al arreglo.
+    // Importante: No copiamos estructuras de arreglo; otros nodos (como acceso [])
+    // deben tratarlo como referencia sin liberarlo.
+    if (simbolo->tipo == ARRAY)
+    {
+        return nuevoValorResultado(simbolo->info.var.valor, ARRAY);
+    }
+
     // <<<< CORREGIDO: Accedemos al valor a través de la union >>>>
     if (simbolo->info.var.valor == NULL)
     {

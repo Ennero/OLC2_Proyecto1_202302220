@@ -8,6 +8,7 @@ typedef enum {
     FLOAT,
     DOUBLE,
     STRING,
+    ARRAY,
     BREAK_T,    
     CONTINUE_T, 
     RETURN_T,

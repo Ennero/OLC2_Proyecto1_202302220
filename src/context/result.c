@@ -4,13 +4,17 @@
 
 // Etiquetas para los tipos de datos
 char* labelTipoDato[TIPO_COUNT] = {
-    [BOOLEAN] = "boolean",
-    [CHAR] = "char",
-    [INT] = "int",
-    [FLOAT] = "float",      
-    [DOUBLE] = "double",
-    [STRING] = "string",
-    [NULO] = "null"
+    [BOOLEAN]   = "boolean",
+    [CHAR]      = "char",
+    [INT]       = "int",
+    [FLOAT]     = "float",      
+    [DOUBLE]    = "double",
+    [STRING]    = "string",
+    [ARRAY]     = "array",
+    [BREAK_T]   = "<break>",
+    [CONTINUE_T]= "<continue>",
+    [RETURN_T]  = "<return>",
+    [NULO]      = "null"
 };
 
 // Crear un nuevo valor de resultado

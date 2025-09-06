@@ -13,7 +13,7 @@
 AbstractExpresion* nuevoInstruccionesExpresion(void);
 AbstractExpresion* nuevoPrintExpresion(AbstractExpresion* listaExpresiones, int line, int column);
 AbstractExpresion* nuevoListaExpresiones(void);
-AbstractExpresion* nuevoDeclaracionVariables(TipoDato tipo, char* nombre, AbstractExpresion* expresion, int line, int column);
+AbstractExpresion* nuevoDeclaracionVariable(TipoDato tipo, int dimensiones, char* nombre, AbstractExpresion* expresion, int line, int column);
 
 
 AbstractExpresion* nuevoReasignacionExpresion(char* nombre, AbstractExpresion* expresion, int line, int column);
@@ -87,10 +87,19 @@ AbstractExpresion* nuevoReturnExpresion(AbstractExpresion* expresion, int line, 
 /* --- Constructores de Nodos de Estructura --- */
 AbstractExpresion* nuevoMainFunctionNode(AbstractExpresion* bloque, int line, int column);
 
+
+/* Arreglos */
+AbstractExpresion* nuevoTipoNode(TipoDato tipo);
+AbstractExpresion* nuevoCreacionArreglo(AbstractExpresion* tipo, AbstractExpresion* dimensiones, int line, int column);
+AbstractExpresion* nuevoAccesoArreglo(AbstractExpresion* base, AbstractExpresion* indice, int line, int column);
+AbstractExpresion* nuevoInicializadorArreglo(AbstractExpresion* lista_exp, int line, int column);
+
+
 /* Funciones*/
 AbstractExpresion* nuevoDeclaracionFuncion(TipoDato tipo_retorno, char* nombre, AbstractExpresion* params, AbstractExpresion* bloque, int line, int column);
 AbstractExpresion* nuevoParametro(TipoDato tipo, char* nombre);
 AbstractExpresion* nuevoLlamadaFuncion(char* nombre, AbstractExpresion* args, int line, int column);
+AbstractExpresion* nuevoAsignacionArreglo(AbstractExpresion* id, AbstractExpresion* indice, AbstractExpresion* expr, int line, int column);
 
 #endif
 
