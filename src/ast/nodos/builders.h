@@ -109,5 +109,12 @@ AbstractExpresion* nuevoStringValueofExpresion(AbstractExpresion* expr, int line
 AbstractExpresion* nuevoStringJoinExpresion(AbstractExpresion* delimitador, AbstractExpresion* arreglo, int line, int column);
 // --- FIN ---
 
+
+AbstractExpresion* nuevoArraysIndexofExpresion(AbstractExpresion* arr_expr, AbstractExpresion* val_expr, int line, int column);
+
+/* Propiedades */
+AbstractExpresion* nuevoArrayLengthExpresion(AbstractExpresion* arr_expr, int line, int column);
+
+
 #endif
 

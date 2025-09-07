@@ -1,14 +1,17 @@
 %{
+// Definiciones y declaraciones en C
 #include "parser.tab.h"
 #include "error_reporter.h"
 #include <stdio.h>
 #include <string.h>
 
+// Prototipos de funciones
 extern void yyerror(const char *s);
 int yycolumn = 1;
 char* yylasttext = NULL;
 int yywrap(void);
 
+// Definición de la estructura para la ubicación
 #define YY_USER_ACTION                                   \
     yylloc.first_line   = yylineno;                      \
     yylloc.first_column = yycolumn;                      \
@@ -74,6 +77,8 @@ newline           \n
 "Double.parseDouble"    return TOKEN_PARSE_DOUBLE;
 "String.valueOf"        return TOKEN_STRING_VALUEOF;
 "String.join"           return TOKEN_STRING_JOIN;
+"Arrays.indexOf"        return TOKEN_ARRAYS_INDEXOF;
+"length"                return TOKEN_LENGTH;
 "public"                return TOKEN_PUBLIC;   
 "static"                return TOKEN_STATIC;   
 "void"                  return TOKEN_VOID;     
