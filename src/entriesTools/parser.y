@@ -73,7 +73,7 @@
 %token TOKEN_NEW
 %token TOKEN_PARSE_INT TOKEN_PARSE_FLOAT
 %token TOKEN_PARSE_DOUBLE TOKEN_STRING_VALUEOF TOKEN_STRING_JOIN
-%token TOKEN_ARRAYS_INDEXOF TOKEN_LENGTH
+%token TOKEN_ARRAYS_INDEXOF TOKEN_LENGTH TOKEN_ARRAY_ADD
 
 
 
@@ -293,6 +293,8 @@ primary_expr:
 
     | TOKEN_ARRAYS_INDEXOF '(' expr ',' expr ')' { $$ = nuevoArraysIndexofExpresion($3, $5, @1.first_line, @1.first_column); }
     | primary_expr TOKEN_DOT TOKEN_LENGTH        { $$ = nuevoArrayLengthExpresion($1, @2.first_line, @2.first_column); }
+
+    | TOKEN_ARRAY_ADD '(' expr ',' expr ')'      { $$ = nuevoArrayAddExpresion($3, $5, @1.first_line, @1.first_column); }
 
     | TOKEN_IDENTIFIER '(' lista_argumentos_opt ')' { $$ = nuevoLlamadaFuncion($1, $3, @1.first_line, @1.first_column); }
     | TOKEN_PRINT '(' lista_Expr ')'{ $$ = nuevoPrintExpresion($3, @1.first_line, @1.first_column); }

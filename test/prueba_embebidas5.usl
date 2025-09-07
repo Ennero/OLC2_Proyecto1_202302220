@@ -1,0 +1,37 @@
+public static void main(String[] args) {
+
+    // ======================================================
+    // PRUEBA 1: AÑADIR UN ELEMENTO A UN ARREGLO DE ENTEROS
+    // ======================================================
+    System.out.println("--- Prueba con Arreglo de Enteros ---");
+
+    int[] numerosOriginal = {10, 20, 30};
+    System.out.println("Longitud original: " + numerosOriginal.length); // Expected: 3
+
+    // Llamamos a Array.add y guardamos el resultado en una NUEVA variable
+    int[] numerosNuevo = Array.add(numerosOriginal, 40);
+
+    // Verificamos que el arreglo original NO ha cambiado
+    System.out.println("Longitud original DESPUES de add: " + numerosOriginal.length); // Expected: 3
+    System.out.println("Ultimo elemento original: " + numerosOriginal[2]); // Expected: 30
+
+    // Verificamos el nuevo arreglo
+    System.out.println("Longitud del nuevo arreglo: " + numerosNuevo.length); // Expected: 4
+    System.out.println("Ultimo elemento del nuevo arreglo: " + numerosNuevo[3]); // Expected: 40
+
+
+    // ======================================================
+    // PRUEBA 2: AÑADIR A UN ARREGLO DE STRINGS Y ENCADENAR LLAMADAS
+    // ======================================================
+    System.out.println("\n--- Prueba con Arreglo de Strings ---");
+
+    String[] frutas = {"Manzana", "Naranja"};
+    System.out.println("Frutas original: " + String.join(", ", frutas)); // Expected: Manzana, Naranja
+
+    // Encadenamos las llamadas a Array.add
+    String[] masFrutas = Array.add(frutas, "Banana");
+    String[] todasLasFrutas = Array.add(masFrutas, "Mango");
+
+    System.out.println("Arreglo final: " + String.join(", ", todasLasFrutas)); // Expected: Manzana, Naranja, Banana, Mango
+    System.out.println("Longitud final: " + todasLasFrutas.length); // Expected: 4
+}

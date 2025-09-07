@@ -111,6 +111,7 @@ AbstractExpresion* nuevoStringJoinExpresion(AbstractExpresion* delimitador, Abst
 
 
 AbstractExpresion* nuevoArraysIndexofExpresion(AbstractExpresion* arr_expr, AbstractExpresion* val_expr, int line, int column);
+AbstractExpresion* nuevoArrayAddExpresion(AbstractExpresion* arr_expr, AbstractExpresion* elem_expr, int line, int column);
 
 /* Propiedades */
 AbstractExpresion* nuevoArrayLengthExpresion(AbstractExpresion* arr_expr, int line, int column);
