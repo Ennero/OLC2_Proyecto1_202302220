@@ -71,6 +71,8 @@
 %token TOKEN_DOT
 %token TOKEN_DEFAULT
 %token TOKEN_NEW
+%token TOKEN_PARSE_INT TOKEN_PARSE_FLOAT
+
 
 
 
@@ -272,13 +274,19 @@ expr: asignacion_expr              { $$ = $1; }
 
 // NUEVA REGLA PARA EXPRESIONES PRIMARIAS (las de más alta precedencia)
 primary_expr:
-    '(' expr ')'                 { $$ = $2; }
-    | '(' tipoPrimitivo ')' expr   { $$ = nuevoCasteoExpresion($2, $4, @1.first_line, @1.first_column); }
-    | TOKEN_IDENTIFIER             { $$ = nuevoIdentificadorExpresion($1, @1.first_line, @1.first_column); }
-    | primary_expr '[' expr ']'      { $$ = nuevoAccesoArreglo($1, $3, @2.first_line, @2.first_column); }
-    | expresion_creacion_arreglo     { $$ = $1; }
+    '(' expr ')'                    { $$ = $2; }
+    | '(' tipoPrimitivo ')' expr    { $$ = nuevoCasteoExpresion($2, $4, @1.first_line, @1.first_column); }
+    | TOKEN_IDENTIFIER              { $$ = nuevoIdentificadorExpresion($1, @1.first_line, @1.first_column); }
+    | primary_expr '[' expr ']'     { $$ = nuevoAccesoArreglo($1, $3, @2.first_line, @2.first_column); }
+    | expresion_creacion_arreglo    { $$ = $1; }
+
+
+    | TOKEN_PARSE_INT '(' expr ')'  { $$ = nuevoParseIntExpresion($3, @1.first_line, @1.first_column); }
+    | TOKEN_PARSE_FLOAT '(' expr ')'{ $$ = nuevoParseFloatExpresion($3, @1.first_line, @1.first_column); }
+
+
     | TOKEN_IDENTIFIER '(' lista_argumentos_opt ')' { $$ = nuevoLlamadaFuncion($1, $3, @1.first_line, @1.first_column); }
-    | TOKEN_PRINT '(' lista_Expr ')' { $$ = nuevoPrintExpresion($3, @1.first_line, @1.first_column); }
+    | TOKEN_PRINT '(' lista_Expr ')'{ $$ = nuevoPrintExpresion($3, @1.first_line, @1.first_column); }
 
     | primitivo                    { $$ = $1; }
     | '-' primary_expr %prec NEG   { $$ = nuevoUnarioExpresion($2, @1.first_line, @1.first_column); }
@@ -387,7 +395,6 @@ case_stmt: TOKEN_CASE expr ':' lSentencia_opt {
 lSentencia_opt: lSentencia { $$ = $1; } // Si hay sentencias, las usamos.
               | %empty   { $$ = NULL; } // Si no hay nada, devolvemos NULL.
             ;
-
 
 
 expresion_creacion_arreglo

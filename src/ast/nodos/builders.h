@@ -101,5 +101,10 @@ AbstractExpresion* nuevoParametro(TipoDato tipo, char* nombre);
 AbstractExpresion* nuevoLlamadaFuncion(char* nombre, AbstractExpresion* args, int line, int column);
 AbstractExpresion* nuevoAsignacionArreglo(AbstractExpresion* id, AbstractExpresion* indice, AbstractExpresion* expr, int line, int column);
 
+/* Funciones Embebidas */
+AbstractExpresion* nuevoParseIntExpresion(AbstractExpresion* expr, int line, int column);
+AbstractExpresion* nuevoParseFloatExpresion(AbstractExpresion* expr, int line, int column);
+// --- FIN ---
+
 #endif
 
