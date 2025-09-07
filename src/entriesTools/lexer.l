@@ -71,6 +71,9 @@ newline           \n
 "main"                  return TOKEN_MAIN;
 "Integer.parseInt"      return TOKEN_PARSE_INT;
 "Float.parseFloat"      return TOKEN_PARSE_FLOAT;
+"Double.parseDouble"    return TOKEN_PARSE_DOUBLE;
+"String.valueOf"        return TOKEN_STRING_VALUEOF;
+"String.join"           return TOKEN_STRING_JOIN;
 "public"                return TOKEN_PUBLIC;   
 "static"                return TOKEN_STATIC;   
 "void"                  return TOKEN_VOID;     

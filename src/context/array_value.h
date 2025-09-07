@@ -18,6 +18,9 @@ typedef struct ArrayValue {
 
 // Prototipos de funciones auxiliares
 ArrayValue* nuevoArray(TipoDato tipo_base, int dimensiones, int tamano);
+
+ArrayValue* copiarArray(ArrayValue* original);
+
 void liberarArray(ArrayValue* arr);
 Result getDefaultValueForType(TipoDato tipo);
 

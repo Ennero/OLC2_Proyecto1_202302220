@@ -104,6 +104,9 @@ AbstractExpresion* nuevoAsignacionArreglo(AbstractExpresion* id, AbstractExpresi
 /* Funciones Embebidas */
 AbstractExpresion* nuevoParseIntExpresion(AbstractExpresion* expr, int line, int column);
 AbstractExpresion* nuevoParseFloatExpresion(AbstractExpresion* expr, int line, int column);
+AbstractExpresion* nuevoParseDoubleExpresion(AbstractExpresion* expr, int line, int column);
+AbstractExpresion* nuevoStringValueofExpresion(AbstractExpresion* expr, int line, int column);
+AbstractExpresion* nuevoStringJoinExpresion(AbstractExpresion* delimitador, AbstractExpresion* arreglo, int line, int column);
 // --- FIN ---
 
 #endif

@@ -72,6 +72,7 @@
 %token TOKEN_DEFAULT
 %token TOKEN_NEW
 %token TOKEN_PARSE_INT TOKEN_PARSE_FLOAT
+%token TOKEN_PARSE_DOUBLE TOKEN_STRING_VALUEOF TOKEN_STRING_JOIN
 
 
 
@@ -283,6 +284,11 @@ primary_expr:
 
     | TOKEN_PARSE_INT '(' expr ')'  { $$ = nuevoParseIntExpresion($3, @1.first_line, @1.first_column); }
     | TOKEN_PARSE_FLOAT '(' expr ')'{ $$ = nuevoParseFloatExpresion($3, @1.first_line, @1.first_column); }
+
+    | TOKEN_PARSE_DOUBLE '(' expr ')'  { $$ = nuevoParseDoubleExpresion($3, @1.first_line, @1.first_column); }
+    | TOKEN_STRING_VALUEOF '(' expr ')' { $$ = nuevoStringValueofExpresion($3, @1.first_line, @1.first_column); }
+    | TOKEN_STRING_JOIN '(' expr ',' lista_Expr ')' { $$ = nuevoStringJoinExpresion($3, $5, @1.first_line, @1.first_column); }
+
 
 
     | TOKEN_IDENTIFIER '(' lista_argumentos_opt ')' { $$ = nuevoLlamadaFuncion($1, $3, @1.first_line, @1.first_column); }

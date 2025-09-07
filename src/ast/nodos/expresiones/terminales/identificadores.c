@@ -2,6 +2,7 @@
 #include "ast/nodos/builders.h"
 #include "context/context.h"
 #include "error_reporter.h"
+#include "context/array_value.h"
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h> // <<<< AÑADIDO: Soluciona el warning de 'snprintf'
@@ -43,7 +44,7 @@ Result interpretIdentificadorExpresion(AbstractExpresion *self, Context *context
     // deben tratarlo como referencia sin liberarlo.
     if (simbolo->tipo == ARRAY)
     {
-        return nuevoValorResultado(simbolo->info.var.valor, ARRAY);
+        return nuevoValorResultado(copiarArray((ArrayValue*)simbolo->info.var.valor), ARRAY);
     }
 
     // <<<< CORREGIDO: Accedemos al valor a través de la union >>>>

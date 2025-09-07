@@ -54,3 +54,48 @@ void liberarArray(ArrayValue* arr) {
     free(arr->valores);
     free(arr);
 }
+
+// Función auxiliar para obtener el tamaño de un tipo (evita duplicar código)
+static size_t get_type_size_internal(TipoDato tipo) {
+    switch (tipo) {
+        case INT: case BOOLEAN: case CHAR: return sizeof(int);
+        case FLOAT: return sizeof(float);
+        case DOUBLE: return sizeof(double);
+        default: return 0;
+    }
+}
+
+// Realiza una copia profunda (recursiva) de un ArrayValue
+ArrayValue* copiarArray(ArrayValue* original) {
+    if (!original) return NULL;
+
+    // 1. Crear la estructura del nuevo arreglo
+    ArrayValue* copia = nuevoArray(original->tipo_elemento_base, original->dimensiones_total, original->tamano);
+    
+    // 2. Copiar cada elemento
+    for (int i = 0; i < original->tamano; i++) {
+        Result elem_original = original->valores[i];
+        
+        // Liberamos el valor por defecto que 'nuevoArray' puso en la copia
+        free(copia->valores[i].valor);
+        
+        copia->valores[i].tipo = elem_original.tipo;
+
+        if (elem_original.tipo == ARRAY) {
+            // Si el elemento es otro arreglo, lo copiamos recursivamente
+            copia->valores[i].valor = copiarArray((ArrayValue*)elem_original.valor);
+        } else {
+            // Si es un valor primitivo, hacemos una copia profunda de su valor
+            if (elem_original.valor == NULL) {
+                copia->valores[i].valor = NULL;
+            } else if (elem_original.tipo == STRING) {
+                copia->valores[i].valor = strdup((char*)elem_original.valor);
+            } else {
+                size_t size = get_type_size_internal(elem_original.tipo);
+                copia->valores[i].valor = malloc(size);
+                memcpy(copia->valores[i].valor, elem_original.valor, size);
+            }
+        }
+    }
+    return copia;
+}
