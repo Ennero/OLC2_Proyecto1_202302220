@@ -42,6 +42,21 @@
         n->inicializador = init;
         return (AbstractExpresion*)n;
     }
+
+        // --- AÑADE ESTA STRUCT Y ESTA FUNCIÓN ---
+    typedef struct {
+        AbstractExpresion base;
+        TipoDato tipo;
+        int dimensiones;
+    } TipoCompletoNode;
+
+    AbstractExpresion* nuevoTipoCompletoNode(TipoDato tipo, int dims) {
+        TipoCompletoNode* n = malloc(sizeof(TipoCompletoNode));
+        buildAbstractExpresion(&n->base, NULL, "TempType", 0, 0);
+        n->tipo = tipo;
+        n->dimensiones = dims;
+        return (AbstractExpresion*)n;
+    }
 }
 
 /* Habilitar el seguimiento de ubicaciones (línea/columna) */
@@ -84,6 +99,7 @@
 %type <nodo> inicializador_arreglo expresion_creacion_arreglo lista_dims_expr asignacion_expr
 %type <nodo> declarador_completo // NUEVA REGLA
 %type <nodo> lista_item
+%type <nodo> for_head for_init_opt
 %type <num> corchetes_lista
 %type <tipoDato> tipoPrimitivo
 
@@ -223,7 +239,7 @@ declarador_completo
     | corchetes_lista TOKEN_IDENTIFIER corchetes_lista {
         $$ = nuevoDeclaradorNode($2, $1 + $3, NULL);
     }
-    ;
+    ; // <--- PUNTO Y COMA AÑADIDO AQUÍ
 
 corchetes_lista
     : corchetes_lista '[' ']' { $$ = $1 + 1; }
@@ -363,16 +379,101 @@ while_stmt: TOKEN_WHILE '(' expr ')' bloque {
 
 
 for_init: declaracion_var { $$ = $1; }
-        | expr            { $$ = $1; };
+    | expr            { $$ = $1; };
 
 // Regla para la condición y actualización (puede ser expresión o nada)
 for_expr_opt: expr            { $$ = $1; }
             | %empty          { $$ = NULL; };
 
 // Regla principal para la sentencia for
-for_stmt: TOKEN_FOR '(' for_init ';' for_expr_opt ';' for_expr_opt ')' bloque {
-                $$ = nuevoForExpresion($3, $5, $7, $9, @1.first_line, @1.first_column);
-            };
+for_stmt:
+    TOKEN_FOR '(' for_head ')' bloque {
+        // La regla 'for_head' nos devuelve un nodo de bucle ya construido,
+        // pero sin su bloque. Aquí se lo añadimos.
+        AbstractExpresion* for_node = $3;
+        if (for_node != NULL) {
+            agregarHijo(for_node, $5);
+        }
+        $$ = for_node;
+    }
+    ;
+
+// Nueva regla auxiliar para el contenido de los paréntesis del for
+// Encabezado del for con factorización por tipo para resolver for-each vs for clásico
+for_head:
+    // for-each: for (Tipo dims id dims : expr)
+    tipoPrimitivo corchetes_lista TOKEN_IDENTIFIER corchetes_lista ':' expr {
+        int total_dims = $2 + $4;
+        $$ = nuevoForEachExpresion(
+            $1,            // tipo base
+            total_dims,    // dimensiones totales
+            $3,            // nombre de variable
+            $6,            // expresión iterable
+            NULL,          // bloque se añade después
+            @1.first_line,
+            @1.first_column
+        );
+    }
+    // for clásico con declaración en init y asignación por inicializador de arreglo
+    | tipoPrimitivo corchetes_lista TOKEN_IDENTIFIER corchetes_lista '=' inicializador_arreglo ';' for_expr_opt ';' for_expr_opt {
+        int total_dims = $2 + $4;
+        AbstractExpresion* decl = nuevoDeclaracionVariable($1, total_dims, $3, $6, @3.first_line, @3.first_column);
+        $$ = nuevoForExpresion(
+            decl,
+            $8,
+            $10,
+            NULL,
+            @1.first_line,
+            @1.first_column
+        );
+    }
+    // for clásico con declaración en init y asignación por expresión
+    | tipoPrimitivo corchetes_lista TOKEN_IDENTIFIER corchetes_lista '=' expr ';' for_expr_opt ';' for_expr_opt {
+        int total_dims = $2 + $4;
+        AbstractExpresion* decl = nuevoDeclaracionVariable($1, total_dims, $3, $6, @3.first_line, @3.first_column);
+        $$ = nuevoForExpresion(
+            decl,
+            $8,
+            $10,
+            NULL,
+            @1.first_line,
+            @1.first_column
+        );
+    }
+    // for clásico con declaración sin inicialización (permitido, como en Java)
+    | tipoPrimitivo corchetes_lista TOKEN_IDENTIFIER corchetes_lista ';' for_expr_opt ';' for_expr_opt {
+        int total_dims = $2 + $4;
+        AbstractExpresion* decl = nuevoDeclaracionVariable($1, total_dims, $3, NULL, @3.first_line, @3.first_column);
+        $$ = nuevoForExpresion(
+            decl,
+            $6,
+            $8,
+            NULL,
+            @1.first_line,
+            @1.first_column
+        );
+    }
+    // for clásico sin declaración de tipo (init es expr o vacío)
+    | for_init_opt ';' for_expr_opt ';' for_expr_opt {
+        $$ = nuevoForExpresion(
+            $1,   // init (expr o NULL)
+            $3,   // cond
+            $5,   // update
+            NULL, // bloque se añadirá después
+            @1.first_line, 
+            @1.first_column
+        );
+    }
+    ;
+
+
+// Tu regla `for_init` y `for_expr_opt` se quedan igual, solo añadimos esta
+// para manejar el caso de `for(;;)`
+for_init_opt:
+    for_init { $$ = $1; }
+    | %empty { $$ = NULL; }
+    ;
+
 
 switch_stmt: TOKEN_SWITCH '(' expr ')' '{' case_list '}' {
                 $$ = nuevoSwitchExpresion($3, $6, @1.first_line, @1.first_column);

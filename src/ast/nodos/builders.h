@@ -71,6 +71,7 @@ AbstractExpresion* nuevoWhileExpresion(AbstractExpresion* condicion, AbstractExp
 
 // Ciclo for
 AbstractExpresion* nuevoForExpresion(AbstractExpresion* init, AbstractExpresion* cond, AbstractExpresion* update, AbstractExpresion* bloque, int line, int column);
+AbstractExpresion* nuevoForEachExpresion(TipoDato tipo, int dimensiones, char* nombre, AbstractExpresion* array_expr, AbstractExpresion* bloque, int line, int column);
 
 
 
