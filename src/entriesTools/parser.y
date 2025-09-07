@@ -78,6 +78,7 @@
 %type <nodo> lSentencia sentencia expr lista_Expr bloque declaracion_var primitivo primary_expr if_stmt switch_stmt case_list case_stmt lSentencia_opt programa lista_declaraciones declaracion declaracion_funcion lista_parametros_opt lista_parametros parametro lista_argumentos_opt declaracion_main while_stmt for_stmt for_init for_expr_opt
 %type <nodo> inicializador_arreglo expresion_creacion_arreglo lista_dims_expr asignacion_expr
 %type <nodo> declarador_completo // NUEVA REGLA
+%type <nodo> lista_item
 %type <num> corchetes_lista
 %type <tipoDato> tipoPrimitivo
 
@@ -95,6 +96,10 @@
 %left '+' '-'
 %left '*' '/' '%'
 %right '!' '~' NEG 
+
+/* Resolver el clásico dangling-else */
+%nonassoc TOKEN_ELSE
+%nonassoc IFX
 
 %%
 %start programa;
@@ -175,12 +180,18 @@ sentencia: bloque           { $$ = $1; }
     }
     ;
 
-lista_Expr: lista_Expr ',' expr { agregarHijo($1, $3); $$ = $1; }
-    | expr { 
+lista_Expr: lista_Expr ',' lista_item { agregarHijo($1, $3); $$ = $1; }
+    | lista_item { 
         AbstractExpresion* b = nuevoListaExpresiones();
         agregarHijo(b, $1);
         $$ = b;
     }
+    ;
+
+// Items permitidos en listas: expresiones o inicializadores anidados
+lista_item
+    : expr { $$ = $1; }
+    | inicializador_arreglo { $$ = $1; }
     ;
 
 bloque: '{' lSentencia '}' { $$ = nuevoBloqueExpresion($2, @1.first_line, @1.first_column); }
@@ -198,7 +209,10 @@ declaracion_var
 
 
 declarador_completo
-    : corchetes_lista TOKEN_IDENTIFIER corchetes_lista '=' expr {
+    : corchetes_lista TOKEN_IDENTIFIER corchetes_lista '=' inicializador_arreglo {
+        $$ = nuevoDeclaradorNode($2, $1 + $3, $5);
+    }
+    | corchetes_lista TOKEN_IDENTIFIER corchetes_lista '=' expr {
         $$ = nuevoDeclaradorNode($2, $1 + $3, $5);
     }
     | corchetes_lista TOKEN_IDENTIFIER corchetes_lista {
@@ -234,7 +248,6 @@ asignacion_expr: TOKEN_IDENTIFIER '=' expr { $$ = nuevoReasignacionExpresion($1,
 
 
 expr: asignacion_expr              { $$ = $1; }
-    | expr '?' expr ':' expr       { /* Lógica para operador ternario (opcional) */ }
     | expr TOKEN_OR expr           { $$ = nuevoOrExpresion($1, $3, @2.first_line, @2.first_column); }
     | expr TOKEN_AND expr          { $$ = nuevoAndExpresion($1, $3, @2.first_line, @2.first_column); }
     | expr '|' expr                { $$ = nuevoBitwiseOrExpresion($1, $3, @2.first_line, @2.first_column); }
@@ -255,7 +268,6 @@ expr: asignacion_expr              { $$ = $1; }
     | expr '/' expr                { $$ = nuevoDivisionExpresion($1, $3, @2.first_line, @2.first_column); }
     | expr '%' expr                { $$ = nuevoModuloExpresion($1, $3, @2.first_line, @2.first_column); }
     | primary_expr                 { $$ = $1; }
-    | inicializador_arreglo        { $$ = $1; }
     ;
 
 // NUEVA REGLA PARA EXPRESIONES PRIMARIAS (las de más alta precedencia)
@@ -309,7 +321,7 @@ tipoPrimitivo: TOKEN_DINT     { $$ = INT; }
 
 
 
-if_stmt: TOKEN_IF '(' expr ')' bloque { 
+if_stmt: TOKEN_IF '(' expr ')' bloque %prec IFX { 
             // Regla para un if simple: if (cond) { ... }
             $$ = nuevoIfExpresion($3, $5, NULL, @1.first_line, @1.first_column);
         }

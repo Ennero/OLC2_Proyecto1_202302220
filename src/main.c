@@ -405,8 +405,9 @@ static void on_generate_ast_clicked(GtkToolButton* button, gpointer user_data) {
         gtk_widget_set_vexpand(scrolled_window, TRUE);
         gtk_box_pack_start(GTK_BOX(vbox), scrolled_window, TRUE, TRUE, 0);
         
-        GtkWidget* image = gtk_image_new_from_file("ast-graph/ast.svg");
-        gtk_scrolled_window_add_with_viewport(GTK_SCROLLED_WINDOW(scrolled_window), image);
+    GtkWidget* image = gtk_image_new_from_file("ast-graph/ast.svg");
+    // gtk_scrolled_window_add_with_viewport es deprecado en GTK3; usar gtk_container_add
+    gtk_container_add(GTK_CONTAINER(scrolled_window), image);
         
         GtkWidget* button_box = gtk_button_box_new(GTK_ORIENTATION_HORIZONTAL);
         gtk_button_box_set_layout(GTK_BUTTON_BOX(button_box), GTK_BUTTONBOX_END);

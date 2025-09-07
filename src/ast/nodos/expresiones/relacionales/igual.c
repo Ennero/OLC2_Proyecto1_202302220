@@ -14,7 +14,7 @@ static Result compararNumeros(ExpresionLenguaje* self, int negate) {
     return nuevoValorResultado(res, BOOLEAN);
 }
 
-static Result compararStrings(ExpresionLenguaje* self, int negate) {
+__attribute__((unused)) static Result compararStrings(ExpresionLenguaje* self, int negate) {
     int* res = malloc(sizeof(int));
     *res = (strcmp((char*)self->izquierda.valor, (char*)self->derecha.valor) == 0);
     if (negate) *res = !(*res);
@@ -30,11 +30,11 @@ static Result compararBooleanos(ExpresionLenguaje* self, int negate) {
 
 // Funciones wrapper para no duplicar código
 static Result compararIgual(ExpresionLenguaje* self) { return compararNumeros(self, 0); }
-static Result compararStringsIgual(ExpresionLenguaje* self) { return compararStrings(self, 0); }
+/* Nota: comparadores de STRING están deshabilitados en las tablas; si se habilitan, reactivar wrappers. */
 static Result compararBooleanosIgual(ExpresionLenguaje* self) { return compararBooleanos(self, 0); }
 
 static Result compararDiferente(ExpresionLenguaje* self) { return compararNumeros(self, 1); }
-static Result compararStringsDiferente(ExpresionLenguaje* self) { return compararStrings(self, 1); }
+/* Nota: comparadores de STRING están deshabilitados en las tablas; si se habilitan, reactivar wrappers. */
 static Result compararBooleanosDiferente(ExpresionLenguaje* self) { return compararBooleanos(self, 1); }
 
 

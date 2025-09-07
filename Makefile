@@ -53,7 +53,7 @@ all: $(EXECUTABLE)
 
 # Crear el directorio de compilación
 $(BUILD):
-	$(MKDIR) $(BUILD) # <-- ESTA LÍNEA DEBE EMPEZAR CON UN TAB
+	$(MKDIR) $(BUILD)
 
 # Generar parser
 $(BISON_C) $(BISON_H): $(ENTRIES)/parser.y | $(BUILD)

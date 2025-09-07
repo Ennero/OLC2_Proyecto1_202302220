@@ -9,7 +9,8 @@
 // Importamos las tablas de operaciones y tokens
 #include "ast/nodos/expresiones/aritmeticas/aritmeticas.h"
 #include "ast/nodos/expresiones/bit/bitwise.h"
-#include "parser.tab.h"  Necesario para los valores de los tokens
+// Necesario para los valores de los tokens
+#include "parser.tab.h"
 
 // Función para obtener la tabla de operaciones correcta
 static Operacion (*get_op_table(int op_type))[TIPO_COUNT][TIPO_COUNT]
@@ -85,7 +86,10 @@ Result interpretAsignacionCompuesta(AbstractExpresion *self, Context *context)
     }
 
     Operacion(*tabla)[TIPO_COUNT][TIPO_COUNT] = get_op_table(nodo->op_type);
-    if (!tabla) { /* ... manejo de error ... */ return nuevoValorResultadoVacio(); }
+    if (!tabla) {
+        add_error_to_report("Semantico", get_op_string(nodo->op_type), "Operador compuesto no soportado.", self->line, self->column, context->nombre_completo);
+        return nuevoValorResultadoVacio();
+    }
 
     Operacion op = (*tabla)[expr_simulada.izquierda.tipo][expr_simulada.derecha.tipo];
     if (!op) {

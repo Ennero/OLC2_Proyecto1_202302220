@@ -4,8 +4,8 @@
 #include "error_reporter.h"
 #include <stdlib.h>
 
-static ArrayValue* crearDimension(AbstractExpresion* self, Context* context, TipoDato tipo_base, AbstractExpresion* lista_dims, int dim_actual) {
-    if (dim_actual >= lista_dims->numHijos) {
+static ArrayValue* crearDimension(AbstractExpresion* self, Context* context, TipoDato tipo_base, AbstractExpresion* lista_dims, size_t dim_actual) {
+    if (dim_actual >= (size_t)lista_dims->numHijos) {
         return NULL; // Caso base
     }
 
@@ -19,13 +19,13 @@ static ArrayValue* crearDimension(AbstractExpresion* self, Context* context, Tip
     int tamano = *(int*)res_tam.valor;
     free(res_tam.valor);
 
-    ArrayValue* arr = nuevoArray(tipo_base, lista_dims->numHijos - dim_actual, tamano);
+    ArrayValue* arr = nuevoArray(tipo_base, (int)(lista_dims->numHijos - (int)dim_actual), tamano);
 
     // Si no es la última dimensión, crear los sub-arreglos
-    if ((lista_dims->numHijos - dim_actual) > 1) {
+    if (((int)lista_dims->numHijos - (int)dim_actual) > 1) {
         for (int i = 0; i < tamano; i++) {
             arr->valores[i].tipo = ARRAY;
-            arr->valores[i].valor = crearDimension(self, context, tipo_base, lista_dims, dim_actual + 1);
+            arr->valores[i].valor = crearDimension(self, context, tipo_base, lista_dims, dim_actual + 1U);
         }
     }
     return arr;
@@ -36,7 +36,7 @@ Result interpretCreacionArreglo(AbstractExpresion* self, Context* context) {
     TipoDato tipo_base = tipo_res.tipo;
     AbstractExpresion* lista_dims = self->hijos[1];
 
-    ArrayValue* array_final = crearDimension(self, context, tipo_base, lista_dims, 0);
+    ArrayValue* array_final = crearDimension(self, context, tipo_base, lista_dims, 0U);
     return nuevoValorResultado(array_final, ARRAY);
 }
 
