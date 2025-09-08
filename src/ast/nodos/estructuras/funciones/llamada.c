@@ -95,8 +95,6 @@ Result interpretLlamadaFuncion(AbstractExpresion* self, Context* context) {
 
     Result res_cuerpo = func_symbol->info.func.cuerpo->interpret(func_symbol->info.func.cuerpo, func_context);
 
-    liberarContext(func_context);
-
     if (res_cuerpo.tipo == RETURN_T) {
         Result* res_final_ptr = (Result*)res_cuerpo.valor;
         Result res_final = *res_final_ptr;
@@ -110,16 +108,65 @@ Result interpretLlamadaFuncion(AbstractExpresion* self, Context* context) {
                 add_error_to_report("Semantico", nombre_func, desc, self->line, self->column, context->nombre_completo);
                 // descartamos el valor retornado para mantener consistencia
                 free(res_final.valor);
+                liberarContext(func_context);
                 return nuevoValorResultadoVacio();
             }
+            liberarContext(func_context);
             return nuevoValorResultadoVacio();
         } else {
-            if (res_final.tipo != func_symbol->info.func.tipo_retorno) {
-                char desc[160];
-                sprintf(desc, "Tipo de retorno incompatible en '%s': se esperaba %s y se recibió %s.", nombre_func, labelTipoDato[func_symbol->info.func.tipo_retorno], labelTipoDato[res_final.tipo]);
-                add_error_to_report("Semantico", nombre_func, desc, self->line, self->column, context->nombre_completo);
+            // Verificación de tipo de retorno considerando arreglos
+            int ret_dims = func_symbol->info.func.retorno_dimensiones;
+            if (ret_dims == 0) {
+                // Esperamos escalar del tipo exacto
+                if (res_final.tipo != func_symbol->info.func.tipo_retorno) {
+                    char desc[200];
+                    sprintf(desc, "Tipo de retorno incompatible en '%s': se esperaba %s y se recibió %s.", nombre_func, labelTipoDato[func_symbol->info.func.tipo_retorno], labelTipoDato[res_final.tipo]);
+                    add_error_to_report("Semantico", nombre_func, desc, self->line, self->column, context->nombre_completo);
+                }
+                liberarContext(func_context);
+                return res_final;
+            } else {
+                // Esperamos un arreglo de base 'tipo_retorno' y dimensiones 'ret_dims'
+                if (res_final.tipo != ARRAY) {
+                    char desc[200];
+                    sprintf(desc, "Tipo de retorno incompatible en '%s': se esperaba arreglo de %s y se recibió %s.", nombre_func, labelTipoDato[func_symbol->info.func.tipo_retorno], labelTipoDato[res_final.tipo]);
+                    add_error_to_report("Semantico", nombre_func, desc, self->line, self->column, context->nombre_completo);
+                    // liberar si corresponde
+                    if (res_final.tipo != ARRAY && res_final.valor) free(res_final.valor);
+                    liberarContext(func_context);
+                    return nuevoValorResultadoVacio();
+                }
+                ArrayValue* av = (ArrayValue*)res_final.valor;
+                if (!av || av->tipo_elemento_base != func_symbol->info.func.tipo_retorno || av->dimensiones_total != ret_dims) {
+                    char desc[240];
+                    sprintf(desc, "Tipo de retorno incompatible en '%s': esperado %s[%dD], recibido %s[%dD].",
+                            nombre_func,
+                            labelTipoDato[func_symbol->info.func.tipo_retorno], ret_dims,
+                            av ? labelTipoDato[av->tipo_elemento_base] : "?",
+                            av ? av->dimensiones_total : -1);
+                    add_error_to_report("Semantico", nombre_func, desc, self->line, self->column, context->nombre_completo);
+                }
+                // Si el arreglo retornado pertenece a una variable del contexto de la función,
+                // debemos devolver una copia profunda para evitar use-after-free.
+                int owned_by_context = 0;
+                if (res_final.valor != NULL) {
+                    for (Symbol* s = func_context->ultimoSymbol; s != NULL; s = s->anterior) {
+                        if (s->clase == VARIABLE && s->tipo == ARRAY && s->info.var.valor == res_final.valor) {
+                            owned_by_context = 1; break;
+                        }
+                    }
+                }
+                if (owned_by_context) {
+                    ArrayValue* copia = copiarArray(av);
+                    // El original será liberado al liberar el contexto de la función
+                    liberarContext(func_context);
+                    return nuevoValorResultado(copia, ARRAY);
+                } else {
+                    // Transferimos ownership del temporal al llamador
+                    liberarContext(func_context);
+                    return res_final;
+                }
             }
-            return res_final;
         }
     }
     
@@ -127,11 +174,13 @@ Result interpretLlamadaFuncion(AbstractExpresion* self, Context* context) {
     // - si es void (NULO), está bien y devuelve vacío;
     // - si no es void, reportamos error de falta de retorno.
     if (func_symbol->info.func.tipo_retorno == NULO) {
+        liberarContext(func_context);
         return nuevoValorResultadoVacio();
     } else {
         char desc[160];
         sprintf(desc, "La función '%s' debe retornar un valor de tipo %s.", nombre_func, labelTipoDato[func_symbol->info.func.tipo_retorno]);
         add_error_to_report("Semantico", nombre_func, desc, self->line, self->column, context->nombre_completo);
+        liberarContext(func_context);
         return nuevoValorResultadoVacio();
     }
 }

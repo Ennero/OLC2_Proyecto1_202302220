@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <stdio.h>   // <<<< AÑADIDO: Necesario para sprintf
 #include <string.h>  // <<<< AÑADIDO: Necesario para strlen, strcpy, strcat
+#include "utils/java_num_format.h"
 
 // --- Funciones de Suma Numérica (sin cambios) ---
 Result sumarIntInt(ExpresionLenguaje* self) {
@@ -84,8 +85,8 @@ Result concatenarStringInt(ExpresionLenguaje* self) {
 }
 Result concatenarStringDouble(ExpresionLenguaje* self) {
     char s2_buffer[64];
-    // Usar formato fijo con 6 decimales para doubles
-    sprintf(s2_buffer, "%.6f", *(double*)self->derecha.valor);
+    // Java-like Double.toString
+    java_format_double(*(double*)self->derecha.valor, s2_buffer, sizeof(s2_buffer));
     char* s1 = (char*)self->izquierda.valor;
     char* res = malloc(strlen(s1) + strlen(s2_buffer) + 1);
     strcpy(res, s1); strcat(res, s2_buffer);
@@ -93,8 +94,8 @@ Result concatenarStringDouble(ExpresionLenguaje* self) {
 }
 Result concatenarStringFloat(ExpresionLenguaje* self) {
     char s2_buffer[64];
-    // Usar formato fijo con 6 decimales para floats
-    sprintf(s2_buffer, "%.6f", *(float*)self->derecha.valor);
+    // Java-like Float.toString
+    java_format_float(*(float*)self->derecha.valor, s2_buffer, sizeof(s2_buffer));
     char* s1 = (char*)self->izquierda.valor;
     char* res = malloc(strlen(s1) + strlen(s2_buffer) + 1);
     strcpy(res, s1); strcat(res, s2_buffer);
@@ -137,8 +138,8 @@ Result concatenarIntString(ExpresionLenguaje* self) {
 }
 Result concatenarDoubleString(ExpresionLenguaje* self) {
     char s1_buffer[64];
-    // Usar formato fijo con 6 decimales para doubles
-    sprintf(s1_buffer, "%.6f", *(double*)self->izquierda.valor);
+    // Java-like Double.toString
+    java_format_double(*(double*)self->izquierda.valor, s1_buffer, sizeof(s1_buffer));
     char* s2 = (char*)self->derecha.valor;
     char* res = malloc(strlen(s1_buffer) + strlen(s2) + 1);
     strcpy(res, s1_buffer); strcat(res, s2);
@@ -146,8 +147,8 @@ Result concatenarDoubleString(ExpresionLenguaje* self) {
 }
 Result concatenarFloatString(ExpresionLenguaje* self) {
     char s1_buffer[64];
-    // Usar formato fijo con 6 decimales para floats
-    sprintf(s1_buffer, "%.6f", *(float*)self->izquierda.valor);
+    // Java-like Float.toString
+    java_format_float(*(float*)self->izquierda.valor, s1_buffer, sizeof(s1_buffer));
     char* s2 = (char*)self->derecha.valor;
     char* res = malloc(strlen(s1_buffer) + strlen(s2) + 1);
     strcpy(res, s1_buffer); strcat(res, s2);

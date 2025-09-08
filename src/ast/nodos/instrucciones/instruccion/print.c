@@ -5,6 +5,7 @@
 #include "output_buffer.h"
 #include <stdlib.h>
 #include <stdio.h>
+#include "utils/java_num_format.h"
 
 #include "output_buffer.h"
 #include "error_reporter.h"
@@ -25,10 +26,12 @@ static void result_to_string(Result res, char *buffer, size_t size)
         snprintf(buffer, size, "%d", *(int *)res.valor);
         break;
     case FLOAT:
-        snprintf(buffer, size, "%f", *(float *)res.valor);
+    // Java Float.toString-like formatting
+    java_format_float(*(float *)res.valor, buffer, size);
         break;
     case DOUBLE:
-        snprintf(buffer, size, "%lf", *(double *)res.valor);
+    // Java Double.toString-like formatting
+    java_format_double(*(double *)res.valor, buffer, size);
         break;
     case BOOLEAN:
         snprintf(buffer, size, "%s", *(int *)res.valor ? "true" : "false");

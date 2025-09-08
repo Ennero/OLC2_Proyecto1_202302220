@@ -51,20 +51,46 @@ Result interpretDeclaracionVariable(AbstractExpresion *nodo, Context *context)
             agregarSymbol(context, nuevoVariable(self->nombre, arr_val, ARRAY, self->es_constante), self->line, self->column);
 
         } else {
-            if (tipo_declarado != resultado.tipo) {
-                char desc[256];
-                snprintf(desc, sizeof(desc), "Error de tipos: no se puede asignar un valor de tipo '%s' a la nueva variable '%s' de tipo '%s'.",
-                        labelTipoDato[resultado.tipo], self->nombre, labelTipoDato[tipo_declarado]);
-                add_error_to_report("Semantico", self->nombre, desc, self->line, self->column, context->nombre_completo);
-                return nuevoValorResultadoVacio();
+            // Inicialización por expresión (p. ej., llamada a función)
+            if (self->dimensiones == 0) {
+                // Declaración escalar: tipos deben coincidir exactamente
+                if (resultado.tipo != self->tipo) {
+                    char desc[256];
+                    snprintf(desc, sizeof(desc), "Error de tipos: no se puede asignar un valor de tipo '%s' a la nueva variable '%s' de tipo '%s'.",
+                            labelTipoDato[resultado.tipo], self->nombre, labelTipoDato[self->tipo]);
+                    add_error_to_report("Semantico", self->nombre, desc, self->line, self->column, context->nombre_completo);
+                    return nuevoValorResultadoVacio();
+                }
+                // Guardar el puntero tal cual (el productor del Result asignó memoria)
+                void* valor_a_guardar = resultado.valor;
+                agregarSymbol(context, nuevoVariable(self->nombre, valor_a_guardar, self->tipo, self->es_constante), self->line, self->column);
+            } else {
+                // Declaración de arreglo: resultado debe ser ARRAY y validar base/dimensiones
+                if (resultado.tipo != ARRAY) {
+                    char desc[256];
+                    snprintf(desc, sizeof(desc), "Error de tipos: se esperaba un arreglo de tipo '%s' con %d dimensiones para inicializar '%s', pero se recibió '%s'.",
+                            labelTipoDato[self->tipo], self->dimensiones, self->nombre, labelTipoDato[resultado.tipo]);
+                    add_error_to_report("Semantico", self->nombre, desc, self->line, self->column, context->nombre_completo);
+                    return nuevoValorResultadoVacio();
+                }
+                ArrayValue* av = (ArrayValue*)resultado.valor;
+                if (!av) {
+                    add_error_to_report("Semantico", self->nombre, "Inicialización de arreglo con valor nulo.", self->line, self->column, context->nombre_completo);
+                    return nuevoValorResultadoVacio();
+                }
+                if (av->tipo_elemento_base != self->tipo || av->dimensiones_total != self->dimensiones) {
+                    char desc[256];
+                    snprintf(desc, sizeof(desc), "Error de tipos: se esperaba %s[%dD] y se recibió %s[%dD] para '%s'.",
+                            labelTipoDato[self->tipo], self->dimensiones,
+                            labelTipoDato[av->tipo_elemento_base], av->dimensiones_total,
+                            self->nombre);
+                    add_error_to_report("Semantico", self->nombre, desc, self->line, self->column, context->nombre_completo);
+                    return nuevoValorResultadoVacio();
+                }
+                // Copia profunda del arreglo para almacenar en símbolo
+                void* valor_a_guardar = copiarArray(av);
+                agregarSymbol(context, nuevoVariable(self->nombre, valor_a_guardar, ARRAY, self->es_constante), self->line, self->column);
             }
-            // Propiedad/ownership: si almacenamos un arreglo en una variable, debemos copiarlo profundamente
-            // para evitar aliasing con sub-arreglos u otras referencias (previene double-free en cleanup de contexto).
-            void* valor_a_guardar = resultado.valor;
-            if (tipo_declarado == ARRAY && resultado.valor != NULL) {
-                valor_a_guardar = copiarArray((ArrayValue*)resultado.valor);
-            }
-            agregarSymbol(context, nuevoVariable(self->nombre, valor_a_guardar, tipo_declarado, self->es_constante), self->line, self->column);
         }
     }
     // Caso 2: Sin asignación (ej. int x; o int[] a;)

@@ -25,6 +25,7 @@ typedef struct {
 
 typedef struct {
     TipoDato tipo_retorno;
+    int retorno_dimensiones; // 0 si escalar; >0 si retorna arreglo
     Parametro* parametros;
     size_t num_parametros;
     AbstractExpresion* cuerpo; // Puntero al AST del bloque de la función

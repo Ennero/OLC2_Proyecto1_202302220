@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "utils/java_num_format.h"
 
 Result interpretStringJoin(AbstractExpresion* self, Context* context) {
     Result delimitador_res = self->hijos[0]->interpret(self->hijos[0], context);
@@ -55,10 +56,10 @@ Result interpretStringJoin(AbstractExpresion* self, Context* context) {
         Result elem_res = elementos_a_unir[i];
         if (elem_res.valor == NULL) snprintf(temp_strings[i], 512, "null");
         else {
-             switch (elem_res.tipo) {
+                 switch (elem_res.tipo) {
                 case INT:     snprintf(temp_strings[i], 512, "%d", *(int*)elem_res.valor); break;
-                case FLOAT:   snprintf(temp_strings[i], 512, "%.6f", *(float*)elem_res.valor); break;
-                case DOUBLE:  snprintf(temp_strings[i], 512, "%.6f", *(double*)elem_res.valor); break;
+                     case FLOAT:   java_format_float(*(float*)elem_res.valor, temp_strings[i], 512); break;
+                     case DOUBLE:  java_format_double(*(double*)elem_res.valor, temp_strings[i], 512); break;
                 case BOOLEAN: snprintf(temp_strings[i], 512, "%s", (*(int*)elem_res.valor) ? "true" : "false"); break;
                 case CHAR:    snprintf(temp_strings[i], 512, "%c", *(int*)elem_res.valor); break;
                 case STRING:  snprintf(temp_strings[i], 512, "%s", (char*)elem_res.valor); break;

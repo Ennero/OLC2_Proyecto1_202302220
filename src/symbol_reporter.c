@@ -18,10 +18,10 @@ static void format_value(char* buffer, size_t size, const void* value, TipoDato 
             snprintf(buffer, size, "%d", *(int*)value);
             break;
         case FLOAT:
-            snprintf(buffer, size, "%f", *(float*)value);
+            snprintf(buffer, size, "%.7g", *(float*)value);
             break;
         case DOUBLE:
-            snprintf(buffer, size, "%.15g", *(double*)value);
+            snprintf(buffer, size, "%.17g", *(double*)value);
             break;
         case STRING:
             snprintf(buffer, size, "\"%s\"", (char*)value);

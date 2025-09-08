@@ -20,6 +20,7 @@ Result interpretDeclaracionFuncion(AbstractExpresion* self, Context* context) {
     
     // Llenamos la información específica de la función dentro de la union
     func_symbol->info.func.tipo_retorno = nodo->tipo_retorno;
+    func_symbol->info.func.retorno_dimensiones = nodo->retorno_dimensiones;
     func_symbol->info.func.cuerpo = bloque_cuerpo;
     func_symbol->info.func.num_parametros = params_list->numHijos;
     func_symbol->info.func.parametros = malloc(sizeof(Parametro) * params_list->numHijos);
@@ -41,6 +42,7 @@ AbstractExpresion* nuevoDeclaracionFuncion(TipoDato tipo_retorno, char* nombre, 
     buildAbstractExpresion(&nodo->base, interpretDeclaracionFuncion, "FunctionDeclaration", line, column);
     nodo->nombre = nombre;
     nodo->tipo_retorno = tipo_retorno; // <<<< Usamos el nuevo campo
+    nodo->retorno_dimensiones = 0;
     
     agregarHijo((AbstractExpresion*)nodo, params);
     agregarHijo((AbstractExpresion*)nodo, bloque);

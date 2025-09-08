@@ -71,6 +71,7 @@ newline           \n
 "return"                return TOKEN_RETURN;
 "new"                   return TOKEN_NEW;
 "System.out.println"    return TOKEN_PRINT;
+"print"                 return TOKEN_PRINT;   // Alias para permitir print(...)
 "main"                  return TOKEN_MAIN;
 "Integer.parseInt"      return TOKEN_PARSE_INT;
 "Float.parseFloat"      return TOKEN_PARSE_FLOAT;

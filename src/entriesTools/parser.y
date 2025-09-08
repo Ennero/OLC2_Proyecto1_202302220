@@ -19,6 +19,7 @@
     #include "ast/nodos/instrucciones/instruccion/casteos.h"
     #include "ast/nodos/instrucciones/instruccion/reasignacion.h"
     #include "ast/nodos/instrucciones/instruccion/declaracion.h"
+    #include "ast/nodos/estructuras/funciones/funcion.h"
     #include "ast/nodos/expresiones/terminales/identificadores.h"
     #include <string.h>
 }
@@ -137,9 +138,12 @@ lista_declaraciones: lista_declaraciones declaracion { agregarHijo($1, $2); $$ =
 
 // Desambiguación de declaraciones a nivel superior (función vs variable)
 declaracion:
-            // función con retorno primitivo (posibles corchetes a la izquierda ignorados para el tipo de retorno)
+            // función con retorno (primitivo o arreglo)
             tipoPrimitivo corchetes_lista TOKEN_IDENTIFIER '(' lista_parametros_opt ')' bloque {
-                        $$ = nuevoDeclaracionFuncion($1, $3, $5, $7, @1.first_line, @1.first_column);
+                        AbstractExpresion* decl = nuevoDeclaracionFuncion($1, $3, $5, $7, @1.first_line, @1.first_column);
+                        // Guardar dimensiones de retorno en el nodo de función
+                        ((FuncionDeclarationNode*)decl)->retorno_dimensiones = $2;
+                        $$ = decl;
                         }
             // función void
             | declaracion_funcion    { $$ = $1; }

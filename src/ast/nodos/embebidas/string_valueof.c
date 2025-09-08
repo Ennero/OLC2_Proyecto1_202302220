@@ -5,6 +5,7 @@
 #include <stdio.h>  // Para snprintf
 #include <stdlib.h>
 #include <string.h>
+#include "utils/java_num_format.h"
 
 Result interpretStringValueof(AbstractExpresion* self, Context* context) {
     Result arg = self->hijos[0]->interpret(self->hijos[0], context);
@@ -15,8 +16,8 @@ Result interpretStringValueof(AbstractExpresion* self, Context* context) {
     } else {
         switch (arg.tipo) {
             case INT:     snprintf(buffer, sizeof(buffer), "%d", *(int*)arg.valor); break;
-            case FLOAT:   snprintf(buffer, sizeof(buffer), "%f", *(float*)arg.valor); break;
-            case DOUBLE:  snprintf(buffer, sizeof(buffer), "%lf", *(double*)arg.valor); break;
+            case FLOAT:   java_format_float(*(float*)arg.valor, buffer, sizeof(buffer)); break;
+            case DOUBLE:  java_format_double(*(double*)arg.valor, buffer, sizeof(buffer)); break;
             case BOOLEAN: snprintf(buffer, sizeof(buffer), "%s", (*(int*)arg.valor) ? "true" : "false"); break;
             case CHAR:    snprintf(buffer, sizeof(buffer), "%c", *(int*)arg.valor); break;
             case STRING:  snprintf(buffer, sizeof(buffer), "%s", (char*)arg.valor); break;
