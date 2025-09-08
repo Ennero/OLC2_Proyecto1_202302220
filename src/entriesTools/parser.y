@@ -104,6 +104,7 @@
 %type <nodo> lista_item
 %type <nodo> for_head for_init_opt
 %type <num> corchetes_lista
+%type <num> dims_vacias
 %type <tipoDato> tipoPrimitivo
 
 /* --- Precedencia y Asociatividad de Operadores --- */
@@ -548,7 +549,17 @@ lSentencia_opt: lSentencia { $$ = $1; } // Si hay sentencias, las usamos.
 
 
 expresion_creacion_arreglo
-    : TOKEN_NEW tipoPrimitivo lista_dims_expr {
+    : TOKEN_NEW tipoPrimitivo lista_dims_expr dims_vacias {
+        AbstractExpresion* tipo_nodo = nuevoTipoNode($2); // Nodo temporal para pasar el tipo
+        AbstractExpresion* node = nuevoCreacionArreglo(tipo_nodo, $3, @1.first_line, @1.first_column);
+        // Pasamos la cantidad de corchetes vacíos como tercer hijo (primitivo INT)
+        char* numstr = malloc(16);
+        sprintf(numstr, "%d", $4);
+        AbstractExpresion* cnt = nuevoPrimitivoExpresion(numstr, INT, @1.first_line, @1.first_column);
+        agregarHijo(node, cnt);
+        $$ = node;
+    }
+    | TOKEN_NEW tipoPrimitivo lista_dims_expr {
         AbstractExpresion* tipo_nodo = nuevoTipoNode($2); // Nodo temporal para pasar el tipo
         $$ = nuevoCreacionArreglo(tipo_nodo, $3, @1.first_line, @1.first_column);
     }
@@ -561,6 +572,12 @@ lista_dims_expr
         agregarHijo(lista, $2);
         $$ = lista;
     }
+    ;
+
+// Uno o más pares de [] vacíos al final de new tipo[expr][]... para arreglos irregulares
+dims_vacias
+    : dims_vacias '[' ']' { $$ = $1 + 1; }
+    | '[' ']' { $$ = 1; }
     ;
 
 
