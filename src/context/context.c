@@ -54,10 +54,12 @@ void liberarContext(Context* context) {
         
         if (actual->clase == VARIABLE) {
 
-            if (actual->tipo == ARRAY && actual->info.var.valor != NULL) {
-                liberarArray((ArrayValue*)actual->info.var.valor);
-            } else if (actual->info.var.valor != NULL) {
-                free(actual->info.var.valor);
+            if (!actual->info.var.borrowed) {
+                if (actual->tipo == ARRAY && actual->info.var.valor != NULL) {
+                    liberarArray((ArrayValue*)actual->info.var.valor);
+                } else if (actual->info.var.valor != NULL) {
+                    free(actual->info.var.valor);
+                }
             }
         }
 
@@ -88,6 +90,7 @@ Symbol* nuevoVariable(char* nombre, void* valor, TipoDato tipo, int es_constante
     nuevo->tipo = tipo;
     nuevo->clase = VARIABLE;
     nuevo->info.var.valor = valor;
+    nuevo->info.var.borrowed = 0;
     nuevo->es_constante = es_constante;
     nuevo->line = 0;
     nuevo->column = 0;

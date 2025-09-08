@@ -20,7 +20,8 @@ typedef struct {
 } Parametro;
 
 typedef struct {
-    void* valor; // El valor de la variable
+    void* valor;   // El valor de la variable
+    int borrowed;  // 1 si el valor es prestado (no liberar en este contexto)
 } VariableInfo;
 
 typedef struct {
