@@ -6,53 +6,96 @@
 #include <string.h>
 
 Result interpretAccesoArreglo(AbstractExpresion* self, Context* context) {
-    Result res_arr = self->hijos[0]->interpret(self->hijos[0], context);
-    Result res_idx = self->hijos[1]->interpret(self->hijos[1], context);
+    // Aplana el acceso encadenado para evitar recursión profunda y navega iterativamente.
+    // Estructura: ArrayAccess(ArrayAccess(... base ..., idx[i+1]), idx[i])
 
-    if (res_arr.tipo != ARRAY) {
+    // 1) Recolectar todos los índices y encontrar la expresión base
+    int depth = 0;
+    AbstractExpresion* it = self;
+    while (it && strcmp(it->node_type, "ArrayAccess") == 0) {
+        depth++;
+        it = it->hijos[0];
+    }
+    AbstractExpresion* base_expr = it; // Debe producir un ARRAY (p. ej., Identificador)
+
+    AbstractExpresion** idx_nodes = malloc(sizeof(AbstractExpresion*) * (size_t)depth);
+    if (!idx_nodes) return nuevoValorResultadoVacio();
+    it = self;
+    for (int i = 0; i < depth; ++i) {
+        idx_nodes[i] = it->hijos[1];
+        it = it->hijos[0];
+    }
+
+    // 2) Evaluar la base una sola vez
+    Result base_res = base_expr->interpret(base_expr, context);
+    if (base_res.tipo != ARRAY || base_res.valor == NULL) {
         add_error_to_report("Semantico", "[]", "Se intentó indexar una variable que no es un arreglo.", self->line, self->column, context->nombre_completo);
-        free(res_arr.valor); free(res_idx.valor);
+        free(idx_nodes);
+        if (base_res.valor) free(base_res.valor); // Solo por seguridad si alguien devolvió copia
         return nuevoValorResultadoVacio();
     }
-    if (res_idx.tipo != INT) {
+
+    ArrayValue* current = (ArrayValue*)base_res.valor; // Referencia
+
+    // 3) Aplicar índices desde el más interno al más externo, dejando el último para el retorno
+    for (int i = depth - 1; i >= 1; --i) {
+        Result idx_res = idx_nodes[i]->interpret(idx_nodes[i], context);
+        if (idx_res.tipo != INT) {
+            add_error_to_report("Semantico", "[]", "El índice de un arreglo debe ser un entero.", self->line, self->column, context->nombre_completo);
+            free(idx_res.valor);
+            free(idx_nodes);
+            return nuevoValorResultadoVacio();
+        }
+        int index = *(int*)idx_res.valor;
+        free(idx_res.valor);
+        if (!current || index < 0 || index >= current->tamano) {
+            add_error_to_report("Semantico", "[]", "Índice fuera de los límites del arreglo.", self->line, self->column, context->nombre_completo);
+            free(idx_nodes);
+            return nuevoValorResultadoVacio();
+        }
+        Result elem = current->valores[index];
+        if (elem.tipo != ARRAY || elem.valor == NULL) {
+            add_error_to_report("Semantico", "[]", "Se esperaba un sub-arreglo al navegar dimensiones.", self->line, self->column, context->nombre_completo);
+            free(idx_nodes);
+            return nuevoValorResultadoVacio();
+        }
+        current = (ArrayValue*)elem.valor; // Avanzar a la siguiente dimensión
+    }
+
+    // 4) Último índice: retornar el elemento (copia para primitivo, referencia para sub-arreglo)
+    Result idx_last = idx_nodes[0]->interpret(idx_nodes[0], context);
+    if (idx_last.tipo != INT) {
         add_error_to_report("Semantico", "[]", "El índice de un arreglo debe ser un entero.", self->line, self->column, context->nombre_completo);
-        free(res_arr.valor); free(res_idx.valor);
+        free(idx_last.valor);
+        free(idx_nodes);
         return nuevoValorResultadoVacio();
     }
+    int index_last = *(int*)idx_last.valor;
+    free(idx_last.valor);
+    free(idx_nodes);
 
-    ArrayValue* arr = (ArrayValue*)res_arr.valor;
-    int index = *(int*)res_idx.valor;
-    free(res_idx.valor);
-
-    if (index < 0 || index >= arr->tamano) {
+    if (!current || index_last < 0 || index_last >= current->tamano) {
         add_error_to_report("Semantico", "[]", "Índice fuera de los límites del arreglo.", self->line, self->column, context->nombre_completo);
         return nuevoValorResultadoVacio();
     }
-    
-    Result elemento = arr->valores[index];
-    Result copia_elemento;
-    copia_elemento.tipo = elemento.tipo;
 
+    Result elemento = current->valores[index_last];
+    Result out;
+    out.tipo = elemento.tipo;
     if (elemento.tipo == ARRAY) {
-        // Si el elemento es un sub-arreglo, NO lo copiamos.
-        // Pasamos la referencia para que pueda ser accedido o modificado.
-        copia_elemento.valor = elemento.valor;
+        out.valor = elemento.valor; // Referencia
     } else {
-        // Si es un valor primitivo, SIEMPRE creamos una copia.
         if (elemento.tipo == STRING) {
-            copia_elemento.valor = elemento.valor ? strdup((char*)elemento.valor) : NULL;
+            out.valor = elemento.valor ? strdup((char*)elemento.valor) : NULL;
         } else {
-            size_t size = sizeof(int); // Default para INT, CHAR, BOOLEAN
+            size_t size = sizeof(int);
             if (elemento.tipo == FLOAT) size = sizeof(float);
             if (elemento.tipo == DOUBLE) size = sizeof(double);
-            copia_elemento.valor = malloc(size);
-            if(elemento.valor) memcpy(copia_elemento.valor, elemento.valor, size);
+            out.valor = malloc(size);
+            if (out.valor && elemento.valor) memcpy(out.valor, elemento.valor, size);
         }
     }
-
-    // No debemos liberar 'arr' aquí: es una referencia al arreglo almacenado en la tabla de símbolos
-    // u obtenido por acceso a subarreglo. Solo devolvemos el elemento/sección correspondiente.
-    return copia_elemento;
+    return out;
 }
 
 
