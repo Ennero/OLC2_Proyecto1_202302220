@@ -56,6 +56,7 @@ AbstractExpresion* nuevoBitwiseAndExpresion(AbstractExpresion* izquierda, Abstra
 AbstractExpresion* nuevoBitwiseOrExpresion(AbstractExpresion* izquierda, AbstractExpresion* derecha, int line, int column);
 AbstractExpresion* nuevoBitwiseXorExpresion(AbstractExpresion* izquierda, AbstractExpresion* derecha, int line, int column);
 AbstractExpresion* nuevoBitwiseNotExpresion(AbstractExpresion* expresion, int line, int column);
+AbstractExpresion* nuevoPostfixExpresion(AbstractExpresion* lvalue_expr, int op_token, int line, int column);
 
 // Constructores de Nodos de Desplazamiento de Bits
 AbstractExpresion* nuevoLeftShiftExpresion(AbstractExpresion* izquierda, AbstractExpresion* derecha, int line, int column);

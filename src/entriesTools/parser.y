@@ -109,6 +109,7 @@
 
 /* --- Precedencia y Asociatividad de Operadores --- */
 %left TOKEN_DOT
+%left TOKEN_INCREMENTO TOKEN_DECREMENTO
 %right '=' TOKEN_PLUS_ASSIGN TOKEN_MINUS_ASSIGN TOKEN_MULT_ASSIGN TOKEN_DIV_ASSIGN TOKEN_MOD_ASSIGN TOKEN_AND_ASSIGN TOKEN_OR_ASSIGN TOKEN_XOR_ASSIGN TOKEN_LSHIFT_ASSIGN TOKEN_RSHIFT_ASSIGN TOKEN_URSHIFT_ASSIGN
 %left TOKEN_OR
 %left TOKEN_AND
@@ -363,6 +364,8 @@ primary_expr:
     | '-' primary_expr %prec NEG   { $$ = nuevoUnarioExpresion($2, @1.first_line, @1.first_column); }
     | '!' primary_expr             { $$ = nuevoNotExpresion($2, @1.first_line, @1.first_column); }
     | '~' primary_expr             { $$ = nuevoBitwiseNotExpresion($2, @1.first_line, @1.first_column); }
+    | primary_expr TOKEN_INCREMENTO { $$ = nuevoPostfixExpresion($1, TOKEN_INCREMENTO, @2.first_line, @2.first_column); }
+    | primary_expr TOKEN_DECREMENTO { $$ = nuevoPostfixExpresion($1, TOKEN_DECREMENTO, @2.first_line, @2.first_column); }
     | primary_expr TOKEN_DOT TOKEN_IDENTIFIER '(' expr ')' {
         if (strcmp($3, "equals") == 0) {
             $$ = nuevoEqualsExpresion($1, $5, @2.first_line, @2.first_column);
