@@ -569,9 +569,85 @@ static void on_app_open(GtkApplication* app, GFile** files, gint n_files, char* 
 // --- Función Principal ---
 int main(int argc, char** argv) {
     init_output_buffer();
-    init_symbol_report();
+    init_symbol_report(); 
     init_error_report();
 
+    // Modo CLI opcional: "--run <archivo.usl>" para ejecutar sin GUI
+    if (argc >= 3 && strcmp(argv[1], "--run") == 0) {
+        const char* path = argv[2];
+        FILE* f = fopen(path, "r");
+        if (!f) {
+            fprintf(stderr, "No se pudo abrir el archivo: %s\n", path);
+            free_output_buffer();
+            free_symbol_report();
+            free_error_report();
+            yylex_destroy();
+            return 2;
+        }
+        fseek(f, 0, SEEK_END);
+        long len = ftell(f);
+        fseek(f, 0, SEEK_SET);
+        char* content = (char*)malloc((size_t)len + 1);
+        if (!content) {
+            fclose(f);
+            fprintf(stderr, "Memoria insuficiente.\n");
+            free_output_buffer();
+            free_symbol_report();
+            free_error_report();
+            yylex_destroy();
+            return 3;
+        }
+        fread(content, 1, (size_t)len, f);
+        content[len] = '\0';
+        fclose(f);
+
+        // Reset de estado
+        ast_root = NULL;
+        yylineno = 1;
+        yycolumn = 1;
+        clear_output_buffer();
+        clear_symbol_report();
+        clear_error_report();
+
+        // Parsear y ejecutar
+        YY_BUFFER_STATE buffer_state = yy_scan_string(content);
+        yyparse();
+        if (get_error_list() == NULL && ast_root) {
+            Context* contextPadre = nuevoContext(NULL, "global");
+            ast_root->interpret(ast_root, contextPadre);
+        }
+        yy_delete_buffer(buffer_state);
+        free(content);
+
+        // Mensaje final coherente con la GUI
+        if (get_error_list() != NULL) {
+            clear_output_buffer();
+            append_to_output("======== Se encontraron errores durante el análisis y/o ejecución ========\nVer la tabla de errores para más detalles.\n");
+        } else {
+            append_to_output("\n\n======== Código analizado y ejecutado correctamente ========\n");
+        }
+
+        // Imprimir salida y, si se desea, errores/símbolos en modo texto sencillo
+        fputs(get_output_buffer(), stdout);
+
+        // Opcional: volcar errores a stderr
+        const ErrorInfo* errors = get_error_list();
+        while (errors) {
+            fprintf(stderr, "[%u] %s: %s (lexema='%s') en %s:%u,%u\n",
+                    errors->id, errors->type, errors->description, errors->lexeme,
+                    errors->context_name, errors->line, errors->column);
+            errors = errors->next;
+        }
+
+        free_output_buffer();
+        free_symbol_report();
+        free_error_report();
+        yylex_destroy();
+        if (current_file_path) { g_free(current_file_path); }
+        return (get_error_list() == NULL) ? 0 : 1;
+    }
+
+    // Modo GUI por defecto
     GtkApplication *app;
     int status;
     AppWidgets* widgets = g_malloc(sizeof(AppWidgets));

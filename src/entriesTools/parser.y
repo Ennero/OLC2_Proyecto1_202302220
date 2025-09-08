@@ -100,6 +100,7 @@
 %type <nodo> lSentencia sentencia expr lista_Expr bloque declaracion_var primitivo primary_expr if_stmt switch_stmt case_list case_stmt lSentencia_opt programa lista_declaraciones declaracion declaracion_funcion lista_parametros_opt lista_parametros parametro lista_argumentos_opt declaracion_main while_stmt for_stmt for_init for_expr_opt
 %type <nodo> inicializador_arreglo expresion_creacion_arreglo lista_dims_expr asignacion_expr
 %type <nodo> declarador_completo // NUEVA REGLA
+%type <nodo> var_tail
 %type <nodo> lista_item
 %type <nodo> for_head for_init_opt
 %type <num> corchetes_lista
@@ -132,15 +133,35 @@ programa: lista_declaraciones { ast_root = $1; $$ = $1; };
 lista_declaraciones: lista_declaraciones declaracion { agregarHijo($1, $2); $$ = $1; }
                     | declaracion { AbstractExpresion* lista = nuevoInstruccionesExpresion(); agregarHijo(lista, $1); $$ = lista; };
 
-declaracion: declaracion_funcion { $$ = $1; }
-            | declaracion_main    { $$ = $1; }
-            | declaracion_var ';' { $$ = $1; }
+// Desambiguación de declaraciones a nivel superior (función vs variable)
+declaracion:
+            // función con retorno primitivo (posibles corchetes a la izquierda ignorados para el tipo de retorno)
+            tipoPrimitivo corchetes_lista TOKEN_IDENTIFIER '(' lista_parametros_opt ')' bloque {
+                        $$ = nuevoDeclaracionFuncion($1, $3, $5, $7, @1.first_line, @1.first_column);
+                        }
+            // función void
+            | declaracion_funcion    { $$ = $1; }
+            // main
+            | declaracion_main       { $$ = $1; }
+            // variable global
+            | tipoPrimitivo corchetes_lista TOKEN_IDENTIFIER var_tail ';' {
+                        DeclaradorNode* tail = (DeclaradorNode*)$4;
+                        int total_dims = $2 + tail->dimensiones;
+                        $$ = nuevoDeclaracionVariable($1, total_dims, $3, tail->inicializador, @1.first_line, @1.first_column);
+                        free(tail);
+                        }
+            // variable global final (constante)
+            | TOKEN_FINAL tipoPrimitivo corchetes_lista TOKEN_IDENTIFIER var_tail ';' {
+                        DeclaradorNode* tail = (DeclaradorNode*)$5;
+                        int total_dims = $3 + tail->dimensiones;
+                        AbstractExpresion* decl = nuevoDeclaracionVariable($2, total_dims, $4, tail->inicializador, @1.first_line, @1.first_column);
+                        ((DeclaracionVariable*)decl)->es_constante = 1;
+                        $$ = decl;
+                        free(tail);
+                        }
             ;
 
-declaracion_funcion: tipoPrimitivo TOKEN_IDENTIFIER '(' lista_parametros_opt ')' bloque {
-                        $$ = nuevoDeclaracionFuncion($1, $2, $4, $6, @1.first_line, @1.first_column);
-                        }
-                    | TOKEN_VOID TOKEN_IDENTIFIER '(' lista_parametros_opt ')' bloque {
+declaracion_funcion: TOKEN_VOID TOKEN_IDENTIFIER '(' lista_parametros_opt ')' bloque {
                         // Usamos NULO para representar 'void' como tipo de retorno
                         $$ = nuevoDeclaracionFuncion(NULO, $2, $4, $6, @1.first_line, @1.first_column);
                         }
@@ -259,6 +280,13 @@ corchetes_lista
 inicializador_arreglo
     : '{' lista_Expr '}' { $$ = nuevoInicializadorArreglo($2, @1.first_line, @1.first_column); }
     | '{' '}' { $$ = nuevoInicializadorArreglo(NULL, @1.first_line, @1.first_column); }
+    ;
+
+// Cola de declarador para nivel superior (dimensiones derechas y opcional inicializador)
+var_tail
+    : corchetes_lista '=' inicializador_arreglo { $$ = nuevoDeclaradorNode(NULL, $1, $3); }
+    | corchetes_lista '=' expr { $$ = nuevoDeclaradorNode(NULL, $1, $3); }
+    | corchetes_lista { $$ = nuevoDeclaradorNode(NULL, $1, NULL); }
     ;
 
 

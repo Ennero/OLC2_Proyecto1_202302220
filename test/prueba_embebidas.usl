@@ -29,7 +29,7 @@ public static void main(String[] args) {
     System.out.println(flotante1); // Esperado: 123.456
 
     // Uso en una expresión
-    float resultadoFloat = 0.5 + Float.parseFloat("99.5");
+    float resultadoFloat = 0.5f + Float.parseFloat("99.5");
     System.out.println(resultadoFloat); // Esperado: 100.0
 
 
