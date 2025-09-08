@@ -1,0 +1,138 @@
+// ====================================================================
+// --- SECCIÓN DE FUNCIONES AUXILIARES Y DE PRUEBA ---
+// Declaradas antes de 'main' para asegurar la visibilidad en el intérprete.
+// ====================================================================
+
+// --- Funciones para la Prueba 1: Procesamiento del Cubo de Datos ---
+
+// Función que utiliza Switch, While, Break y Continue de forma compleja.
+String obtenerTipoCelda(int tipoId, int flags) {
+    String tipoBase = "Desconocido";
+    boolean esImportante = (flags & 4) > 0; // Bit 3 (valor 4) indica importancia
+
+    int i = 0;
+    while (i < 1) { // Bucle para forzar el uso de break
+        switch (tipoId) {
+            case 0: tipoBase = "Vacio"; break;
+            case 1: tipoBase = "Recurso"; break;
+            case 2:
+                if (!esImportante) {
+                    i = i + 1;
+                    continue; // No procesar enemigos no importantes, prueba de 'continue'
+                }
+                tipoBase = "Enemigo";
+                break;
+            default: tipoBase = "Obstaculo"; break;
+        }
+        i = i + 1;
+    }
+    
+    if (esImportante && (tipoBase.equals("Enemigo") == false)) {
+        return tipoBase + "-Importante";
+    }
+    return tipoBase;
+}
+
+// Función recursiva para "explorar" y contar celdas a partir de un punto.
+int exploracionRecursiva(int[][][] mapa, int x, int y, int z, int[][][] visitado) {
+    // Condiciones de parada de la recursión (límites del mapa o ya visitado)
+    if (x < 0 || x >= mapa.length || y < 0 || y >= mapa[0].length || z < 0 || z >= mapa[0][0].length || visitado[x][y][z] == 1) {
+        return 0;
+    }
+
+    visitado[x][y][z] = 1; // Marcar como visitado
+    int conteo = 1; // Contar la celda actual
+
+    // Llamadas recursivas a las celdas adyacentes
+    conteo = conteo + exploracionRecursiva(mapa, x + 1, y, z, visitado);
+    conteo = conteo + exploracionRecursiva(mapa, x - 1, y, z, visitado);
+    conteo = conteo + exploracionRecursiva(mapa, x, y + 1, z, visitado);
+    // ... (se podrían añadir más llamadas para y, z)
+    
+    return conteo;
+}
+
+void imprimirSeparador(){
+    System.out.println("==============================================");
+}
+
+// ====================================================================
+// --- FUNCIÓN PRINCIPAL (PUNTO DE ENTRADA) ---
+// ====================================================================
+
+public static void main(String[] args) {
+    System.out.println("====== INICIO: Prueba de Verificación Extrema ======");
+    imprimirSeparador();
+
+    // --- 1. Inicialización de Datos Complejos ---
+    System.out.println("--- 1. Inicializando estructuras de datos complejas ---");
+    final int DIM_X = 2;
+    final int DIM_Y = 2;
+    final int DIM_Z = 3;
+
+    // Cubo de datos: [x][y][z][0] = tipo de celda, [x][y][z][1] = flags
+    int[][][][] cuboDeDatos = new int[DIM_X][DIM_Y][DIM_Z][2];
+
+    // Llenado del cubo con un algoritmo usando for clásico anidado
+    for (int x = 0; x < DIM_X; x = x + 1) {
+        for (int y = 0; y < DIM_Y; y = y + 1) {
+            for (int z = 0; z < DIM_Z; z = z + 1) {
+                cuboDeDatos[x][y][z][0] = (x + y + z) % 4; // Tipo de 0 a 3
+                cuboDeDatos[x][y][z][1] = (x * 4) | (y * 2) | z; // Flags bitwise
+            }
+        }
+    }
+    System.out.println("Cubo de datos 4D inicializado.");
+    imprimirSeparador();
+
+    // --- 2. Procesamiento y Análisis ---
+    System.out.println("--- 2. Procesando el cubo con logica anidada ---");
+    String[] reporteAnalisis = {};
+
+    for (int[][][] plano : cuboDeDatos) {
+        for (int[][] fila : plano) {
+            String lineaReporte = "Fila: ";
+            for (int[] celda : fila) {
+                int tipo = celda[0];
+                int flags = celda[1];
+                String tipoStr = obtenerTipoCelda(tipo, flags);
+                lineaReporte = lineaReporte + tipoStr + " | ";
+            }
+            reporteAnalisis = Array.add(reporteAnalisis, lineaReporte);
+        }
+    }
+
+    for (String linea : reporteAnalisis) {
+        System.out.println(linea);
+    }
+    imprimirSeparador();
+
+    // --- 3. Prueba de Recursividad Profunda ---
+    System.out.println("--- 3. Probando exploracion recursiva ---");
+    // Crear un mapa de visitados para la recursión
+    int[][][] mapa = new int[DIM_X][DIM_Y][DIM_Z];
+    int[][][] visitados = new int[DIM_X][DIM_Y][DIM_Z];
+    int celdasExploradas = exploracionRecursiva(mapa, 0, 0, 0, visitados);
+    System.out.println("Celdas exploradas desde (0,0,0): " + celdasExploradas);
+    imprimirSeparador();
+
+    // --- 4. Reporte Final y Funciones Embebidas ---
+    System.out.println("--- 4. Generando reporte final ---");
+    String[] resumen = {"Total Celdas=" + celdasExploradas};
+    String infoExtra = "Analisis completado";
+    int codigo = Integer.parseInt("200");
+    
+    if (codigo == 200) {
+        infoExtra = infoExtra + " - OK";
+    }
+    
+    resumen = Array.add(resumen, infoExtra);
+    System.out.println(String.join("; ", resumen));
+
+    // Casteo
+    double total = (double)celdasExploradas;
+    System.out.println("Total (double): " + total);
+
+    System.out.println("\n====== FIN: Verificacion Extrema Completada ======");
+}
+
