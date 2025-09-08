@@ -57,7 +57,14 @@ Result interpretReasignacion(AbstractExpresion* self, Context* context) {
             free(simbolo->info.var.valor);
         }
     }
-    simbolo->info.var.valor = nuevo_valor.valor;
+    // Ownership rule: store deep copy for arrays, direct value for primitives/strings
+    if (simbolo->tipo == ARRAY && nuevo_valor.valor != NULL) {
+        simbolo->info.var.valor = copiarArray((ArrayValue*)nuevo_valor.valor);
+        // Liberar el resultado temporal evaluado (referencia no propietaria)
+        // No liberar recursivamente aquí; solo el contenedor si fue una copia temporal creada por algún nodo.
+    } else {
+        simbolo->info.var.valor = nuevo_valor.valor;
+    }
     
     return nuevoValorResultadoVacio();
 }

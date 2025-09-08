@@ -339,7 +339,8 @@ expr: asignacion_expr              { $$ = $1; }
 // NUEVA REGLA PARA EXPRESIONES PRIMARIAS (las de más alta precedencia)
 primary_expr:
     '(' expr ')'                    { $$ = $2; }
-    | '(' tipoPrimitivo ')' expr    { $$ = nuevoCasteoExpresion($2, $4, @1.first_line, @1.first_column); }
+    // Asegurar precedencia de casteo: aplica solo al siguiente primary_expr
+    | '(' tipoPrimitivo ')' primary_expr    { $$ = nuevoCasteoExpresion($2, $4, @1.first_line, @1.first_column); }
     | TOKEN_IDENTIFIER              { $$ = nuevoIdentificadorExpresion($1, @1.first_line, @1.first_column); }
     | primary_expr '[' expr ']'     { $$ = nuevoAccesoArreglo($1, $3, @2.first_line, @2.first_column); }
     | expresion_creacion_arreglo    { $$ = $1; }

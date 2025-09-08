@@ -57,8 +57,8 @@ Result interpretStringJoin(AbstractExpresion* self, Context* context) {
         else {
              switch (elem_res.tipo) {
                 case INT:     snprintf(temp_strings[i], 512, "%d", *(int*)elem_res.valor); break;
-                case FLOAT:   snprintf(temp_strings[i], 512, "%f", *(float*)elem_res.valor); break;
-                case DOUBLE:  snprintf(temp_strings[i], 512, "%lf", *(double*)elem_res.valor); break;
+                case FLOAT:   snprintf(temp_strings[i], 512, "%.6f", *(float*)elem_res.valor); break;
+                case DOUBLE:  snprintf(temp_strings[i], 512, "%.6f", *(double*)elem_res.valor); break;
                 case BOOLEAN: snprintf(temp_strings[i], 512, "%s", (*(int*)elem_res.valor) ? "true" : "false"); break;
                 case CHAR:    snprintf(temp_strings[i], 512, "%c", *(int*)elem_res.valor); break;
                 case STRING:  snprintf(temp_strings[i], 512, "%s", (char*)elem_res.valor); break;

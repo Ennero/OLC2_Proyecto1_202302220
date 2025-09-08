@@ -58,7 +58,13 @@ Result interpretDeclaracionVariable(AbstractExpresion *nodo, Context *context)
                 add_error_to_report("Semantico", self->nombre, desc, self->line, self->column, context->nombre_completo);
                 return nuevoValorResultadoVacio();
             }
-            agregarSymbol(context, nuevoVariable(self->nombre, resultado.valor, tipo_declarado, self->es_constante), self->line, self->column);
+            // Propiedad/ownership: si almacenamos un arreglo en una variable, debemos copiarlo profundamente
+            // para evitar aliasing con sub-arreglos u otras referencias (previene double-free en cleanup de contexto).
+            void* valor_a_guardar = resultado.valor;
+            if (tipo_declarado == ARRAY && resultado.valor != NULL) {
+                valor_a_guardar = copiarArray((ArrayValue*)resultado.valor);
+            }
+            agregarSymbol(context, nuevoVariable(self->nombre, valor_a_guardar, tipo_declarado, self->es_constante), self->line, self->column);
         }
     }
     // Caso 2: Sin asignación (ej. int x; o int[] a;)

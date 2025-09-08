@@ -84,7 +84,8 @@ Result concatenarStringInt(ExpresionLenguaje* self) {
 }
 Result concatenarStringDouble(ExpresionLenguaje* self) {
     char s2_buffer[64];
-    sprintf(s2_buffer, "%g", *(double*)self->derecha.valor);
+    // Usar formato fijo con 6 decimales para doubles
+    sprintf(s2_buffer, "%.6f", *(double*)self->derecha.valor);
     char* s1 = (char*)self->izquierda.valor;
     char* res = malloc(strlen(s1) + strlen(s2_buffer) + 1);
     strcpy(res, s1); strcat(res, s2_buffer);
@@ -92,7 +93,8 @@ Result concatenarStringDouble(ExpresionLenguaje* self) {
 }
 Result concatenarStringFloat(ExpresionLenguaje* self) {
     char s2_buffer[64];
-    sprintf(s2_buffer, "%g", *(float*)self->derecha.valor);
+    // Usar formato fijo con 6 decimales para floats
+    sprintf(s2_buffer, "%.6f", *(float*)self->derecha.valor);
     char* s1 = (char*)self->izquierda.valor;
     char* res = malloc(strlen(s1) + strlen(s2_buffer) + 1);
     strcpy(res, s1); strcat(res, s2_buffer);
@@ -135,7 +137,8 @@ Result concatenarIntString(ExpresionLenguaje* self) {
 }
 Result concatenarDoubleString(ExpresionLenguaje* self) {
     char s1_buffer[64];
-    sprintf(s1_buffer, "%g", *(double*)self->izquierda.valor);
+    // Usar formato fijo con 6 decimales para doubles
+    sprintf(s1_buffer, "%.6f", *(double*)self->izquierda.valor);
     char* s2 = (char*)self->derecha.valor;
     char* res = malloc(strlen(s1_buffer) + strlen(s2) + 1);
     strcpy(res, s1_buffer); strcat(res, s2);
@@ -143,7 +146,8 @@ Result concatenarDoubleString(ExpresionLenguaje* self) {
 }
 Result concatenarFloatString(ExpresionLenguaje* self) {
     char s1_buffer[64];
-    sprintf(s1_buffer, "%g", *(float*)self->izquierda.valor);
+    // Usar formato fijo con 6 decimales para floats
+    sprintf(s1_buffer, "%.6f", *(float*)self->izquierda.valor);
     char* s2 = (char*)self->derecha.valor;
     char* res = malloc(strlen(s1_buffer) + strlen(s2) + 1);
     strcpy(res, s1_buffer); strcat(res, s2);
