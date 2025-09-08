@@ -1,4 +1,4 @@
-// en: src/context/array_value.c
+// Implementacion de utilidades para arreglos (creacion, copia profunda, liberacion).
 #include "array_value.h"
 #include <stdlib.h>
 #include <string.h>
@@ -24,6 +24,8 @@ Result getDefaultValueForType(TipoDato tipo) {
     return nuevoValorResultado(default_value, tipo);
 }
 
+// Crea un ArrayValue para una dimension; si es la ultima dimension (dimensiones==1)
+// inicializa cada elemento con el valor por defecto del tipo base
 ArrayValue* nuevoArray(TipoDato tipo_base, int dimensiones, int tamano) {
     ArrayValue* arr = malloc(sizeof(ArrayValue));
     arr->tipo_elemento_base = tipo_base;
@@ -40,6 +42,7 @@ ArrayValue* nuevoArray(TipoDato tipo_base, int dimensiones, int tamano) {
     return arr;
 }
 
+// Libera recursivamente el arreglo y los valores contenidos
 void liberarArray(ArrayValue* arr) {
     if (!arr) return;
     for (int i = 0; i < arr->tamano; i++) {

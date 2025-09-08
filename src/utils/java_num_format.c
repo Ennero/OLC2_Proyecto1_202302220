@@ -1,3 +1,5 @@
+// Formateo numerico similar a Java (Float/Double.toString),
+// incluyendo punto decimal garantizado y normalizacion de exponentes.
 #include "java_num_format.h"
 #include <stdio.h>
 #include <math.h>

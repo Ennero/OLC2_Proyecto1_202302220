@@ -1,4 +1,4 @@
-// en: src/context/array_value.h
+// Manejo de instancias de arreglos (incluye soporte para arreglos irregulares).
 #ifndef ARRAY_VALUE_H
 #define ARRAY_VALUE_H
 
