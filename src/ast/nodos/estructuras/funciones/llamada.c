@@ -58,7 +58,7 @@ Result interpretLlamadaFuncion(AbstractExpresion* self, Context* context) {
             memcpy(valor_copiado, argumentos_evaluados[i].valor, size);
         }
         // nuevoVariable duplica el nombre, no es necesario strdup aquí
-        agregarSymbol(func_context, nuevoVariable(param.nombre, valor_copiado, param.tipo), 0, 0);
+    agregarSymbol(func_context, nuevoVariable(param.nombre, valor_copiado, param.tipo, 0), 0, 0);
     }
     
     for(size_t i = 0; i < num_args; i++) { free(argumentos_evaluados[i].valor); }

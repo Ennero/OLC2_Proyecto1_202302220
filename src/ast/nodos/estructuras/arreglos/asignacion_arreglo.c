@@ -52,6 +52,9 @@ Result interpretAsignacionArreglo(AbstractExpresion *self, Context *context)
         return nuevoValorResultadoVacio();
     }
 
+    // Nota: aunque la variable arreglo sea final, en Java se permite modificar sus elementos.
+    // Por ello, NO bloqueamos aquí la asignación a elementos.
+
     // 2. Navegar por los índices para llegar al sub-arreglo correcto.
     ArrayValue *current_array = (ArrayValue *)simbolo->info.var.valor; // ¡Puntero al original!
     AbstractExpresion *current_acceso = acceso_nodo;

@@ -18,6 +18,7 @@
     #include "error_reporter.h"
     #include "ast/nodos/instrucciones/instruccion/casteos.h"
     #include "ast/nodos/instrucciones/instruccion/reasignacion.h"
+    #include "ast/nodos/instrucciones/instruccion/declaracion.h"
     #include "ast/nodos/expresiones/terminales/identificadores.h"
     #include <string.h>
 }
@@ -72,6 +73,7 @@
 
 /* --- Declaración de Tokens --- */
 %token TOKEN_PUBLIC TOKEN_STATIC TOKEN_VOID
+%token TOKEN_FINAL
 %token TOKEN_IF TOKEN_ELSE TOKEN_WHILE TOKEN_FOR TOKEN_SWITCH TOKEN_CASE
 %token TOKEN_BREAK TOKEN_CONTINUE TOKEN_RETURN TOKEN_PRINT TOKEN_MAIN
 %token TOKEN_DINT TOKEN_DFLOAT TOKEN_DDOUBLE TOKEN_DBOOLEAN TOKEN_DCHAR TOKEN_DSTRING
@@ -224,6 +226,14 @@ declaracion_var
     : tipoPrimitivo declarador_completo {
         DeclaradorNode* declarador_info = (DeclaradorNode*)$2;
         $$ = nuevoDeclaracionVariable($1, declarador_info->dimensiones, declarador_info->nombre, declarador_info->inicializador, @2.first_line, @2.first_column);
+        free(declarador_info);
+    }
+    | TOKEN_FINAL tipoPrimitivo declarador_completo {
+        DeclaradorNode* declarador_info = (DeclaradorNode*)$3;
+        AbstractExpresion* decl = nuevoDeclaracionVariable($2, declarador_info->dimensiones, declarador_info->nombre, declarador_info->inicializador, @1.first_line, @1.first_column);
+        // Marcar la declaración como constante
+        ((DeclaracionVariable*)decl)->es_constante = 1;
+        $$ = decl;
         free(declarador_info);
     }
     ;

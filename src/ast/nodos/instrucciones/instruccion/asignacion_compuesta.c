@@ -63,6 +63,13 @@ Result interpretAsignacionCompuesta(AbstractExpresion *self, Context *context)
         return nuevoValorResultadoVacio();
     }
 
+    if (simbolo->es_constante) {
+        char desc[256];
+        snprintf(desc, sizeof(desc), "No se puede usar una asignación compuesta sobre la constante 'final' '%s'.", nodo->nombre);
+        add_error_to_report("Semantico", nodo->nombre, desc, self->line, self->column, context->nombre_completo);
+        return nuevoValorResultadoVacio();
+    }
+
     ExpresionLenguaje expr_simulada;
     
     // <<<< CORREGIDO: Leemos el valor a través de la union >>>>

@@ -41,6 +41,7 @@ struct Symbol{
         VariableInfo var;
         FuncionInfo func;
     } info;
+    int es_constante; // 1 si fue declarada con 'final'
     int line;
     int column;
     Symbol* anterior;
@@ -57,7 +58,7 @@ struct Context {
 // Se actualizan las firmas
 Context* nuevoContext(Context* anterior, const char* tipo_contexto);
 void liberarContext(Context* context); // Es buena práctica declarar la función para liberar
-Symbol* nuevoVariable(char* nombre, void* valor, TipoDato tipo);
+Symbol* nuevoVariable(char* nombre, void* valor, TipoDato tipo, int es_constante);
 void agregarSymbol(Context* actual, Symbol* symbol, int line, int column);
 Symbol* buscarSymbol(Symbol* actual, char* nombre);
 Symbol* buscarTablaSimbolos(Context* actual, char* nombre);

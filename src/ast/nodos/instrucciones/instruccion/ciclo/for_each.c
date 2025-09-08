@@ -66,7 +66,7 @@ Result interpretForEach(AbstractExpresion* self, Context* context) {
             free(var_iteracion->info.var.valor);
             var_iteracion->info.var.valor = valor_copiado;
         } else {
-            agregarSymbol(for_context, nuevoVariable(nodo->nombre_var, valor_copiado, tipo_variable_en_scope), nodo->line, nodo->column);
+            agregarSymbol(for_context, nuevoVariable(nodo->nombre_var, valor_copiado, tipo_variable_en_scope, 0), nodo->line, nodo->column);
         }
 
         result_bloque = self->hijos[1]->interpret(self->hijos[1], for_context);

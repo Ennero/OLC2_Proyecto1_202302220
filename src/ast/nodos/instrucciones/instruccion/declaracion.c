@@ -48,7 +48,7 @@ Result interpretDeclaracionVariable(AbstractExpresion *nodo, Context *context)
                 // Si la construcción falló por un error de tipos, retornamos.
                 return nuevoValorResultadoVacio();
             }
-            agregarSymbol(context, nuevoVariable(self->nombre, arr_val, ARRAY), self->line, self->column);
+            agregarSymbol(context, nuevoVariable(self->nombre, arr_val, ARRAY, self->es_constante), self->line, self->column);
 
         } else {
             if (tipo_declarado != resultado.tipo) {
@@ -58,18 +58,23 @@ Result interpretDeclaracionVariable(AbstractExpresion *nodo, Context *context)
                 add_error_to_report("Semantico", self->nombre, desc, self->line, self->column, context->nombre_completo);
                 return nuevoValorResultadoVacio();
             }
-            agregarSymbol(context, nuevoVariable(self->nombre, resultado.valor, tipo_declarado), self->line, self->column);
+            agregarSymbol(context, nuevoVariable(self->nombre, resultado.valor, tipo_declarado, self->es_constante), self->line, self->column);
         }
     }
     // Caso 2: Sin asignación (ej. int x; o int[] a;)
     else
     {
+        if (self->es_constante) {
+            // En Java, un 'final' debe ser inicializado en su declaración (para locales).
+            add_error_to_report("Semantico", self->nombre, "Una constante 'final' debe ser inicializada en su declaración.", self->line, self->column, context->nombre_completo);
+            return nuevoValorResultadoVacio();
+        }
         void *default_value = NULL;
         if (tipo_declarado != ARRAY)
         { // Si es primitivo, crea valor por defecto
             default_value = getDefaultValueForType(self->tipo).valor;
         } // Si es arreglo, el valor por defecto es NULL
-        agregarSymbol(context, nuevoVariable(self->nombre, default_value, tipo_declarado), self->line, self->column);
+        agregarSymbol(context, nuevoVariable(self->nombre, default_value, tipo_declarado, 0), self->line, self->column);
     }
     return nuevoValorResultadoVacio();
 }
@@ -82,6 +87,7 @@ AbstractExpresion *nuevoDeclaracionVariable(TipoDato tipo, int dimensiones, char
     nodo->tipo = tipo;
     nodo->dimensiones = dimensiones;
     nodo->nombre = nombre;
+    nodo->es_constante = 0;
     nodo->line = line;
     nodo->column = column;
     if (expresion)

@@ -15,6 +15,14 @@ Result interpretReasignacion(AbstractExpresion* self, Context* context) {
         return nuevoValorResultadoVacio();
     }
 
+    // Si es constante, no se puede reasignar
+    if (simbolo->es_constante) {
+        char description[256];
+        snprintf(description, sizeof(description), "No se puede reasignar la constante 'final' '%s'.", nodo->nombre);
+        add_error_to_report("Semantico", nodo->nombre, description, nodo->line, nodo->column, context->nombre_completo);
+        return nuevoValorResultadoVacio();
+    }
+
     Result nuevo_valor = self->hijos[0]->interpret(self->hijos[0], context);
 
     if (has_semantic_error_been_found()) {

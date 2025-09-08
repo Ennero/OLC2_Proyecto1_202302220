@@ -10,6 +10,7 @@ typedef struct {
     char* nombre;
     TipoDato tipo;
     int dimensiones;
+    int es_constante; // 1 si se declaró con 'final'
     int line;
     int column;
 } DeclaracionVariable;

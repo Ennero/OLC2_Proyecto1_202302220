@@ -79,7 +79,7 @@ void liberarContext(Context* context) {
     free(context);
 }
 // Función para crear una nueva variable
-Symbol* nuevoVariable(char* nombre, void* valor, TipoDato tipo) {
+Symbol* nuevoVariable(char* nombre, void* valor, TipoDato tipo, int es_constante) {
     Symbol* nuevo = malloc(sizeof(Symbol));
     if (!nuevo) return NULL;
     // Duplicar el nombre para que el AST y la tabla de símbolos no compartan memoria.
@@ -88,6 +88,7 @@ Symbol* nuevoVariable(char* nombre, void* valor, TipoDato tipo) {
     nuevo->tipo = tipo;
     nuevo->clase = VARIABLE;
     nuevo->info.var.valor = valor;
+    nuevo->es_constante = es_constante;
     nuevo->line = 0;
     nuevo->column = 0;
     nuevo->anterior = NULL;

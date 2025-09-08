@@ -89,6 +89,7 @@ newline           \n
 "boolean"               return TOKEN_DBOOLEAN;
 "char"                  return TOKEN_DCHAR;
 "String"                return TOKEN_DSTRING;
+"final"                 return TOKEN_FINAL;
 "true"                  { yylval.string = strdup(yytext); return TOKEN_TRUE; }
 "false"                 { yylval.string = strdup(yytext); return TOKEN_FALSE; }
 {integer}               { yylval.string = strdup(yytext); return TOKEN_INTEGER; }
