@@ -55,44 +55,96 @@ Result interpretAsignacionArreglo(AbstractExpresion *self, Context *context)
     // Nota: aunque la variable arreglo sea final, en Java se permite modificar sus elementos.
     // Por ello, NO bloqueamos aquí la asignación a elementos.
 
-    // 2. Navegar por los índices para llegar al sub-arreglo correcto.
-    ArrayValue *current_array = (ArrayValue *)simbolo->info.var.valor; // ¡Puntero al original!
-    AbstractExpresion *current_acceso = acceso_nodo;
+    // 2. Recolectar todos los índices del acceso y navegar de adentro hacia afuera
+    // Estructura del acceso: ArrayAccess(ArrayAccess(...(Identificador, idx0)..., idxN-2), idxN-1)
+    // Queremos aplicar primero idx0, luego idx1, ..., hasta dejar pendiente el último para la escritura.
 
-    // Este bucle maneja casos como a[b][c] = valor. Se detiene en el último acceso (a[b]).
-    while (strcmp(current_acceso->hijos[0]->node_type, "ArrayAccess") == 0)
+    // Contar profundidad (número de corchetes)
+    int depth = 0;
+    AbstractExpresion *iter = acceso_nodo;
+    while (strcmp(iter->node_type, "ArrayAccess") == 0)
     {
-        Result res_idx = current_acceso->hijos[1]->interpret(current_acceso->hijos[1], context);
-        int index = *(int *)res_idx.valor;
-        free(res_idx.valor);
-        // ... (Aquí iría la validación de índice si fuera necesario) ...
-        current_array = (ArrayValue *)current_array->valores[index].valor;
-        current_acceso = current_acceso->hijos[0];
+        depth++;
+        iter = iter->hijos[0];
     }
 
-    // 3. Evaluar el índice final y el nuevo valor.
-    Result res_idx_final = current_acceso->hijos[1]->interpret(current_acceso->hijos[1], context);
+    // Guardar punteros a las expresiones de índices en un arreglo [outermost..innermost]
+    AbstractExpresion **idx_nodes = malloc(sizeof(AbstractExpresion *) * (size_t)depth);
+    if (!idx_nodes)
+        return nuevoValorResultadoVacio();
+
+    iter = acceso_nodo;
+    for (int i = 0; i < depth; i++)
+    {
+        idx_nodes[i] = iter->hijos[1];
+        iter = iter->hijos[0];
+    }
+
+    ArrayValue *current_array = (ArrayValue *)simbolo->info.var.valor; // ¡Puntero al arreglo original!
+
+    // Navegar por todos los índices excepto el último, en orden interno->externo
+    for (int i = depth - 1; i >= 1; --i)
+    {
+        Result res_idx = idx_nodes[i]->interpret(idx_nodes[i], context);
+        if (res_idx.tipo != INT)
+        {
+            add_error_to_report("Semantico", "[]", "El índice de un arreglo debe ser un entero.", self->line, self->column, context->nombre_completo);
+            free(res_idx.valor);
+            free(idx_nodes);
+            return nuevoValorResultadoVacio();
+        }
+        int index = *(int *)res_idx.valor;
+        free(res_idx.valor);
+        if (index < 0 || index >= current_array->tamano)
+        {
+            add_error_to_report("Semantico", "[]", "Índice fuera de los límites del arreglo en una asignación.", self->line, self->column, context->nombre_completo);
+            free(idx_nodes);
+            return nuevoValorResultadoVacio();
+        }
+        Result elem = current_array->valores[index];
+        if (elem.tipo != ARRAY || elem.valor == NULL)
+        {
+            add_error_to_report("Semantico", "[]", "Se esperaba un sub-arreglo al navegar dimensiones.", self->line, self->column, context->nombre_completo);
+            free(idx_nodes);
+            return nuevoValorResultadoVacio();
+        }
+        current_array = (ArrayValue *)elem.valor;
+    }
+
+    // 3. Evaluar el índice final (más externo) y el nuevo valor
+    Result res_idx_final = idx_nodes[0]->interpret(idx_nodes[0], context);
+    if (res_idx_final.tipo != INT)
+    {
+        add_error_to_report("Semantico", "[]", "El índice de un arreglo debe ser un entero.", self->line, self->column, context->nombre_completo);
+        free(res_idx_final.valor);
+        free(idx_nodes);
+        return nuevoValorResultadoVacio();
+    }
     int index_final = *(int *)res_idx_final.valor;
     free(res_idx_final.valor);
 
     Result nuevo_valor = valor_nodo->interpret(valor_nodo, context);
 
-    // 4. Validar y realizar la asignación en el arreglo original.
+    // 4. Validar y realizar la asignación en el arreglo original
     if (index_final < 0 || index_final >= current_array->tamano)
     {
         add_error_to_report("Semantico", "[]", "Índice fuera de los límites del arreglo en una asignación.", self->line, self->column, context->nombre_completo);
         free(nuevo_valor.valor);
+        free(idx_nodes);
         return nuevoValorResultadoVacio();
     }
     if (current_array->tipo_elemento_base != nuevo_valor.tipo)
     {
         add_error_to_report("Semantico", "=", "Tipo incompatible en la asignación al elemento del arreglo.", self->line, self->column, context->nombre_completo);
         free(nuevo_valor.valor);
+        free(idx_nodes);
         return nuevoValorResultadoVacio();
     }
 
     free(current_array->valores[index_final].valor);
     current_array->valores[index_final] = nuevo_valor;
+
+    free(idx_nodes);
 
     return nuevoValorResultadoVacio();
 }
