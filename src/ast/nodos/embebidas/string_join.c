@@ -63,7 +63,10 @@ Result interpretStringJoin(AbstractExpresion* self, Context* context) {
                 case BOOLEAN: snprintf(temp_strings[i], 512, "%s", (*(int*)elem_res.valor) ? "true" : "false"); break;
                 case CHAR:    snprintf(temp_strings[i], 512, "%c", *(int*)elem_res.valor); break;
                 case STRING:  snprintf(temp_strings[i], 512, "%s", (char*)elem_res.valor); break;
-                default:      snprintf(temp_strings[i], 512, ""); break;
+                default:
+                    // Represent types no soportados como cadena vacia sin usar un formato vacio
+                    temp_strings[i][0] = '\0';
+                    break;
              }
         }
         total_len += strlen(temp_strings[i]);

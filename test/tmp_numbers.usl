@@ -1,0 +1,8 @@
+print(1.2345678901234567);
+print(1e10);
+print(1e-10);
+print(-0.0);
+print(0.0);
+print(Double.parseDouble("NaN"));
+print(Double.parseDouble("Infinity"));
+print(Double.parseDouble("-Infinity"));

@@ -24,15 +24,30 @@ static int arrays_deep_equals(ArrayValue* a, ArrayValue* b) {
                 if (va.valor != vb.valor) return 0;
             } else {
                 switch (va.tipo) {
-                    case INT: case BOOLEAN: case CHAR:
-                        if (*(int*)va.valor != *(int*)vb.valor) return 0; break;
+                    case INT:
+                    case BOOLEAN:
+                    case CHAR:
+                        if (*(int*)va.valor != *(int*)vb.valor) {
+                            return 0;
+                        }
+                        break;
                     case FLOAT:
-                        if (*(float*)va.valor != *(float*)vb.valor) return 0; break;
+                        if (*(float*)va.valor != *(float*)vb.valor) {
+                            return 0;
+                        }
+                        break;
                     case DOUBLE:
-                        if (*(double*)va.valor != *(double*)vb.valor) return 0; break;
+                        if (*(double*)va.valor != *(double*)vb.valor) {
+                            return 0;
+                        }
+                        break;
                     case STRING:
-                        if (strcmp((char*)va.valor, (char*)vb.valor) != 0) return 0; break;
-                    default: return 0;
+                        if (strcmp((char*)va.valor, (char*)vb.valor) != 0) {
+                            return 0;
+                        }
+                        break;
+                    default:
+                        return 0;
                 }
             }
         }

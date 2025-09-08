@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include "utils/java_num_format.h"
 
 static SymbolInfo* symbol_list_head = NULL;
 static SymbolInfo* symbol_list_tail = NULL;
@@ -18,10 +19,10 @@ static void format_value(char* buffer, size_t size, const void* value, TipoDato 
             snprintf(buffer, size, "%d", *(int*)value);
             break;
         case FLOAT:
-            snprintf(buffer, size, "%.7g", *(float*)value);
+            java_format_float(*(float*)value, buffer, size);
             break;
         case DOUBLE:
-            snprintf(buffer, size, "%.17g", *(double*)value);
+            java_format_double(*(double*)value, buffer, size);
             break;
         case STRING:
             snprintf(buffer, size, "\"%s\"", (char*)value);
