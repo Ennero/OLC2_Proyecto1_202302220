@@ -32,7 +32,7 @@ Result interpretForEach(AbstractExpresion* self, Context* context) {
     // Comprueba que las dimensiones de la variable del bucle sean una menos que las del arreglo.
     if (nodo->tipo_var != arr->tipo_elemento_base || nodo->dimensiones_var != arr->dimensiones_total - 1) {
         add_error_to_report("Semantico", "for", "El tipo de la variable del bucle es incompatible con los elementos del arreglo.", nodo->line, nodo->column, context->nombre_completo);
-        liberarArray(arr);
+        // No liberar 'arr' aquí: no somos dueños del arreglo iterado.
         return nuevoValorResultadoVacio();
     }
 
@@ -63,7 +63,13 @@ Result interpretForEach(AbstractExpresion* self, Context* context) {
         }
         
         if (var_iteracion) {
-            free(var_iteracion->info.var.valor);
+            if (var_iteracion->tipo == ARRAY) {
+                if (var_iteracion->info.var.valor) {
+                    liberarArray((ArrayValue*)var_iteracion->info.var.valor);
+                }
+            } else {
+                free(var_iteracion->info.var.valor);
+            }
             var_iteracion->info.var.valor = valor_copiado;
         } else {
             agregarSymbol(for_context, nuevoVariable(nodo->nombre_var, valor_copiado, tipo_variable_en_scope, 0), nodo->line, nodo->column);
@@ -87,7 +93,7 @@ Result interpretForEach(AbstractExpresion* self, Context* context) {
         result_bloque = nuevoValorResultadoVacio();
     }
 
-    liberarArray(arr);
+    // No liberar 'arr' aquí: suele ser referencia a una variable del contexto
     liberarContext(for_context);
 
     // Solo un RETURN debe salir del for-each hacia niveles superiores (función, etc.)

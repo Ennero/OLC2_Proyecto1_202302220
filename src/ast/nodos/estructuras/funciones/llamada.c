@@ -1,6 +1,7 @@
 #include "llamada.h"
 #include "ast/nodos/builders.h"
 #include "context/context.h"
+#include "context/array_value.h"
 #include "error_reporter.h"
 #include <stdlib.h>
 #include <stdio.h>
@@ -42,26 +43,54 @@ Result interpretLlamadaFuncion(AbstractExpresion* self, Context* context) {
     Context* func_context = nuevoContext(context, nombre_func);
     for(size_t i = 0; i < num_args; i++) {
         Parametro param = func_symbol->info.func.parametros[i];
-        if (param.tipo != argumentos_evaluados[i].tipo) {
-            char desc[128];
-            sprintf(desc, "Tipo de argumento %zu incompatible: se esperaba %s y se recibió %s.", i+1, labelTipoDato[param.tipo], labelTipoDato[argumentos_evaluados[i].tipo]);
-            add_error_to_report("Semantico", nombre_func, desc, self->line, self->column, context->nombre_completo);
+        Result arg = argumentos_evaluados[i];
+
+        // Validacin de tipos:
+        if (param.dimensiones == 0) {
+            // Parmetro escalar: tipos deben coincidir exactamente
+            if (param.tipo != arg.tipo) {
+                char desc[200];
+                sprintf(desc, "Tipo de argumento %zu incompatible: se esperaba %s y se recibi %s.", i+1, labelTipoDato[param.tipo], labelTipoDato[arg.tipo]);
+                add_error_to_report("Semantico", nombre_func, desc, self->line, self->column, context->nombre_completo);
+            }
+        } else {
+            // Parmetro arreglo: el argumento debe ser ARRAY y su base/dimensiones deben coincidir
+            if (arg.tipo != ARRAY) {
+                char desc[200];
+                sprintf(desc, "Tipo de argumento %zu incompatible: se esperaba arreglo de %s y se recibi %s.", i+1, labelTipoDato[param.tipo], labelTipoDato[arg.tipo]);
+                add_error_to_report("Semantico", nombre_func, desc, self->line, self->column, context->nombre_completo);
+            } else {
+                ArrayValue* av = (ArrayValue*)arg.valor;
+                if (av->tipo_elemento_base != param.tipo || av->dimensiones_total != param.dimensiones) {
+                    char desc[240];
+                    sprintf(desc, "Dimensiones/tipo base incompatibles en argumento %zu: esperado %s[%dD], recibido %s[%dD].",
+                            i+1, labelTipoDato[param.tipo], param.dimensiones,
+                            labelTipoDato[av->tipo_elemento_base], av->dimensiones_total);
+                    add_error_to_report("Semantico", nombre_func, desc, self->line, self->column, context->nombre_completo);
+                }
+            }
         }
-        
-        // Creamos una copia del valor del argumento para la nueva variable
-        void* valor_copiado;
-        if (param.tipo == STRING) {
-            valor_copiado = strdup((char*)argumentos_evaluados[i].valor);
+
+        // Copia del argumento al contexto de la funcin
+        void* valor_copiado = NULL;
+        TipoDato tipo_variable = (param.dimensiones == 0) ? param.tipo : ARRAY;
+        if (tipo_variable == STRING) {
+            valor_copiado = strdup((char*)arg.valor);
+        } else if (tipo_variable == ARRAY) {
+            valor_copiado = copiarArray((ArrayValue*)arg.valor);
         } else {
             size_t size = get_type_size(param.tipo);
             valor_copiado = malloc(size);
-            memcpy(valor_copiado, argumentos_evaluados[i].valor, size);
+            memcpy(valor_copiado, arg.valor, size);
         }
-        // nuevoVariable duplica el nombre, no es necesario strdup aquí
-    agregarSymbol(func_context, nuevoVariable(param.nombre, valor_copiado, param.tipo, 0), 0, 0);
+        agregarSymbol(func_context, nuevoVariable(param.nombre, valor_copiado, tipo_variable, 0), 0, 0);
     }
     
-    for(size_t i = 0; i < num_args; i++) { free(argumentos_evaluados[i].valor); }
+    for(size_t i = 0; i < num_args; i++) {
+        if (argumentos_evaluados[i].tipo != ARRAY) {
+            free(argumentos_evaluados[i].valor);
+        }
+    }
     free(argumentos_evaluados);
 
     Result res_cuerpo = func_symbol->info.func.cuerpo->interpret(func_symbol->info.func.cuerpo, func_context);

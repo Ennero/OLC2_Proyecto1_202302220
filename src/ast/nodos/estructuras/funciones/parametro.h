@@ -4,6 +4,7 @@
 typedef struct {
     AbstractExpresion base;
     TipoDato tipo;
+    int dimensiones;
     char* nombre;
 } ParametroNode;
 #endif

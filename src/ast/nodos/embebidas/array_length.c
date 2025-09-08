@@ -19,8 +19,8 @@ Result interpretArrayLength(AbstractExpresion* self, Context* context) {
     int* tamano = malloc(sizeof(int));
     *tamano = arr->tamano;
 
-    // Liberamos la copia del arreglo que recibimos
-    liberarArray(arr);
+    // No liberar el arreglo aquí: normalmente es una referencia a una variable existente
+    // y no somos dueños de su memoria en esta operación.
 
     return nuevoValorResultado(tamano, INT);
 }

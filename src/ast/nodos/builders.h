@@ -98,7 +98,7 @@ AbstractExpresion* nuevoInicializadorArreglo(AbstractExpresion* lista_exp, int l
 
 /* Funciones*/
 AbstractExpresion* nuevoDeclaracionFuncion(TipoDato tipo_retorno, char* nombre, AbstractExpresion* params, AbstractExpresion* bloque, int line, int column);
-AbstractExpresion* nuevoParametro(TipoDato tipo, char* nombre);
+AbstractExpresion* nuevoParametro(TipoDato tipo, int dimensiones, char* nombre);
 AbstractExpresion* nuevoLlamadaFuncion(char* nombre, AbstractExpresion* args, int line, int column);
 AbstractExpresion* nuevoAsignacionArreglo(AbstractExpresion* id, AbstractExpresion* indice, AbstractExpresion* expr, int line, int column);
 

@@ -1,6 +1,7 @@
 #include "reasignacion.h"
 #include "ast/nodos/builders.h"
 #include "context/context.h"
+#include "context/array_value.h"
 #include "error_reporter.h"
 #include <stdlib.h>
 #include <stdio.h>
@@ -50,7 +51,11 @@ Result interpretReasignacion(AbstractExpresion* self, Context* context) {
     
     // <<<< CORREGIDO: Actualizamos el valor a través de la union >>>>
     if(simbolo->info.var.valor) {
-        free(simbolo->info.var.valor);
+        if (simbolo->tipo == ARRAY) {
+            liberarArray((ArrayValue*)simbolo->info.var.valor);
+        } else {
+            free(simbolo->info.var.valor);
+        }
     }
     simbolo->info.var.valor = nuevo_valor.valor;
     

@@ -85,9 +85,8 @@ Result interpretStringJoin(AbstractExpresion* self, Context* context) {
     free(delimitador);
     
     if (modo_operacion == 0) { // Modo Arreglo
-        // La función recibió una copia del arreglo. Ahora que ha terminado,
-        // es su responsabilidad liberarla.
-        liberarArray(arr_container);
+        // No liberar el contenedor de arreglo aquí: normalmente es una referencia compartida
+        // (por ejemplo, una variable), y liberar causaría double-free cuando el contexto limpie.
     } else { // Modo Varargs
         // Liberamos cada resultado que interpretamos y el arreglo temporal que los contenía.
         for (int i = 0; i < num_elementos; i++) {

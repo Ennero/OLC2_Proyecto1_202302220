@@ -14,7 +14,8 @@ typedef enum {
 } Clase;
 
 typedef struct {
-    TipoDato tipo;
+    TipoDato tipo;     // tipo base (INT, STRING, ...)
+    int dimensiones;   // 0 si escalar; >0 si arreglo (total de dimensiones)
     char* nombre;
 } Parametro;
 

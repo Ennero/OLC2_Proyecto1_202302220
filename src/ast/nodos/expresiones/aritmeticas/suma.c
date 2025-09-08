@@ -90,6 +90,14 @@ Result concatenarStringDouble(ExpresionLenguaje* self) {
     strcpy(res, s1); strcat(res, s2_buffer);
     return nuevoValorResultado(res, STRING);
 }
+Result concatenarStringFloat(ExpresionLenguaje* self) {
+    char s2_buffer[64];
+    sprintf(s2_buffer, "%g", *(float*)self->derecha.valor);
+    char* s1 = (char*)self->izquierda.valor;
+    char* res = malloc(strlen(s1) + strlen(s2_buffer) + 1);
+    strcpy(res, s1); strcat(res, s2_buffer);
+    return nuevoValorResultado(res, STRING);
+}
 Result concatenarStringChar(ExpresionLenguaje* self) {
     char* s1 = (char*)self->izquierda.valor;
     char c2 = (char)(*(int*)self->derecha.valor);
@@ -133,6 +141,14 @@ Result concatenarDoubleString(ExpresionLenguaje* self) {
     strcpy(res, s1_buffer); strcat(res, s2);
     return nuevoValorResultado(res, STRING);
 }
+Result concatenarFloatString(ExpresionLenguaje* self) {
+    char s1_buffer[64];
+    sprintf(s1_buffer, "%g", *(float*)self->izquierda.valor);
+    char* s2 = (char*)self->derecha.valor;
+    char* res = malloc(strlen(s1_buffer) + strlen(s2) + 1);
+    strcpy(res, s1_buffer); strcat(res, s2);
+    return nuevoValorResultado(res, STRING);
+}
 Result concatenarCharString(ExpresionLenguaje* self) {
     char* s2 = (char*)self->derecha.valor;
     char c1 = (char)(*(int*)self->izquierda.valor);
@@ -157,9 +173,9 @@ Operacion tablaOperacionesSuma[TIPO_COUNT][TIPO_COUNT] = {
     [BOOLEAN] = { [STRING] = concatenarBooleanString },
     [CHAR]    = { [CHAR] = sumarIntInt,      [INT] = sumarIntInt,     [FLOAT] = sumarFloatInt, [DOUBLE] = sumarDoubleInt,  [STRING] = concatenarCharString },
     [INT]     = { [CHAR] = sumarIntInt,      [INT] = sumarIntInt,     [FLOAT] = sumarIntFloat, [DOUBLE] = sumarIntDouble,  [STRING] = concatenarIntString },
-    [FLOAT]   = { [CHAR] = sumarFloatInt,    [INT] = sumarFloatInt,   [FLOAT] = sumarFloatFloat,[DOUBLE] = sumarFloatDouble,[STRING] = concatenarDoubleString },
+    [FLOAT]   = { [CHAR] = sumarFloatInt,    [INT] = sumarFloatInt,   [FLOAT] = sumarFloatFloat,[DOUBLE] = sumarFloatDouble,[STRING] = concatenarFloatString },
     [DOUBLE]  = { [CHAR] = sumarDoubleInt,   [INT] = sumarDoubleInt,  [FLOAT] = sumarDoubleFloat,[DOUBLE]= sumarDoubleDouble,[STRING] = concatenarDoubleString },
-    [STRING]  = { [BOOLEAN] = concatenarStringBoolean, [CHAR] = concatenarStringChar, [INT] = concatenarStringInt, [FLOAT] = concatenarDoubleString, [DOUBLE] = concatenarDoubleString, [STRING] = concatenarStringString }
+    [STRING]  = { [BOOLEAN] = concatenarStringBoolean, [CHAR] = concatenarStringChar, [INT] = concatenarStringInt, [FLOAT] = concatenarStringFloat, [DOUBLE] = concatenarStringDouble, [STRING] = concatenarStringString }
 };
 
 

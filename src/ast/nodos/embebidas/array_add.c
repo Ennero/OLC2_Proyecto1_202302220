@@ -49,8 +49,8 @@ Result interpretArrayAdd(AbstractExpresion *self, Context *context)
     if (!tipos_compatibles)
     {
         add_error_to_report("Semantico", "Array.add", "El tipo del nuevo elemento es incompatible con el tipo del arreglo.", self->line, self->column, context->nombre_completo);
-        liberarArray(arr_original);
-        free(elem_res.valor);
+        // No liberar arr_original: no somos dueños (normalmente es referencia desde la tabla de símbolos)
+        if (elem_res.tipo != ARRAY) free(elem_res.valor); // liberar solo temporales primitivos
         return nuevoValorResultadoVacio();
     }
     // --- FIN DE LA LÓGICA DE VALIDACIÓN CORREGIDA ---
@@ -89,11 +89,19 @@ Result interpretArrayAdd(AbstractExpresion *self, Context *context)
         }
     }
 
-    // Añadir el nuevo elemento al final (sin liberarlo, ya que pasa a ser propiedad del nuevo arreglo).
-    free(arr_nuevo->valores[nuevo_tamano - 1].valor);
-    arr_nuevo->valores[nuevo_tamano - 1] = elem_res;
+    // Añadir el nuevo elemento al final
+    free(arr_nuevo->valores[nuevo_tamano - 1].valor); // liberar valor por defecto
+    if (elem_res.tipo == ARRAY) {
+        // Copia profunda para evitar aliasing con variables existentes (p. ej., agregar una fila existente a una matriz)
+        ArrayValue* copia = copiarArray((ArrayValue*)elem_res.valor);
+        arr_nuevo->valores[nuevo_tamano - 1] = nuevoValorResultado(copia, ARRAY);
+        // No liberar elem_res.valor (referencia no-propietaria)
+    } else {
+        // Transferir propiedad de primitivos directamente
+        arr_nuevo->valores[nuevo_tamano - 1] = elem_res;
+    }
 
-    liberarArray(arr_original);
+    // No liberar el arreglo original aquí; normalmente es una referencia administrada por el contexto.
     return nuevoValorResultado(arr_nuevo, ARRAY);
 }
 

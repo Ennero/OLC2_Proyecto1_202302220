@@ -175,7 +175,12 @@ lista_parametros_opt: lista_parametros { $$ = $1; }
 lista_parametros: lista_parametros ',' parametro { agregarHijo($1, $3); $$ = $1; }
                 | parametro { AbstractExpresion* lista = nuevoListaExpresiones(); agregarHijo(lista, $1); $$ = lista; };
 
-parametro: tipoPrimitivo TOKEN_IDENTIFIER { $$ = nuevoParametro($1, $2); };
+// Permitir parámetros con dimensiones a la izquierda y/o derecha del identificador
+// Ejemplos: int a, int[] a, int[][] a, int a[], int[] a[][]
+parametro: tipoPrimitivo corchetes_lista TOKEN_IDENTIFIER corchetes_lista {
+    int total_dims = $2 + $4;
+    $$ = nuevoParametro($1, total_dims, $3);
+};
 
 
 // Regla para la sintaxis "public static void main(String[] args) { ... }"

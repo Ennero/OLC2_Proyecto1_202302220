@@ -8,10 +8,11 @@ Result interpretParametro(AbstractExpresion* self, Context* context) {
     return nuevoValorResultadoVacio();
 }
 
-AbstractExpresion* nuevoParametro(TipoDato tipo, char* nombre) {
+AbstractExpresion* nuevoParametro(TipoDato tipo, int dimensiones, char* nombre) {
     ParametroNode* nodo = malloc(sizeof(ParametroNode));
     buildAbstractExpresion(&nodo->base, interpretParametro, "Parametro", 0, 0);
     nodo->tipo = tipo;
+    nodo->dimensiones = dimensiones;
     nodo->nombre = nombre;
     return (AbstractExpresion*)nodo;
 }

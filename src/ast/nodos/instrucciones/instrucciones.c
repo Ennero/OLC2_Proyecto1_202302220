@@ -28,7 +28,11 @@ Result interpretInstruccionesExpresion(AbstractExpresion* self, Context* context
             AbstractExpresion* nodo = self->hijos[i];
             const char* t = nodo->node_type;
             if (t && (strcmp(t, "Declaracion") == 0 || strcmp(t, "FunctionDeclaration") == 0)) {
-                if (res.valor) { free(res.valor); res = nuevoValorResultadoVacio(); }
+                // Libera solo temporales no-arreglo; arreglos son referencias y los maneja el contexto
+                if (res.valor && res.tipo != ARRAY && res.tipo != BREAK_T && res.tipo != CONTINUE_T && res.tipo != RETURN_T) {
+                    free(res.valor);
+                    res = nuevoValorResultadoVacio();
+                }
                 res = nodo->interpret(nodo, context);
                 if (has_semantic_error_been_found()) {
                     return res; // error ya reportado
@@ -41,7 +45,10 @@ Result interpretInstruccionesExpresion(AbstractExpresion* self, Context* context
             AbstractExpresion* nodo = self->hijos[i];
             const char* t = nodo->node_type;
             if (!(t && (strcmp(t, "Declaracion") == 0 || strcmp(t, "FunctionDeclaration") == 0))) {
-                if (res.valor) { free(res.valor); res = nuevoValorResultadoVacio(); }
+                if (res.valor && res.tipo != ARRAY && res.tipo != BREAK_T && res.tipo != CONTINUE_T && res.tipo != RETURN_T) {
+                    free(res.valor);
+                    res = nuevoValorResultadoVacio();
+                }
                 res = nodo->interpret(nodo, context);
                 if (res.tipo == BREAK_T || res.tipo == CONTINUE_T || res.tipo == RETURN_T) {
                     return res;
@@ -54,7 +61,10 @@ Result interpretInstruccionesExpresion(AbstractExpresion* self, Context* context
     } else {
         // Ejecución secuencial dentro de bloques normales
         for (size_t i = 0; i < self->numHijos; ++i) {
-            if (res.valor) { free(res.valor); res = nuevoValorResultadoVacio(); }
+            if (res.valor && res.tipo != ARRAY && res.tipo != BREAK_T && res.tipo != CONTINUE_T && res.tipo != RETURN_T) {
+                free(res.valor);
+                res = nuevoValorResultadoVacio();
+            }
             res = self->hijos[i]->interpret(self->hijos[i], context);
             if (res.tipo == BREAK_T || res.tipo == CONTINUE_T || res.tipo == RETURN_T) {
                 return res;
@@ -64,8 +74,7 @@ Result interpretInstruccionesExpresion(AbstractExpresion* self, Context* context
             }
         }
     }
-
-    if (res.valor) { free(res.valor); }
+    if (res.valor && res.tipo != ARRAY && res.tipo != BREAK_T && res.tipo != CONTINUE_T && res.tipo != RETURN_T) { free(res.valor); }
     return nuevoValorResultadoVacio();
 }
 

@@ -28,6 +28,7 @@ Result interpretDeclaracionFuncion(AbstractExpresion* self, Context* context) {
     for(size_t i = 0; i < params_list->numHijos; i++) {
         ParametroNode* param_nodo = (ParametroNode*)params_list->hijos[i];
         func_symbol->info.func.parametros[i].tipo = param_nodo->tipo;
+        func_symbol->info.func.parametros[i].dimensiones = param_nodo->dimensiones;
         func_symbol->info.func.parametros[i].nombre = strdup(param_nodo->nombre);
     }
     

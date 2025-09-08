@@ -61,7 +61,8 @@ Result interpretPrintExpresion(AbstractExpresion* self, Context* context) {
 
 
         if (has_semantic_error_been_found()) {
-            if(res.valor) free(res.valor);
+            // Liberar solo temporales de primitivos/strings; nunca arreglos (referencias no-propietarias)
+            if (res.valor && res.tipo != ARRAY) free(res.valor);
             return nuevoValorResultadoVacio();
         }
 
@@ -69,9 +70,11 @@ Result interpretPrintExpresion(AbstractExpresion* self, Context* context) {
         result_to_string(res, print_buffer, sizeof(print_buffer));
         append_to_output(print_buffer);
         
-        if (i < listaExpresiones->numHijos - 1) append_to_output(" ");
+    if (i < listaExpresiones->numHijos - 1) append_to_output(" ");
 
-        if(res.valor) free(res.valor);
+    // No liberar arreglos aquí: por convenio, los identificadores de arreglos retornan referencias
+    // y el propietario es la tabla de símbolos/contexto.
+    if (res.valor && res.tipo != ARRAY) free(res.valor);
     }
     append_to_output("\n");
     return nuevoValorResultadoVacio();

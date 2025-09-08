@@ -7,6 +7,39 @@
 #include <string.h>
 
 // Función auxiliar para comparar dos valores de tipo Result
+static int arrays_deep_equals(ArrayValue* a, ArrayValue* b) {
+    if (a == b) return 1;
+    if (!a || !b) return 0;
+    if (a->tipo_elemento_base != b->tipo_elemento_base || a->dimensiones_total != b->dimensiones_total || a->tamano != b->tamano) return 0;
+    for (int i = 0; i < a->tamano; i++) {
+        Result va = a->valores[i];
+        Result vb = b->valores[i];
+        if (va.tipo != vb.tipo) return 0;
+        if (va.tipo == ARRAY) {
+            ArrayValue* sa = (ArrayValue*)va.valor;
+            ArrayValue* sb = (ArrayValue*)vb.valor;
+            if (!arrays_deep_equals(sa, sb)) return 0;
+        } else {
+            if (va.valor == NULL || vb.valor == NULL) {
+                if (va.valor != vb.valor) return 0;
+            } else {
+                switch (va.tipo) {
+                    case INT: case BOOLEAN: case CHAR:
+                        if (*(int*)va.valor != *(int*)vb.valor) return 0; break;
+                    case FLOAT:
+                        if (*(float*)va.valor != *(float*)vb.valor) return 0; break;
+                    case DOUBLE:
+                        if (*(double*)va.valor != *(double*)vb.valor) return 0; break;
+                    case STRING:
+                        if (strcmp((char*)va.valor, (char*)vb.valor) != 0) return 0; break;
+                    default: return 0;
+                }
+            }
+        }
+    }
+    return 1;
+}
+
 static int sonValoresIguales(Result r1, Result r2) {
     if (r1.tipo != r2.tipo) return 0;
     if (r1.valor == NULL || r2.valor == NULL) return r1.valor == r2.valor;
@@ -20,6 +53,8 @@ static int sonValoresIguales(Result r1, Result r2) {
             return *(double*)r1.valor == *(double*)r2.valor;
         case STRING:
             return strcmp((char*)r1.valor, (char*)r2.valor) == 0;
+        case ARRAY:
+            return arrays_deep_equals((ArrayValue*)r1.valor, (ArrayValue*)r2.valor);
         default:
             return 0;
     }
@@ -46,8 +81,10 @@ Result interpretArraysIndexof(AbstractExpresion* self, Context* context) {
         }
     }
 
-    liberarArray(arr);
-    free(val_res.valor);
+    // No liberar 'arr': referencia a una variable/expresin compartida
+    if (val_res.tipo != ARRAY) {
+        free(val_res.valor);
+    }
 
     return nuevoValorResultado(indice_encontrado, INT);
 }
