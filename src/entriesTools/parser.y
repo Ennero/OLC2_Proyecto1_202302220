@@ -1,4 +1,5 @@
 %{
+    // Código C que se incluye al inicio del archivo generado
     #include <stdio.h>
     #include <stdlib.h>
     #include "ast/AbstractExpresion.h"
@@ -26,13 +27,13 @@
 
 
 %code {
-    // Estructuras de datos temporales para ayudar al parser a construir
-    // la declaración de una variable compleja. NO son parte del AST final.
+    // Estructuras de datos temporales para ayudar al parser a construir la declaración de una variable compleja
+
     typedef struct {
         AbstractExpresion base;
         int dimensiones;
         AbstractExpresion* inicializador;
-        char* nombre; // Guardaremos el nombre aquí
+        char* nombre;
     } DeclaradorNode;
 
     // Constructor para el nodo temporal
@@ -45,13 +46,14 @@
         return (AbstractExpresion*)n;
     }
 
-        // --- AÑADE ESTA STRUCT Y ESTA FUNCIÓN ---
+    // Estructura temporal para manejar tipos completos con dimensiones
     typedef struct {
         AbstractExpresion base;
         TipoDato tipo;
         int dimensiones;
     } TipoCompletoNode;
 
+    // Constructor para el nodo temporal de tipo completo
     AbstractExpresion* nuevoTipoCompletoNode(TipoDato tipo, int dims) {
         TipoCompletoNode* n = malloc(sizeof(TipoCompletoNode));
         buildAbstractExpresion(&n->base, NULL, "TempType", 0, 0);
@@ -69,7 +71,7 @@
     char* string;
     AbstractExpresion* nodo;
     TipoDato tipoDato;
-    int num; // NUEVO: Para contar dimensiones
+    int num;
 }
 
 /* --- Declaración de Tokens --- */
@@ -95,17 +97,11 @@
 
 
 
-
-
 /* --- Tipos para No-Terminales --- */
 %type <nodo> lSentencia sentencia expr lista_Expr bloque declaracion_var primitivo primary_expr if_stmt switch_stmt case_list case_stmt lSentencia_opt programa lista_declaraciones declaracion declaracion_funcion lista_parametros_opt lista_parametros parametro lista_argumentos_opt declaracion_main while_stmt for_stmt for_init for_expr_opt
 %type <nodo> inicializador_arreglo expresion_creacion_arreglo lista_dims_expr asignacion_expr
-%type <nodo> declarador_completo // NUEVA REGLA
-%type <nodo> var_tail
-%type <nodo> lista_item
-%type <nodo> for_head for_init_opt
-%type <num> corchetes_lista
-%type <num> dims_vacias
+%type <nodo> declarador_completo var_tail lista_item for_head for_init_opt
+%type <num> corchetes_lista dims_vacias
 %type <tipoDato> tipoPrimitivo
 
 /* --- Precedencia y Asociatividad de Operadores --- */
@@ -136,185 +132,120 @@ programa: lista_declaraciones { ast_root = $1; $$ = $1; };
 lista_declaraciones: lista_declaraciones declaracion { agregarHijo($1, $2); $$ = $1; }
                     | declaracion { AbstractExpresion* lista = nuevoInstruccionesExpresion(); agregarHijo(lista, $1); $$ = lista; };
 
-// Desambiguación de declaraciones a nivel superior (función vs variable)
-declaracion:
-            // función con retorno (primitivo o arreglo)
-            tipoPrimitivo corchetes_lista TOKEN_IDENTIFIER '(' lista_parametros_opt ')' bloque {
+// Reglas para tipos primitivos
+declaracion:    tipoPrimitivo corchetes_lista TOKEN_IDENTIFIER '(' lista_parametros_opt ')' bloque {
                         AbstractExpresion* decl = nuevoDeclaracionFuncion($1, $3, $5, $7, @1.first_line, @1.first_column);
-                        // Guardar dimensiones de retorno en el nodo de función
-                        ((FuncionDeclarationNode*)decl)->retorno_dimensiones = $2;
-                        $$ = decl;
-                        }
-            // función void
-            | declaracion_funcion    { $$ = $1; }
-            // main
-            | declaracion_main       { $$ = $1; }
-            // variable global
-            | tipoPrimitivo corchetes_lista TOKEN_IDENTIFIER var_tail ';' {
-                        DeclaradorNode* tail = (DeclaradorNode*)$4;
-                        int total_dims = $2 + tail->dimensiones;
-                        $$ = nuevoDeclaracionVariable($1, total_dims, $3, tail->inicializador, @1.first_line, @1.first_column);
-                        free(tail);
-                        }
-            // variable global final (constante)
-            | TOKEN_FINAL tipoPrimitivo corchetes_lista TOKEN_IDENTIFIER var_tail ';' {
+                        ((FuncionDeclarationNode*)decl)->retorno_dimensiones = $2; $$ = decl;}
+                | declaracion_funcion    { $$ = $1; }
+                | declaracion_main       { $$ = $1; }
+                | tipoPrimitivo corchetes_lista TOKEN_IDENTIFIER var_tail ';' {
+                        DeclaradorNode* tail = (DeclaradorNode*)$4; int total_dims = $2 + tail->dimensiones;
+                        $$ = nuevoDeclaracionVariable($1, total_dims, $3, tail->inicializador, @1.first_line, @1.first_column); free(tail);}
+                | TOKEN_FINAL tipoPrimitivo corchetes_lista TOKEN_IDENTIFIER var_tail ';' {
                         DeclaradorNode* tail = (DeclaradorNode*)$5;
                         int total_dims = $3 + tail->dimensiones;
                         AbstractExpresion* decl = nuevoDeclaracionVariable($2, total_dims, $4, tail->inicializador, @1.first_line, @1.first_column);
-                        ((DeclaracionVariable*)decl)->es_constante = 1;
-                        $$ = decl;
-                        free(tail);
-                        }
-            ;
-
-declaracion_funcion: TOKEN_VOID TOKEN_IDENTIFIER '(' lista_parametros_opt ')' bloque {
-                        // Usamos NULO para representar 'void' como tipo de retorno
-                        $$ = nuevoDeclaracionFuncion(NULO, $2, $4, $6, @1.first_line, @1.first_column);
-                        }
-                    ;
-
-lista_parametros_opt: lista_parametros { $$ = $1; }
-                    | %empty { $$ = nuevoListaExpresiones(); };
-
-// <<<< REGLA AÑADIDA: Para reconocer uno o más parámetros separados por comas >>>>
-lista_parametros: lista_parametros ',' parametro { agregarHijo($1, $3); $$ = $1; }
-                | parametro { AbstractExpresion* lista = nuevoListaExpresiones(); agregarHijo(lista, $1); $$ = lista; };
-
-// Permitir parámetros con dimensiones a la izquierda y/o derecha del identificador
-// Ejemplos: int a, int[] a, int[][] a, int a[], int[] a[][]
-parametro: tipoPrimitivo corchetes_lista TOKEN_IDENTIFIER corchetes_lista {
-    int total_dims = $2 + $4;
-    $$ = nuevoParametro($1, total_dims, $3);
-};
-
-
-// Regla para la sintaxis "public static void main(String[] args) { ... }"
-declaracion_main: TOKEN_PUBLIC TOKEN_STATIC TOKEN_VOID TOKEN_MAIN 
-                    '(' TOKEN_DSTRING '[' ']' TOKEN_IDENTIFIER ')' bloque {
-                        $$ = nuevoMainFunctionNode($11, @1.first_line, @1.first_column);
-                    }
+                        ((DeclaracionVariable*)decl)->es_constante = 1; $$ = decl; free(tail);}
                 ;
 
+declaracion_funcion:    TOKEN_VOID TOKEN_IDENTIFIER '(' lista_parametros_opt ')' bloque {
+                        $$ = nuevoDeclaracionFuncion(NULO, $2, $4, $6, @1.first_line, @1.first_column);}
+                        ;
 
-// <<<< REGLA AÑADIDA: Para argumentos en una llamada a función >>>>
-lista_argumentos_opt: lista_Expr { $$ = $1; }
-                    | %empty   { $$ = NULL; };
+lista_parametros_opt:   lista_parametros    { $$ = $1; }
+                        | %empty            { $$ = nuevoListaExpresiones(); };
 
+lista_parametros:   lista_parametros ',' parametro  { agregarHijo($1, $3); $$ = $1; }
+                    | parametro                     { AbstractExpresion* lista = nuevoListaExpresiones(); agregarHijo(lista, $1); $$ = lista; };
 
-lSentencia: lSentencia sentencia { 
-        // Si la sentencia fue un error, $2 será NULL.
-        if ($2 != NULL) {
-            agregarHijo($1, $2);
-        }
-        $$ = $1;
-    }
-    | sentencia {
-        AbstractExpresion* b = nuevoInstruccionesExpresion();
-        // También se comprueba aquí para la primera sentencia.
-        if ($1 != NULL) {
-            agregarHijo(b, $1);
-        }
-        $$ = b;
-    }
-    ;
+parametro:  tipoPrimitivo corchetes_lista TOKEN_IDENTIFIER corchetes_lista {
+            int total_dims = $2 + $4; $$ = nuevoParametro($1, total_dims, $3);}
+            ;
 
-sentencia: bloque           { $$ = $1; }
-    | declaracion_var ';'   { $$ = $1; }
-    | if_stmt               { $$ = $1; }
-    | while_stmt            { $$ = $1; }
-    | for_stmt              { $$ = $1; }
-    | switch_stmt           { $$ = $1; }
-    | TOKEN_BREAK ';'       { $$ = nuevoBreakExpresion(@1.first_line, @1.first_column); }
-    | TOKEN_CONTINUE ';'    { $$ = nuevoContinueExpresion(@1.first_line, @1.first_column); }
-    | TOKEN_RETURN expr ';' { $$ = nuevoReturnExpresion($2, @1.first_line, @1.first_column); }
-    | TOKEN_RETURN ';'      { $$ = nuevoReturnExpresion(NULL, @1.first_line, @1.first_column); } 
-    | expr ';'              { $$ = $1; }
-    | error ';' { 
-        yyerrok; 
-        $$ = NULL; 
-    }
-    ;
+declaracion_main:   TOKEN_PUBLIC TOKEN_STATIC TOKEN_VOID TOKEN_MAIN 
+                    '(' TOKEN_DSTRING '[' ']' TOKEN_IDENTIFIER ')' bloque { $$ = nuevoMainFunctionNode($11, @1.first_line, @1.first_column);}
+                    ;
+
+lista_argumentos_opt:   lista_Expr { $$ = $1; }
+                        | %empty   { $$ = NULL; };
+
+lSentencia: lSentencia sentencia { if ($2 != NULL) {agregarHijo($1, $2);} $$ = $1; }
+            | sentencia { AbstractExpresion* b = nuevoInstruccionesExpresion(); if ($1 != NULL) { agregarHijo(b, $1);} $$ = b;}
+            ;
+
+sentencia:  bloque                  { $$ = $1; }
+            | declaracion_var ';'   { $$ = $1; }
+            | if_stmt               { $$ = $1; }
+            | while_stmt            { $$ = $1; }
+            | for_stmt              { $$ = $1; }
+            | switch_stmt           { $$ = $1; }
+            | TOKEN_BREAK ';'       { $$ = nuevoBreakExpresion(@1.first_line, @1.first_column); }
+            | TOKEN_CONTINUE ';'    { $$ = nuevoContinueExpresion(@1.first_line, @1.first_column); }
+            | TOKEN_RETURN expr ';' { $$ = nuevoReturnExpresion($2, @1.first_line, @1.first_column); }
+            | TOKEN_RETURN ';'      { $$ = nuevoReturnExpresion(NULL, @1.first_line, @1.first_column); } 
+            | expr ';'              { $$ = $1; }
+            | error ';'             { yyerrok; $$ = NULL; }
+            ;
 
 lista_Expr: lista_Expr ',' lista_item { agregarHijo($1, $3); $$ = $1; }
-    | lista_item { 
-        AbstractExpresion* b = nuevoListaExpresiones();
-        agregarHijo(b, $1);
-        $$ = b;
-    }
-    ;
+            | lista_item { AbstractExpresion* b = nuevoListaExpresiones();agregarHijo(b, $1); $$ = b; };
 
-// Items permitidos en listas: expresiones o inicializadores anidados
-lista_item
-    : expr { $$ = $1; }
-    | inicializador_arreglo { $$ = $1; }
-    ;
+lista_item: expr { $$ = $1; }
+            | inicializador_arreglo { $$ = $1; }
+            ;
 
 bloque: '{' lSentencia '}' { $$ = nuevoBloqueExpresion($2, @1.first_line, @1.first_column); }
-    | '{' '}' { $$ = nuevoBloqueExpresion(NULL, @1.first_line, @1.first_column); }
-    ;
+        | '{' '}' { $$ = nuevoBloqueExpresion(NULL, @1.first_line, @1.first_column); }
+        ;
 
-// REEMPLAZA LA REGLA declaracion_var con esto:
-declaracion_var
-    : tipoPrimitivo declarador_completo {
-        DeclaradorNode* declarador_info = (DeclaradorNode*)$2;
-        $$ = nuevoDeclaracionVariable($1, declarador_info->dimensiones, declarador_info->nombre, declarador_info->inicializador, @2.first_line, @2.first_column);
-        free(declarador_info);
-    }
-    | TOKEN_FINAL tipoPrimitivo declarador_completo {
-        DeclaradorNode* declarador_info = (DeclaradorNode*)$3;
-        AbstractExpresion* decl = nuevoDeclaracionVariable($2, declarador_info->dimensiones, declarador_info->nombre, declarador_info->inicializador, @1.first_line, @1.first_column);
-        // Marcar la declaración como constante
-        ((DeclaracionVariable*)decl)->es_constante = 1;
-        $$ = decl;
-        free(declarador_info);
-    }
-    ;
+declaracion_var:    tipoPrimitivo declarador_completo {
+                        DeclaradorNode* declarador_info = (DeclaradorNode*)$2;
+                        $$ = nuevoDeclaracionVariable($1, declarador_info->dimensiones, declarador_info->nombre, declarador_info->inicializador, @2.first_line, @2.first_column);
+                        free(declarador_info);}
+                    | TOKEN_FINAL tipoPrimitivo declarador_completo {
+                        DeclaradorNode* declarador_info = (DeclaradorNode*)$3;
+                        AbstractExpresion* decl = nuevoDeclaracionVariable($2, declarador_info->dimensiones, declarador_info->nombre, declarador_info->inicializador, @1.first_line, @1.first_column);
+                        ((DeclaracionVariable*)decl)->es_constante = 1;$$ = decl;free(declarador_info);}
+                    ;
 
 
-declarador_completo
-    : corchetes_lista TOKEN_IDENTIFIER corchetes_lista '=' inicializador_arreglo {
-        $$ = nuevoDeclaradorNode($2, $1 + $3, $5);
-    }
-    | corchetes_lista TOKEN_IDENTIFIER corchetes_lista '=' expr {
-        $$ = nuevoDeclaradorNode($2, $1 + $3, $5);
-    }
-    | corchetes_lista TOKEN_IDENTIFIER corchetes_lista {
-        $$ = nuevoDeclaradorNode($2, $1 + $3, NULL);
-    }
-    ; // <--- PUNTO Y COMA AÑADIDO AQUÍ
+declarador_completo: corchetes_lista TOKEN_IDENTIFIER corchetes_lista '=' inicializador_arreglo {
+                        $$ = nuevoDeclaradorNode($2, $1 + $3, $5);}
+                    | corchetes_lista TOKEN_IDENTIFIER corchetes_lista '=' expr {
+                        $$ = nuevoDeclaradorNode($2, $1 + $3, $5);}
+                    | corchetes_lista TOKEN_IDENTIFIER corchetes_lista {
+                        $$ = nuevoDeclaradorNode($2, $1 + $3, NULL);}
+                    ;
 
-corchetes_lista
-    : corchetes_lista '[' ']' { $$ = $1 + 1; }
-    | %empty { $$ = 0; }
-    ;
+corchetes_lista:    corchetes_lista '[' ']' { $$ = $1 + 1; }
+                    | %empty { $$ = 0; }
+                    ;
 
-inicializador_arreglo
-    : '{' lista_Expr '}' { $$ = nuevoInicializadorArreglo($2, @1.first_line, @1.first_column); }
-    | '{' '}' { $$ = nuevoInicializadorArreglo(NULL, @1.first_line, @1.first_column); }
-    ;
+inicializador_arreglo : '{' lista_Expr '}' { $$ = nuevoInicializadorArreglo($2, @1.first_line, @1.first_column); }
+                        | '{' '}' { $$ = nuevoInicializadorArreglo(NULL, @1.first_line, @1.first_column); }
+                        ;
 
 // Cola de declarador para nivel superior (dimensiones derechas y opcional inicializador)
-var_tail
-    : corchetes_lista '=' inicializador_arreglo { $$ = nuevoDeclaradorNode(NULL, $1, $3); }
-    | corchetes_lista '=' expr { $$ = nuevoDeclaradorNode(NULL, $1, $3); }
-    | corchetes_lista { $$ = nuevoDeclaradorNode(NULL, $1, NULL); }
-    ;
+var_tail: corchetes_lista '=' inicializador_arreglo { $$ = nuevoDeclaradorNode(NULL, $1, $3); }
+        | corchetes_lista '=' expr { $$ = nuevoDeclaradorNode(NULL, $1, $3); }
+        | corchetes_lista { $$ = nuevoDeclaradorNode(NULL, $1, NULL); }
+        ;
 
 
 asignacion_expr: TOKEN_IDENTIFIER '=' expr { $$ = nuevoReasignacionExpresion($1, $3, @1.first_line, @1.first_column); }
-    | primary_expr '[' expr ']' '=' expr { $$ = nuevoAsignacionArreglo($1, $3, $6, @5.first_line, @5.first_column); }
-    | TOKEN_IDENTIFIER TOKEN_PLUS_ASSIGN expr  { $$ = nuevoAsignacionCompuestaExpresion($1, '+', $3, @1.first_line, @1.first_column); }
-    | TOKEN_IDENTIFIER TOKEN_MINUS_ASSIGN expr { $$ = nuevoAsignacionCompuestaExpresion($1, '-', $3, @1.first_line, @1.first_column); }
-    | TOKEN_IDENTIFIER TOKEN_MULT_ASSIGN expr  { $$ = nuevoAsignacionCompuestaExpresion($1, '*', $3, @1.first_line, @1.first_column); }
-    | TOKEN_IDENTIFIER TOKEN_DIV_ASSIGN expr   { $$ = nuevoAsignacionCompuestaExpresion($1, '/', $3, @1.first_line, @1.first_column); }
-    | TOKEN_IDENTIFIER TOKEN_MOD_ASSIGN expr   { $$ = nuevoAsignacionCompuestaExpresion($1, '%', $3, @1.first_line, @1.first_column); }
-    | TOKEN_IDENTIFIER TOKEN_AND_ASSIGN expr    { $$ = nuevoAsignacionCompuestaExpresion($1, '&', $3, @1.first_line, @1.first_column); }
-    | TOKEN_IDENTIFIER TOKEN_OR_ASSIGN expr     { $$ = nuevoAsignacionCompuestaExpresion($1, '|', $3, @1.first_line, @1.first_column); }
-    | TOKEN_IDENTIFIER TOKEN_XOR_ASSIGN expr     { $$ = nuevoAsignacionCompuestaExpresion($1, '^', $3, @1.first_line, @1.first_column); }
-    | TOKEN_IDENTIFIER TOKEN_LSHIFT_ASSIGN expr  { $$ = nuevoAsignacionCompuestaExpresion($1, TOKEN_LSHIFT, $3, @1.first_line, @1.first_column); }
-    | TOKEN_IDENTIFIER TOKEN_RSHIFT_ASSIGN expr  { $$ = nuevoAsignacionCompuestaExpresion($1, TOKEN_RSHIFT, $3, @1.first_line, @1.first_column); }
-    | TOKEN_IDENTIFIER TOKEN_URSHIFT_ASSIGN expr { $$ = nuevoAsignacionCompuestaExpresion($1, TOKEN_URSHIFT, $3, @1.first_line, @1.first_column); }
-    ;
+                | primary_expr '[' expr ']' '=' expr { $$ = nuevoAsignacionArreglo($1, $3, $6, @5.first_line, @5.first_column); }
+                | TOKEN_IDENTIFIER TOKEN_PLUS_ASSIGN expr  { $$ = nuevoAsignacionCompuestaExpresion($1, '+', $3, @1.first_line, @1.first_column); }
+                | TOKEN_IDENTIFIER TOKEN_MINUS_ASSIGN expr { $$ = nuevoAsignacionCompuestaExpresion($1, '-', $3, @1.first_line, @1.first_column); }
+                | TOKEN_IDENTIFIER TOKEN_MULT_ASSIGN expr  { $$ = nuevoAsignacionCompuestaExpresion($1, '*', $3, @1.first_line, @1.first_column); }
+                | TOKEN_IDENTIFIER TOKEN_DIV_ASSIGN expr   { $$ = nuevoAsignacionCompuestaExpresion($1, '/', $3, @1.first_line, @1.first_column); }
+                | TOKEN_IDENTIFIER TOKEN_MOD_ASSIGN expr   { $$ = nuevoAsignacionCompuestaExpresion($1, '%', $3, @1.first_line, @1.first_column); }
+                | TOKEN_IDENTIFIER TOKEN_AND_ASSIGN expr    { $$ = nuevoAsignacionCompuestaExpresion($1, '&', $3, @1.first_line, @1.first_column); }
+                | TOKEN_IDENTIFIER TOKEN_OR_ASSIGN expr     { $$ = nuevoAsignacionCompuestaExpresion($1, '|', $3, @1.first_line, @1.first_column); }
+                | TOKEN_IDENTIFIER TOKEN_XOR_ASSIGN expr     { $$ = nuevoAsignacionCompuestaExpresion($1, '^', $3, @1.first_line, @1.first_column); }
+                | TOKEN_IDENTIFIER TOKEN_LSHIFT_ASSIGN expr  { $$ = nuevoAsignacionCompuestaExpresion($1, TOKEN_LSHIFT, $3, @1.first_line, @1.first_column); }
+                | TOKEN_IDENTIFIER TOKEN_RSHIFT_ASSIGN expr  { $$ = nuevoAsignacionCompuestaExpresion($1, TOKEN_RSHIFT, $3, @1.first_line, @1.first_column); }
+                | TOKEN_IDENTIFIER TOKEN_URSHIFT_ASSIGN expr { $$ = nuevoAsignacionCompuestaExpresion($1, TOKEN_URSHIFT, $3, @1.first_line, @1.first_column); }
+                ;
 
 
 expr: asignacion_expr              { $$ = $1; }
@@ -340,51 +271,41 @@ expr: asignacion_expr              { $$ = $1; }
     | primary_expr                 { $$ = $1; }
     ;
 
-// NUEVA REGLA PARA EXPRESIONES PRIMARIAS (las de más alta precedencia)
-primary_expr:
-    '(' expr ')'                    { $$ = $2; }
-    // Asegurar precedencia de casteo: aplica solo al siguiente primary_expr
-    | '(' tipoPrimitivo ')' primary_expr    { $$ = nuevoCasteoExpresion($2, $4, @1.first_line, @1.first_column); }
-    | TOKEN_IDENTIFIER              { $$ = nuevoIdentificadorExpresion($1, @1.first_line, @1.first_column); }
-    | primary_expr '[' expr ']'     { $$ = nuevoAccesoArreglo($1, $3, @2.first_line, @2.first_column); }
-    | expresion_creacion_arreglo    { $$ = $1; }
 
+primary_expr: '(' expr ')'                                  { $$ = $2; }
+            | '(' tipoPrimitivo ')' primary_expr            { $$ = nuevoCasteoExpresion($2, $4, @1.first_line, @1.first_column); }
+            | TOKEN_IDENTIFIER                              { $$ = nuevoIdentificadorExpresion($1, @1.first_line, @1.first_column); }
+            | primary_expr '[' expr ']'                     { $$ = nuevoAccesoArreglo($1, $3, @2.first_line, @2.first_column); }
+            | expresion_creacion_arreglo                    { $$ = $1; }
+            | TOKEN_PARSE_INT '(' expr ')'                  { $$ = nuevoParseIntExpresion($3, @1.first_line, @1.first_column); }
+            | TOKEN_PARSE_FLOAT '(' expr ')'                { $$ = nuevoParseFloatExpresion($3, @1.first_line, @1.first_column); }
+            | TOKEN_PARSE_DOUBLE '(' expr ')'               { $$ = nuevoParseDoubleExpresion($3, @1.first_line, @1.first_column); }
+            | TOKEN_STRING_VALUEOF '(' expr ')'             { $$ = nuevoStringValueofExpresion($3, @1.first_line, @1.first_column); }
+            | TOKEN_STRING_JOIN '(' expr ',' lista_Expr ')' { $$ = nuevoStringJoinExpresion($3, $5, @1.first_line, @1.first_column); }
+            | TOKEN_ARRAYS_INDEXOF '(' expr ',' expr ')'    { $$ = nuevoArraysIndexofExpresion($3, $5, @1.first_line, @1.first_column); }
+            | primary_expr TOKEN_DOT TOKEN_LENGTH           { $$ = nuevoArrayLengthExpresion($1, @2.first_line, @2.first_column); }
+            | TOKEN_ARRAY_ADD '(' expr ',' expr ')'         { $$ = nuevoArrayAddExpresion($3, $5, @1.first_line, @1.first_column); }
+            | TOKEN_IDENTIFIER '(' lista_argumentos_opt ')' { $$ = nuevoLlamadaFuncion($1, $3, @1.first_line, @1.first_column); }
+            | TOKEN_PRINT '(' lista_Expr ')'                { $$ = nuevoPrintExpresion($3, @1.first_line, @1.first_column); }
+            | primitivo                                     { $$ = $1; }
+            | '-' primary_expr %prec NEG                    { $$ = nuevoUnarioExpresion($2, @1.first_line, @1.first_column); }
+            | '!' primary_expr                              { $$ = nuevoNotExpresion($2, @1.first_line, @1.first_column); }
+            | '~' primary_expr                              { $$ = nuevoBitwiseNotExpresion($2, @1.first_line, @1.first_column); }
+            | primary_expr TOKEN_INCREMENTO                 { $$ = nuevoPostfixExpresion($1, TOKEN_INCREMENTO, @2.first_line, @2.first_column); }
+            | primary_expr TOKEN_DECREMENTO                 { $$ = nuevoPostfixExpresion($1, TOKEN_DECREMENTO, @2.first_line, @2.first_column); }
+            | primary_expr TOKEN_DOT TOKEN_IDENTIFIER '(' expr ')' {
+                if (strcmp($3, "equals") == 0) {
+                    $$ = nuevoEqualsExpresion($1, $5, @2.first_line, @2.first_column);
+                } else {
+                    char desc[100];
+                    sprintf(desc, "El método '%s' no está definido.", $3);
+                    yyerror(desc);
+                    $$ = NULL;
+                } free($3);
+            }
+            ;
 
-    | TOKEN_PARSE_INT '(' expr ')'  { $$ = nuevoParseIntExpresion($3, @1.first_line, @1.first_column); }
-    | TOKEN_PARSE_FLOAT '(' expr ')'{ $$ = nuevoParseFloatExpresion($3, @1.first_line, @1.first_column); }
-
-    | TOKEN_PARSE_DOUBLE '(' expr ')'  { $$ = nuevoParseDoubleExpresion($3, @1.first_line, @1.first_column); }
-    | TOKEN_STRING_VALUEOF '(' expr ')' { $$ = nuevoStringValueofExpresion($3, @1.first_line, @1.first_column); }
-    | TOKEN_STRING_JOIN '(' expr ',' lista_Expr ')' { $$ = nuevoStringJoinExpresion($3, $5, @1.first_line, @1.first_column); }
-
-    | TOKEN_ARRAYS_INDEXOF '(' expr ',' expr ')' { $$ = nuevoArraysIndexofExpresion($3, $5, @1.first_line, @1.first_column); }
-    | primary_expr TOKEN_DOT TOKEN_LENGTH        { $$ = nuevoArrayLengthExpresion($1, @2.first_line, @2.first_column); }
-
-    | TOKEN_ARRAY_ADD '(' expr ',' expr ')'      { $$ = nuevoArrayAddExpresion($3, $5, @1.first_line, @1.first_column); }
-
-    | TOKEN_IDENTIFIER '(' lista_argumentos_opt ')' { $$ = nuevoLlamadaFuncion($1, $3, @1.first_line, @1.first_column); }
-    | TOKEN_PRINT '(' lista_Expr ')'{ $$ = nuevoPrintExpresion($3, @1.first_line, @1.first_column); }
-
-    | primitivo                    { $$ = $1; }
-    | '-' primary_expr %prec NEG   { $$ = nuevoUnarioExpresion($2, @1.first_line, @1.first_column); }
-    | '!' primary_expr             { $$ = nuevoNotExpresion($2, @1.first_line, @1.first_column); }
-    | '~' primary_expr             { $$ = nuevoBitwiseNotExpresion($2, @1.first_line, @1.first_column); }
-    | primary_expr TOKEN_INCREMENTO { $$ = nuevoPostfixExpresion($1, TOKEN_INCREMENTO, @2.first_line, @2.first_column); }
-    | primary_expr TOKEN_DECREMENTO { $$ = nuevoPostfixExpresion($1, TOKEN_DECREMENTO, @2.first_line, @2.first_column); }
-    | primary_expr TOKEN_DOT TOKEN_IDENTIFIER '(' expr ')' {
-        if (strcmp($3, "equals") == 0) {
-            $$ = nuevoEqualsExpresion($1, $5, @2.first_line, @2.first_column);
-        } else {
-            char desc[100];
-            sprintf(desc, "El método '%s' no está definido.", $3);
-            yyerror(desc);
-            $$ = NULL;
-        }
-        free($3);
-    }
-    ;
-
-primitivo: TOKEN_INTEGER        { $$ = nuevoPrimitivoExpresion($1, INT, @1.first_line, @1.first_column); }
+primitivo: TOKEN_INTEGER   { $$ = nuevoPrimitivoExpresion($1, INT, @1.first_line, @1.first_column); }
     | TOKEN_HEX_INTEGER    { $$ = nuevoPrimitivoExpresion($1, INT, @1.first_line, @1.first_column); }
     | TOKEN_FLOAT_LIT      { $$ = nuevoPrimitivoExpresion($1, FLOAT, @1.first_line, @1.first_column); }
     | TOKEN_DOUBLE_LIT     { $$ = nuevoPrimitivoExpresion($1, DOUBLE, @1.first_line, @1.first_column); }
@@ -393,8 +314,6 @@ primitivo: TOKEN_INTEGER        { $$ = nuevoPrimitivoExpresion($1, INT, @1.first
     | TOKEN_TRUE           { $$ = nuevoPrimitivoExpresion($1, BOOLEAN, @1.first_line, @1.first_column); }
     | TOKEN_FALSE          { $$ = nuevoPrimitivoExpresion($1, BOOLEAN, @1.first_line, @1.first_column); }
     ;
-
-
 
 
 tipoPrimitivo: TOKEN_DINT     { $$ = INT; }
@@ -406,54 +325,41 @@ tipoPrimitivo: TOKEN_DINT     { $$ = INT; }
     ;
 
 
-
-
 if_stmt: TOKEN_IF '(' expr ')' bloque %prec IFX { 
-            // Regla para un if simple: if (cond) { ... }
             $$ = nuevoIfExpresion($3, $5, NULL, @1.first_line, @1.first_column);
-        }
-    | TOKEN_IF '(' expr ')' bloque TOKEN_ELSE bloque {
-            // Regla para un if-else: if (cond) { ... } else { ... }
+            }
+        | TOKEN_IF '(' expr ')' bloque TOKEN_ELSE bloque {
             $$ = nuevoIfExpresion($3, $5, $7, @1.first_line, @1.first_column);
-        }
-    | TOKEN_IF '(' expr ')' bloque TOKEN_ELSE if_stmt {
-            // Regla para un else-if: if (cond) { ... } else if (...)
+            }
+        | TOKEN_IF '(' expr ')' bloque TOKEN_ELSE if_stmt {
             $$ = nuevoIfExpresion($3, $5, $7, @1.first_line, @1.first_column);
-        }
-    ;
+            }
+            ;
 
 
-// 3. AÑADE ESTA NUEVA REGLA COMPLETA
 while_stmt: TOKEN_WHILE '(' expr ')' bloque {
                 $$ = nuevoWhileExpresion($3, $5, @1.first_line, @1.first_column);
             };
 
 
-
 for_init: declaracion_var { $$ = $1; }
     | expr            { $$ = $1; };
 
-// Regla para la condición y actualización (puede ser expresión o nada)
 for_expr_opt: expr            { $$ = $1; }
             | %empty          { $$ = NULL; };
 
-// Regla principal para la sentencia for
+
 for_stmt:
     TOKEN_FOR '(' for_head ')' bloque {
-        // La regla 'for_head' nos devuelve un nodo de bucle ya construido,
-        // pero sin su bloque. Aquí se lo añadimos.
         AbstractExpresion* for_node = $3;
         if (for_node != NULL) {
-            agregarHijo(for_node, $5);
-        }
+            agregarHijo(for_node, $5);}
         $$ = for_node;
     }
     ;
 
-// Nueva regla auxiliar para el contenido de los paréntesis del for
-// Encabezado del for con factorización por tipo para resolver for-each vs for clásico
+
 for_head:
-    // for-each: for (Tipo dims id dims : expr)
     tipoPrimitivo corchetes_lista TOKEN_IDENTIFIER corchetes_lista ':' expr {
         int total_dims = $2 + $4;
         $$ = nuevoForEachExpresion(
@@ -466,7 +372,6 @@ for_head:
             @1.first_column
         );
     }
-    // for clásico con declaración en init y asignación por inicializador de arreglo
     | tipoPrimitivo corchetes_lista TOKEN_IDENTIFIER corchetes_lista '=' inicializador_arreglo ';' for_expr_opt ';' for_expr_opt {
         int total_dims = $2 + $4;
         AbstractExpresion* decl = nuevoDeclaracionVariable($1, total_dims, $3, $6, @3.first_line, @3.first_column);
@@ -479,7 +384,6 @@ for_head:
             @1.first_column
         );
     }
-    // for clásico con declaración en init y asignación por expresión
     | tipoPrimitivo corchetes_lista TOKEN_IDENTIFIER corchetes_lista '=' expr ';' for_expr_opt ';' for_expr_opt {
         int total_dims = $2 + $4;
         AbstractExpresion* decl = nuevoDeclaracionVariable($1, total_dims, $3, $6, @3.first_line, @3.first_column);
@@ -492,7 +396,6 @@ for_head:
             @1.first_column
         );
     }
-    // for clásico con declaración sin inicialización (permitido, como en Java)
     | tipoPrimitivo corchetes_lista TOKEN_IDENTIFIER corchetes_lista ';' for_expr_opt ';' for_expr_opt {
         int total_dims = $2 + $4;
         AbstractExpresion* decl = nuevoDeclaracionVariable($1, total_dims, $3, NULL, @3.first_line, @3.first_column);
@@ -505,7 +408,6 @@ for_head:
             @1.first_column
         );
     }
-    // for clásico sin declaración de tipo (init es expr o vacío)
     | for_init_opt ';' for_expr_opt ';' for_expr_opt {
         $$ = nuevoForExpresion(
             $1,   // init (expr o NULL)
@@ -519,8 +421,6 @@ for_head:
     ;
 
 
-// Tu regla `for_init` y `for_expr_opt` se quedan igual, solo añadimos esta
-// para manejar el caso de `for(;;)`
 for_init_opt:
     for_init { $$ = $1; }
     | %empty { $$ = NULL; }
@@ -533,9 +433,6 @@ switch_stmt: TOKEN_SWITCH '(' expr ')' '{' case_list '}' {
 
 
 
-
-
-// Regla para una lista de uno o más casos (case o default)
 case_list: case_list case_stmt { agregarHijo($1, $2); $$ = $1; }
         | case_stmt         { 
                                 AbstractExpresion* lista = nuevoListaExpresiones();
@@ -544,56 +441,37 @@ case_list: case_list case_stmt { agregarHijo($1, $2); $$ = $1; }
                             }
         ;
 
-// Regla para un caso individual, ya sea 'case' o 'default'
-case_stmt: TOKEN_CASE expr ':' lSentencia_opt { 
-               // Un 'case' con una expresión y una lista OPCIONAL de sentencias
-            $$ = nuevoCaseExpresion($2, $4, @1.first_line, @1.first_column);
-            }
-        | TOKEN_DEFAULT ':' lSentencia_opt {
-               // El caso 'default' con una lista OPCIONAL de sentencias
-                $$ = nuevoDefaultExpresion($3, @1.first_line, @1.first_column);
-        }
-        ;
-
-
-lSentencia_opt: lSentencia { $$ = $1; } // Si hay sentencias, las usamos.
-              | %empty   { $$ = NULL; } // Si no hay nada, devolvemos NULL.
+case_stmt:  TOKEN_CASE expr ':' lSentencia_opt { $$ = nuevoCaseExpresion($2, $4, @1.first_line, @1.first_column);}
+            | TOKEN_DEFAULT ':' lSentencia_opt { $$ = nuevoDefaultExpresion($3, @1.first_line, @1.first_column); }
             ;
 
 
-expresion_creacion_arreglo
-    : TOKEN_NEW tipoPrimitivo lista_dims_expr dims_vacias {
-        AbstractExpresion* tipo_nodo = nuevoTipoNode($2); // Nodo temporal para pasar el tipo
-        AbstractExpresion* node = nuevoCreacionArreglo(tipo_nodo, $3, @1.first_line, @1.first_column);
-        // Pasamos la cantidad de corchetes vacíos como tercer hijo (primitivo INT)
-        char* numstr = malloc(16);
-        sprintf(numstr, "%d", $4);
-        AbstractExpresion* cnt = nuevoPrimitivoExpresion(numstr, INT, @1.first_line, @1.first_column);
-        agregarHijo(node, cnt);
-        $$ = node;
-    }
-    | TOKEN_NEW tipoPrimitivo lista_dims_expr {
-        AbstractExpresion* tipo_nodo = nuevoTipoNode($2); // Nodo temporal para pasar el tipo
-        $$ = nuevoCreacionArreglo(tipo_nodo, $3, @1.first_line, @1.first_column);
-    }
-    ;
+lSentencia_opt: lSentencia { $$ = $1; } 
+                | %empty   { $$ = NULL; } 
+                ;
 
-lista_dims_expr
-    : lista_dims_expr '[' expr ']' { agregarHijo($1, $3); $$ = $1; }
-    | '[' expr ']' {
-        AbstractExpresion* lista = nuevoListaExpresiones();
-        agregarHijo(lista, $2);
-        $$ = lista;
-    }
-    ;
 
-// Uno o más pares de [] vacíos al final de new tipo[expr][]... para arreglos irregulares
+expresion_creacion_arreglo: TOKEN_NEW tipoPrimitivo lista_dims_expr dims_vacias {
+                                AbstractExpresion* tipo_nodo = nuevoTipoNode($2);
+                                AbstractExpresion* node = nuevoCreacionArreglo(tipo_nodo, $3, @1.first_line, @1.first_column);char* numstr = malloc(16);
+                                sprintf(numstr, "%d", $4);
+                                AbstractExpresion* cnt = nuevoPrimitivoExpresion(numstr, INT, @1.first_line, @1.first_column);agregarHijo(node, cnt);$$ = node;}
+                            | TOKEN_NEW tipoPrimitivo lista_dims_expr {
+                                AbstractExpresion* tipo_nodo = nuevoTipoNode($2);$$ = nuevoCreacionArreglo(tipo_nodo, $3, @1.first_line, @1.first_column);
+                            }
+                            ;
+
+lista_dims_expr: lista_dims_expr '[' expr ']' { agregarHijo($1, $3); $$ = $1; }| '[' expr ']' {
+                    AbstractExpresion* lista = nuevoListaExpresiones();
+                    agregarHijo(lista, $2);
+                    $$ = lista;
+                }
+                ;
+
 dims_vacias
     : dims_vacias '[' ']' { $$ = $1 + 1; }
     | '[' ']' { $$ = 1; }
     ;
-
-
 
 %%
 

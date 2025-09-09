@@ -63,15 +63,20 @@ newline           \n
 "else"                  return TOKEN_ELSE;
 "while"                 return TOKEN_WHILE;
 "for"                   return TOKEN_FOR;
+
+
 "switch"                return TOKEN_SWITCH;
 "case"                  return TOKEN_CASE;
+
+
 "break"                 return TOKEN_BREAK;
 "default"               return TOKEN_DEFAULT;
 "continue"              return TOKEN_CONTINUE;
 "return"                return TOKEN_RETURN;
+
+
 "new"                   return TOKEN_NEW;
 "System.out.println"    return TOKEN_PRINT;
-"print"                 return TOKEN_PRINT;   // Alias para permitir print(...)
 "main"                  return TOKEN_MAIN;
 "Integer.parseInt"      return TOKEN_PARSE_INT;
 "Float.parseFloat"      return TOKEN_PARSE_FLOAT;
@@ -81,9 +86,13 @@ newline           \n
 "Arrays.indexOf"        return TOKEN_ARRAYS_INDEXOF;
 "length"                return TOKEN_LENGTH;
 "Array.add"             return TOKEN_ARRAY_ADD;
+
+
 "public"                return TOKEN_PUBLIC;   
 "static"                return TOKEN_STATIC;   
-"void"                  return TOKEN_VOID;     
+"void"                  return TOKEN_VOID;  
+
+
 "int"                   return TOKEN_DINT;
 "float"                 return TOKEN_DFLOAT;
 "double"                return TOKEN_DDOUBLE;
@@ -93,6 +102,8 @@ newline           \n
 "final"                 return TOKEN_FINAL;
 "true"                  { yylval.string = strdup(yytext); return TOKEN_TRUE; }
 "false"                 { yylval.string = strdup(yytext); return TOKEN_FALSE; }
+
+
 {integer}               { yylval.string = strdup(yytext); return TOKEN_INTEGER; }
 {hex_integer}           { yylval.string = strdup(yytext); return TOKEN_HEX_INTEGER; }
 {float_lit}             { yylval.string = strdup(yytext); return TOKEN_FLOAT_LIT; }
@@ -143,7 +154,7 @@ newline           \n
 "++"               return TOKEN_INCREMENTO;
 "--"               return TOKEN_DECREMENTO;
 
-"-"                { return '-'; }  // Reconoce el token '-' individualmente
+"-"                { return '-'; }
 "."                return TOKEN_DOT;
 
 [+*/%<>()\[\]{};,=.!&|^~:] { return yytext[0]; }
