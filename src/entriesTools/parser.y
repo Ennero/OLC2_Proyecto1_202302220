@@ -461,7 +461,8 @@ expresion_creacion_arreglo: TOKEN_NEW tipoPrimitivo lista_dims_expr dims_vacias 
                             }
                             ;
 
-lista_dims_expr: lista_dims_expr '[' expr ']' { agregarHijo($1, $3); $$ = $1; }| '[' expr ']' {
+lista_dims_expr: lista_dims_expr '[' expr ']' { agregarHijo($1, $3); $$ = $1; }
+                | '[' expr ']' {
                     AbstractExpresion* lista = nuevoListaExpresiones();
                     agregarHijo(lista, $2);
                     $$ = lista;
