@@ -4,15 +4,16 @@
 #include "context/context.h"
 
 // Información sobre un símbolo en el AST
-typedef struct SymbolInfo {
+typedef struct SymbolInfo
+{
     int id;
-    char* name;
-    char* type;
-    char* value;
-    char* context_name;
+    char *name;
+    char *type;
+    char *value;
+    char *context_name;
     int line;
     int column;
-    struct SymbolInfo* next;
+    struct SymbolInfo *next;
 } SymbolInfo;
 
 // Inicializa el reporte de símbolos
@@ -25,9 +26,9 @@ void clear_symbol_report();
 void free_symbol_report();
 
 // Añade un símbolo al reporte
-void add_symbol_to_report(const Symbol* symbol, const char* context_name);
+void add_symbol_to_report(const Symbol *symbol, const char *context_name);
 
 // Obtiene la lista de símbolos
-const SymbolInfo* get_symbol_list();
+const SymbolInfo *get_symbol_list();
 
 #endif

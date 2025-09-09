@@ -3,7 +3,9 @@
 
 #include "ast/AbstractExpresion.h"
 
-typedef struct {
+// Nodo para un bloque de instrucciones
+typedef struct
+{
     AbstractExpresion base;
 } BloqueExpresion;
 

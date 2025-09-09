@@ -5,10 +5,10 @@
 void init_output_buffer();
 
 // Agrega texto al final del búfer
-void append_to_output(const char* text);
+void append_to_output(const char *text);
 
 // Obtiene el contenido actual del búfer
-const char* get_output_buffer();
+const char *get_output_buffer();
 
 // Limpia el búfer para una nueva ejecución
 void clear_output_buffer();

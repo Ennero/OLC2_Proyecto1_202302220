@@ -3,22 +3,22 @@
 #include <stdio.h>
 
 // Etiquetas para los tipos de datos
-char* labelTipoDato[TIPO_COUNT] = {
-    [BOOLEAN]   = "boolean",
-    [CHAR]      = "char",
-    [INT]       = "int",
-    [FLOAT]     = "float",      
-    [DOUBLE]    = "double",
-    [STRING]    = "string",
-    [ARRAY]     = "array",
-    [BREAK_T]   = "<break>",
-    [CONTINUE_T]= "<continue>",
-    [RETURN_T]  = "<return>",
-    [NULO]      = "null"
-};
+char *labelTipoDato[TIPO_COUNT] = {
+    [BOOLEAN] = "boolean",
+    [CHAR] = "char",
+    [INT] = "int",
+    [FLOAT] = "float",
+    [DOUBLE] = "double",
+    [STRING] = "string",
+    [ARRAY] = "array",
+    [BREAK_T] = "<break>",
+    [CONTINUE_T] = "<continue>",
+    [RETURN_T] = "<return>",
+    [NULO] = "null"};
 
 // Crear un nuevo valor de resultado
-Result nuevoValorResultado(void* valor, TipoDato tipo) {
+Result nuevoValorResultado(void *valor, TipoDato tipo)
+{
     Result resultado;
     resultado.tipo = tipo;
     resultado.valor = valor;
@@ -26,7 +26,8 @@ Result nuevoValorResultado(void* valor, TipoDato tipo) {
 }
 
 // Crear un nuevo valor de resultado vacío
-Result nuevoValorResultadoVacio() {
+Result nuevoValorResultadoVacio()
+{
     Result resultado;
     resultado.tipo = NULO;
     resultado.valor = NULL;
@@ -34,10 +35,15 @@ Result nuevoValorResultadoVacio() {
 }
 
 // Determinar el tipo resultante de dos valores
-TipoDato tipoResultante(Result valor1, Result valor2) {
-    if (valor1.tipo >= valor2.tipo) {
+TipoDato tipoResultante(Result valor1, Result valor2)
+{
+    // Si alguno es NULO, el resultado es NULO
+    if (valor1.tipo >= valor2.tipo)
+    {
         return valor1.tipo;
-    } else {
+    }
+    else
+    {
         return valor2.tipo;
     }
 }
