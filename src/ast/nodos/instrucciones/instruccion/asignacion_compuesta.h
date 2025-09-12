@@ -3,10 +3,11 @@
 
 #include "ast/AbstractExpresion.h"
 
-// Estructura para un nodo de asignación compuesta (ej. +=, -=)
-typedef struct {
+// Estructura para un nodo de asignación compuesta
+typedef struct
+{
     AbstractExpresion base;
-    char* nombre;
+    char *nombre;
     int op_type;
     int line;
     int column;

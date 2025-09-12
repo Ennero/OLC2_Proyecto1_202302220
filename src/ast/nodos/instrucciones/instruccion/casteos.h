@@ -5,12 +5,12 @@
 #include "context/context.h"
 
 // Estructura para un nodo de casteo explícito
-typedef struct {
+typedef struct
+{
     AbstractExpresion base;
-    TipoDato tipo_destino; // El tipo al que se quiere castear
+    TipoDato tipo_destino;
 } CasteoExpresion;
 
-// Prototipo del constructor
-AbstractExpresion* nuevoCasteoExpresion(TipoDato tipo_destino, AbstractExpresion* expresion, int line, int column);
+AbstractExpresion *nuevoCasteoExpresion(TipoDato tipo_destino, AbstractExpresion *expresion, int line, int column);
 
 #endif // CASTEOS_H

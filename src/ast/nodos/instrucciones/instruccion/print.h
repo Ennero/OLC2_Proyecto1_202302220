@@ -6,10 +6,12 @@
 #include "context/result.h"
 #include "output_buffer.h"
 
-typedef struct {
+// Estructura para un nodo de impresión
+typedef struct
+{
     AbstractExpresion base;
 } PrintExpresion;
 
-Result interpretPrintExpresion(AbstractExpresion*, Context*);
+Result interpretPrintExpresion(AbstractExpresion *, Context *);
 
 #endif

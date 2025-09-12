@@ -6,7 +6,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "utils/java_num_format.h"
-
 #include "output_buffer.h"
 #include "error_reporter.h"
 #include <stdlib.h>
@@ -26,12 +25,12 @@ static void result_to_string(Result res, char *buffer, size_t size)
         snprintf(buffer, size, "%d", *(int *)res.valor);
         break;
     case FLOAT:
-    // Java Float.toString-like formatting
-    java_format_float(*(float *)res.valor, buffer, size);
+        // Aplicación de formato similar a Java
+        java_format_float(*(float *)res.valor, buffer, size);
         break;
     case DOUBLE:
-    // Java Double.toString-like formatting
-    java_format_double(*(double *)res.valor, buffer, size);
+        // Aplicación de formato similar a Java
+        java_format_double(*(double *)res.valor, buffer, size);
         break;
     case BOOLEAN:
         snprintf(buffer, size, "%s", *(int *)res.valor ? "true" : "false");
@@ -49,42 +48,59 @@ static void result_to_string(Result res, char *buffer, size_t size)
     }
 }
 
-Result interpretPrintExpresion(AbstractExpresion* self, Context* context) {
-    AbstractExpresion* listaExpresiones = self->hijos[0];
-    for (size_t i = 0; i < listaExpresiones->numHijos; ++i) {
+// La función que interpreta una instrucción de impresión
+Result interpretPrintExpresion(AbstractExpresion *self, Context *context)
+{
+    // El primer hijo es la lista de expresiones a imprimir
+    AbstractExpresion *listaExpresiones = self->hijos[0];
+    for (size_t i = 0; i < listaExpresiones->numHijos; ++i)
+    {
         Result res = listaExpresiones->hijos[i]->interpret(listaExpresiones->hijos[i], context);
-
 
         // --- DEBUGGING PRINT ---
         printf("DEBUG [print]: Recibido para imprimir -> Tipo: %s, Puntero a Valor: %p\n", labelTipoDato[res.tipo], res.valor);
-        if (res.valor) {
-            if (res.tipo == BOOLEAN) printf("DEBUG [print]: Valor Booleano es: %s\n", (*(int*)res.valor) ? "true" : "false");
-            if (res.tipo == STRING) printf("DEBUG [print]: Valor String es: '%s'\n", (char*)res.valor);
+        
+        // Imprimir el valor para depuración
+        if (res.valor)
+        {
+            if (res.tipo == BOOLEAN)
+                printf("DEBUG [print]: Valor Booleano es: %s\n", (*(int *)res.valor) ? "true" : "false");
+            if (res.tipo == STRING)
+                printf("DEBUG [print]: Valor String es: '%s'\n", (char *)res.valor);
         }
+        // --------------------------
 
-
-        if (has_semantic_error_been_found()) {
+        // Si hubo un error semántico, salir
+        if (has_semantic_error_been_found())
+        {
             // Liberar solo temporales de primitivos/strings; nunca arreglos (referencias no-propietarias)
-            if (res.valor && res.tipo != ARRAY) free(res.valor);
+            if (res.valor && res.tipo != ARRAY)
+                free(res.valor);
             return nuevoValorResultadoVacio();
         }
 
+        // Convertir el resultado a string y agregarlo al buffer de salida
         char print_buffer[1024];
         result_to_string(res, print_buffer, sizeof(print_buffer));
         append_to_output(print_buffer);
-        
-    if (i < listaExpresiones->numHijos - 1) append_to_output(" ");
 
-    // No liberar arreglos aquí: por convenio, los identificadores de arreglos retornan referencias
-    // y el propietario es la tabla de símbolos/contexto.
-    if (res.valor && res.tipo != ARRAY) free(res.valor);
+        // Si no es el último elemento, agregar un espacio
+        if (i < listaExpresiones->numHijos - 1)
+            append_to_output(" ");
+
+        // Mejor aqui no libero arreglos para evitar errores de doble liberación
+        if (res.valor && res.tipo != ARRAY)
+            free(res.valor);
     }
+    // Al final, agregar un salto de línea
     append_to_output("\n");
     return nuevoValorResultadoVacio();
 }
 
+// El constructor para el nodo de impresión
 AbstractExpresion *nuevoPrintExpresion(AbstractExpresion *listaExpresiones, int line, int column)
 {
+    // Crear un nuevo nodo de impresión
     PrintExpresion *nodo = malloc(sizeof(PrintExpresion));
     if (!nodo)
         return NULL;

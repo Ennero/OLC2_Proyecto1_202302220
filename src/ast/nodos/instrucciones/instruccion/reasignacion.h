@@ -4,11 +4,12 @@
 #include "ast/AbstractExpresion.h"
 
 // Estructura para un nodo de reasignación.
-typedef struct {
+typedef struct
+{
     AbstractExpresion base;
-    char* nombre;
+    char *nombre;
     int line;
     int column;
 } ReasignacionExpresion;
 
-#endif
+#endif // REASIGNACION_H

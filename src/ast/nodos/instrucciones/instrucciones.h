@@ -4,11 +4,12 @@
 #include "ast/AbstractExpresion.h"
 
 // Estructura para un nodo que contiene una lista de instrucciones
-typedef struct {
+typedef struct
+{
     AbstractExpresion base;
 } InstruccionesExpresion;
 
 // Prototipo/declaración del constructor
-AbstractExpresion* nuevoInstruccionesExpresion();
+AbstractExpresion *nuevoInstruccionesExpresion();
 
-#endif //INSTRUCCIONES_H
+#endif // INSTRUCCIONES_H

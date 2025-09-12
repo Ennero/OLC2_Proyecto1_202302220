@@ -1,15 +1,19 @@
-// src/.../transferencia/continue.c
 #include "ast/nodos/builders.h"
 #include <stdlib.h>
 
-// El 'continue' simplemente devuelve un resultado especial
-Result interpretContinueExpresion(AbstractExpresion* self, Context* context) {
-    (void)self; (void)context; // No se usan los parámetros
+// El constructor para el nodo de instrucción de continue
+Result interpretContinueExpresion(AbstractExpresion *self, Context *context)
+{
+    // No se usan los parámetros
+    (void)self;
+    (void)context;
     return nuevoValorResultado(NULL, CONTINUE_T);
 }
 
-AbstractExpresion* nuevoContinueExpresion(int line, int column) {
-    AbstractExpresion* nodo = malloc(sizeof(AbstractExpresion));
+// El constructor para el nodo de instrucción de continue
+AbstractExpresion *nuevoContinueExpresion(int line, int column)
+{
+    AbstractExpresion *nodo = malloc(sizeof(AbstractExpresion));
     buildAbstractExpresion(nodo, interpretContinueExpresion, "ContinueStatement", line, column);
     return nodo;
 }
