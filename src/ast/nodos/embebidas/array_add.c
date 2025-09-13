@@ -1,16 +1,18 @@
-// en: src/ast/nodos/embebidas/array_add.c
 #include "ast/nodos/builders.h"
 #include "context/context.h"
-#include "context/array_value.h" // Necesario para la estructura y funciones de arreglos
+#include "context/array_value.h"
 #include "error_reporter.h"
 #include <stdlib.h>
 #include <string.h>
 
+// Implementa la función Array.add
 Result interpretArrayAdd(AbstractExpresion *self, Context *context)
 {
+    // Hijo 0: arreglo, Hijo 1: nuevo elemento
     Result arr_res = self->hijos[0]->interpret(self->hijos[0], context);
     Result elem_res = self->hijos[1]->interpret(self->hijos[1], context);
 
+    // Validar que el primer argumento sea un arreglo
     if (arr_res.tipo != ARRAY)
     {
         add_error_to_report("Semantico", "Array.add", "El primer argumento debe ser un arreglo.", self->line, self->column, context->nombre_completo);
@@ -19,12 +21,12 @@ Result interpretArrayAdd(AbstractExpresion *self, Context *context)
         return nuevoValorResultadoVacio();
     }
 
+    // Validar compatibilidad de tipos
     ArrayValue *arr_original = (ArrayValue *)arr_res.valor;
 
-    // --- INICIO DE LA LÓGICA DE VALIDACIÓN CORREGIDA ---
-    int tipos_compatibles = 0; // Usaremos esto como un booleano
+    int tipos_compatibles = 0; // Esto será como un booleano
 
-    // CASO 1: El elemento a añadir es un arreglo (ej. una fila a una matriz)
+    // Si el elemento a añadir es un arreglo
     if (elem_res.tipo == ARRAY)
     {
         ArrayValue *elem_arr = (ArrayValue *)elem_res.valor;
@@ -35,7 +37,7 @@ Result interpretArrayAdd(AbstractExpresion *self, Context *context)
             tipos_compatibles = 1;
         }
     }
-    // CASO 2: El elemento a añadir es un primitivo
+    // Si el elemento a añadir es un primitivo
     else
     {
         // Solo es válido si el contenedor es un arreglo de 1D y los tipos base coinciden.
@@ -46,36 +48,41 @@ Result interpretArrayAdd(AbstractExpresion *self, Context *context)
         }
     }
 
+    // Si no son compatibles, reportar error
     if (!tipos_compatibles)
     {
         add_error_to_report("Semantico", "Array.add", "El tipo del nuevo elemento es incompatible con el tipo del arreglo.", self->line, self->column, context->nombre_completo);
-        // No liberar arr_original: no somos dueños (normalmente es referencia desde la tabla de símbolos)
-        if (elem_res.tipo != ARRAY) free(elem_res.valor); // liberar solo temporales primitivos
+        if (elem_res.tipo != ARRAY)
+            free(elem_res.valor); // liberar solo temporales primitivos
         return nuevoValorResultadoVacio();
     }
-    // --- FIN DE LA LÓGICA DE VALIDACIÓN CORREGIDA ---
 
+    // Crear un nuevo arreglo con tamaño +1
     int nuevo_tamano = arr_original->tamano + 1;
     ArrayValue *arr_nuevo = nuevoArray(arr_original->tipo_elemento_base, arr_original->dimensiones_total, nuevo_tamano);
 
-    // Copiamos los elementos antiguos. Ahora la copia debe ser profunda.
+    // Se copian los elementos antiguos
     for (int i = 0; i < arr_original->tamano; i++)
     {
         free(arr_nuevo->valores[i].valor); // Liberar el valor por defecto
 
-        // Hacemos una copia profunda del elemento para evitar compartir punteros.
+        // Se realiza una copia profunda del elemento para evitar compartir punteros.
         if (arr_original->valores[i].tipo == ARRAY)
         {
             arr_nuevo->valores[i] = nuevoValorResultado(copiarArray(arr_original->valores[i].valor), ARRAY);
         }
         else
         {
-            // Copia de primitivos (código que ya tenías en copiarArray)
+            // Copia de primitivos
             arr_nuevo->valores[i].tipo = arr_original->valores[i].tipo;
+
+            // Copia según el tipo
             if (arr_original->valores[i].tipo == STRING)
             {
                 arr_nuevo->valores[i].valor = strdup((char *)arr_original->valores[i].valor);
             }
+
+            // Primitivos numéricos y booleanos
             else
             {
                 size_t size = sizeof(int); // Para INT, CHAR, BOOLEAN
@@ -90,21 +97,24 @@ Result interpretArrayAdd(AbstractExpresion *self, Context *context)
     }
 
     // Añadir el nuevo elemento al final
-    free(arr_nuevo->valores[nuevo_tamano - 1].valor); // liberar valor por defecto
-    if (elem_res.tipo == ARRAY) {
-        // Copia profunda para evitar aliasing con variables existentes (p. ej., agregar una fila existente a una matriz)
-        ArrayValue* copia = copiarArray((ArrayValue*)elem_res.valor);
+    free(arr_nuevo->valores[nuevo_tamano - 1].valor);
+    if (elem_res.tipo == ARRAY)
+    {
+        // Copia profunda para evitar aliasing con variables existentes
+        ArrayValue *copia = copiarArray((ArrayValue *)elem_res.valor);
         arr_nuevo->valores[nuevo_tamano - 1] = nuevoValorResultado(copia, ARRAY);
-        // No liberar elem_res.valor (referencia no-propietaria)
-    } else {
+    }
+    else
+    {
         // Transferir propiedad de primitivos directamente
         arr_nuevo->valores[nuevo_tamano - 1] = elem_res;
     }
 
-    // No liberar el arreglo original aquí; normalmente es una referencia administrada por el contexto.
+    // No liberar el arreglo original aquí
     return nuevoValorResultado(arr_nuevo, ARRAY);
 }
 
+// Constructor para nodo de Array.add
 AbstractExpresion *nuevoArrayAddExpresion(AbstractExpresion *arr_expr, AbstractExpresion *elem_expr, int line, int column)
 {
     AbstractExpresion *nodo = malloc(sizeof(AbstractExpresion));

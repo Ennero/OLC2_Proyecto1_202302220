@@ -5,18 +5,16 @@
 #include <string.h>
 
 Result interpretAccesoArreglo(AbstractExpresion* self, Context* context) {
-    // Aplana el acceso encadenado para evitar recursión profunda y navega iterativamente.
-    // Estructura: ArrayAccess(ArrayAccess(... base ..., idx[i+1]), idx[i])
 
-    // 1) Recolectar todos los índices y encontrar la expresión base
     int depth = 0;
     AbstractExpresion* it = self;
     while (it && strcmp(it->node_type, "ArrayAccess") == 0) {
         depth++;
         it = it->hijos[0];
     }
-    AbstractExpresion* base_expr = it; // Debe producir un ARRAY (p. ej., Identificador)
+    AbstractExpresion* base_expr = it; // Debe producir un ARRAY
 
+    
     AbstractExpresion** idx_nodes = malloc(sizeof(AbstractExpresion*) * (size_t)depth);
     if (!idx_nodes) return nuevoValorResultadoVacio();
     it = self;
@@ -25,7 +23,7 @@ Result interpretAccesoArreglo(AbstractExpresion* self, Context* context) {
         it = it->hijos[0];
     }
 
-    // 2) Evaluar la base una sola vez
+    // Evaluar la base una sola vez
     Result base_res = base_expr->interpret(base_expr, context);
     if (base_res.tipo != ARRAY || base_res.valor == NULL) {
         add_error_to_report("Semantico", "[]", "Se intentó indexar una variable que no es un arreglo.", self->line, self->column, context->nombre_completo);
@@ -36,7 +34,7 @@ Result interpretAccesoArreglo(AbstractExpresion* self, Context* context) {
 
     ArrayValue* current = (ArrayValue*)base_res.valor; // Referencia
 
-    // 3) Aplicar índices desde el más interno al más externo, dejando el último para el retorno
+    // Aplicar índices desde el más interno al más externo, dejando el último para el retorno
     for (int i = depth - 1; i >= 1; --i) {
         Result idx_res = idx_nodes[i]->interpret(idx_nodes[i], context);
         if (idx_res.tipo != INT) {
@@ -45,6 +43,8 @@ Result interpretAccesoArreglo(AbstractExpresion* self, Context* context) {
             free(idx_nodes);
             return nuevoValorResultadoVacio();
         }
+
+        // Índice válido
         int index = *(int*)idx_res.valor;
         free(idx_res.valor);
         if (!current || index < 0 || index >= current->tamano) {
@@ -52,6 +52,8 @@ Result interpretAccesoArreglo(AbstractExpresion* self, Context* context) {
             free(idx_nodes);
             return nuevoValorResultadoVacio();
         }
+
+        // Navegar a la siguiente dimensión
         Result elem = current->valores[index];
         if (elem.tipo != ARRAY || elem.valor == NULL) {
             add_error_to_report("Semantico", "[]", "Se esperaba un sub-arreglo al navegar dimensiones.", self->line, self->column, context->nombre_completo);
@@ -61,7 +63,7 @@ Result interpretAccesoArreglo(AbstractExpresion* self, Context* context) {
         current = (ArrayValue*)elem.valor; // Avanzar a la siguiente dimensión
     }
 
-    // 4) Último índice: retornar el elemento (copia para primitivo, referencia para sub-arreglo)
+    // Último índice retorna el elemento
     Result idx_last = idx_nodes[0]->interpret(idx_nodes[0], context);
     if (idx_last.tipo != INT) {
         add_error_to_report("Semantico", "[]", "El índice de un arreglo debe ser un entero.", self->line, self->column, context->nombre_completo);
@@ -81,8 +83,10 @@ Result interpretAccesoArreglo(AbstractExpresion* self, Context* context) {
     Result elemento = current->valores[index_last];
     Result out;
     out.tipo = elemento.tipo;
+
+    // Hacer copia profunda del valor si no es ARRAY
     if (elemento.tipo == ARRAY) {
-        out.valor = elemento.valor; // Referencia
+        out.valor = elemento.valor;
     } else {
         if (elemento.tipo == STRING) {
             out.valor = elemento.valor ? strdup((char*)elemento.valor) : NULL;
@@ -97,7 +101,7 @@ Result interpretAccesoArreglo(AbstractExpresion* self, Context* context) {
     return out;
 }
 
-
+// Constructor para nodo de acceso a arreglo
 AbstractExpresion* nuevoAccesoArreglo(AbstractExpresion* base, AbstractExpresion* indice, int line, int column) {
     AbstractExpresion* nodo = malloc(sizeof(AbstractExpresion));
     buildAbstractExpresion(nodo, interpretAccesoArreglo, "ArrayAccess", line, column);
