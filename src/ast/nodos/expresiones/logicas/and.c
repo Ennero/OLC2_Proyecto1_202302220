@@ -4,22 +4,21 @@
 #include "context/result.h"
 #include <stdlib.h>
 
-// --- Implementación de la Lógica AND ---
-// El resultado es un nuevo booleano (1 para true, 0 para false)
+// Lógica AND 
 Result logicoAndBooleano(ExpresionLenguaje* self) {
     int* res = malloc(sizeof(int));
+
     // Se realiza la operación AND lógica de C (&&)
     *res = (*((int*)self->izquierda.valor) && *((int*)self->derecha.valor));
     return nuevoValorResultado(res, BOOLEAN);
 }
 
-// --- Tabla de Operaciones para AND ---
-// Solo la combinación booleano con booleano es válida.
+// Tabla de Operaciones 
 Operacion tablaOperacionesAnd[TIPO_COUNT][TIPO_COUNT] = {
     [BOOLEAN][BOOLEAN] = logicoAndBooleano
 };
 
-// --- Constructor del Nodo del AST ---
+//  Constructor del Nodo
 AbstractExpresion* nuevoAndExpresion(AbstractExpresion* izquierda, AbstractExpresion* derecha, int line, int column) {
     ExpresionLenguaje* expr = nuevoExpresionLenguaje(interpretExpresionLenguaje, izquierda, derecha, line, column);
     expr->base.node_type = "And";

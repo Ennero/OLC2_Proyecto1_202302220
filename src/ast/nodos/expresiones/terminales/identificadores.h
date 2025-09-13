@@ -4,14 +4,14 @@
 #include "ast/AbstractExpresion.h"
 
 // Estructura para el nodo Identificador
-typedef struct {
+typedef struct
+{
     AbstractExpresion base;
-    char* nombre;
+    char *nombre;
     int line;
     int column;
 } IdentificadorExpresion;
 
-// Prototipo/declaración del constructor que faltaba
-AbstractExpresion* nuevoIdentificadorExpresion(char* nombre, int line, int column);
+AbstractExpresion *nuevoIdentificadorExpresion(char *nombre, int line, int column);
 
-#endif //IDENTIFICADORES_H
+#endif // IDENTIFICADORES_H

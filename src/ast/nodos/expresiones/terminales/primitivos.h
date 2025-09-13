@@ -1,15 +1,16 @@
-#ifndef PRIMITIVOS_H // <-- CORREGIDO
-#define PRIMITIVOS_H // <-- CORREGIDO
+#ifndef PRIMITIVOS_H
+#define PRIMITIVOS_H
 
 #include "ast/AbstractExpresion.h"
 #include "context/context.h"
 #include "context/result.h"
 
-typedef struct {
+typedef struct
+{
     AbstractExpresion base;
     TipoDato tipo;
-    char* valor;
+    char *valor;
 } PrimitivoExpresion;
 
-Result interpretPrimitivoExpresion(AbstractExpresion*, Context*);
-#endif // PRIMITIVOS_H <-- CORREGIDO
+Result interpretPrimitivoExpresion(AbstractExpresion *, Context *);
+#endif // PRIMITIVOS_H

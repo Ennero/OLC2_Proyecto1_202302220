@@ -5,7 +5,7 @@
 #include "context/array_value.h"
 #include <stdlib.h>
 #include <string.h>
-#include <stdio.h> // <<<< AÑADIDO: Soluciona el warning de 'snprintf'
+#include <stdio.h> 
 
 // Función auxiliar para obtener el tamaño en bytes de nuestros tipos de datos
 static size_t get_type_size(TipoDato tipo)
@@ -21,16 +21,17 @@ static size_t get_type_size(TipoDato tipo)
     case DOUBLE:
         return sizeof(double);
     default:
-        return 0; // String se maneja por separado
+        return 0;
     }
 }
 
-// Función de interpretación (la que ya tenías)
+// Función de interpretación para el nodo Identificador
 Result interpretIdentificadorExpresion(AbstractExpresion *self, Context *context)
 {
     IdentificadorExpresion *nodo = (IdentificadorExpresion *)self;
     Symbol *simbolo = buscarTablaSimbolos(context, nodo->nombre);
 
+    // Si no existe, error
     if (!simbolo)
     {
         char description[256];
@@ -39,23 +40,21 @@ Result interpretIdentificadorExpresion(AbstractExpresion *self, Context *context
         return nuevoValorResultadoVacio();
     }
 
-    // Si la variable es un arreglo, devolvemos la REFERENCIA al arreglo (sin copiar).
-    // Otros nodos (como acceso []) deben tratarlo como referencia sin liberarlo.
+    // Si la variable es un arreglo, devolvemos la referencia al arreglo
     if (simbolo->tipo == ARRAY)
     {
         return nuevoValorResultado(simbolo->info.var.valor, ARRAY);
     }
 
-    // <<<< CORREGIDO: Accedemos al valor a través de la union >>>>
+    // Si el valor es NULL, devolvemos NULL del tipo adecuado
     if (simbolo->info.var.valor == NULL)
     {
         return nuevoValorResultado(NULL, simbolo->tipo);
     }
 
-    // Devolvemos una COPIA del valor, protegiendo la tabla de símbolos.
+    // Devolvemos una copia del valor, protegiendo la tabla de símbolos.
     if (simbolo->tipo == STRING)
     {
-        // <<<< CORREGIDO: Accedemos al valor a través de la union >>>>
         return nuevoValorResultado(strdup((char *)simbolo->info.var.valor), STRING);
     }
     else
@@ -65,13 +64,12 @@ Result interpretIdentificadorExpresion(AbstractExpresion *self, Context *context
         if (!valor_copiado)
             return nuevoValorResultadoVacio();
 
-        // <<<< CORREGIDO: Accedemos al valor a través de la union >>>>
         memcpy(valor_copiado, simbolo->info.var.valor, size);
         return nuevoValorResultado(valor_copiado, simbolo->tipo);
     }
 }
 
-// <<<< FUNCIÓN CONSTRUCTORA AÑADIDA >>>>
+// Función constructora para el nodo Identificador
 AbstractExpresion *nuevoIdentificadorExpresion(char *nombre, int line, int column)
 {
     IdentificadorExpresion *nodo = malloc(sizeof(IdentificadorExpresion));

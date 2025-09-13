@@ -1,4 +1,3 @@
-// en: src/ast/nodos/estructuras/arreglos/acceso_arreglo.c
 #include "ast/nodos/builders.h"
 #include "context/array_value.h"
 #include "error_reporter.h"

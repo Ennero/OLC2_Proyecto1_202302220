@@ -3,9 +3,9 @@
 
 #include "ast/nodos/expresiones/expresiones.h"
 
-/* --- Prototipos de Funciones Aritméticas --- */
+// Declaraciones de funciones para las operaciones aritméticas
 
-// Suma (y Concatenación, manejada en suma.c)
+// Suma (todo se maneja en suma.c)
 extern Operacion tablaOperacionesSuma[TIPO_COUNT][TIPO_COUNT];
 
 // Resta

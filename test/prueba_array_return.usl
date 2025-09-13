@@ -14,6 +14,6 @@ String[] generarReporteFibonacci(int n) {
 }
 
 public static void main(String[] args) {
-    String[] reporte = generarReporteFibonacci(5);
-    print(String.join(", ", reporte));
+    String[] reporte = generarReporteFibonacci(10);
+    System.out.println(String.join(", ", reporte));
 }

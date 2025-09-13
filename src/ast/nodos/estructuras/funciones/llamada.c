@@ -1,19 +1,3 @@
-/*
- * Funcion: interpretLlamadaFuncion
- * Responsabilidad: Ejecutar la semántica de una llamada a función.
- *  - Busca la función en la tabla de símbolos.
- *  - Valida cantidad, tipos y dimensiones de parámetros.
- *  - Enlaza argumentos al nuevo contexto (copy-in para escalares/strings,
- *    referencia prestada para arreglos) y ejecuta el cuerpo.
- *  - Valida el tipo de retorno (incluyendo arreglos) y gestiona ownership
- *    para evitar fugas o doble liberación (deep copy si el arreglo pertenece
- *    al contexto callee).
- * Contrato (resumen):
- *  Entrada: nodo LlamadaFuncion, contexto actual.
- *  Salida: Result con el valor retornado o vacío si es void o hubo error.
- *  Errores: Reporta semánticos por función no declarada, mismatch de
- *           argumentos/retorno, o ausencia de return cuando se espera.
- */
 #include "llamada.h"
 #include "ast/nodos/builders.h"
 #include "context/context.h"
@@ -23,29 +7,48 @@
 #include <stdio.h>
 #include <string.h>
 
-static size_t get_type_size(TipoDato tipo) {
-    switch(tipo) {
-        case INT: case BOOLEAN: case CHAR: return sizeof(int);
-        case FLOAT: return sizeof(float);
-        case DOUBLE: return sizeof(double);
-    default: return 0; // STRING es un puntero; se maneja diferente
+// Función auxiliar para obtener el tamaño en bytes de un tipo base
+static size_t get_type_size(TipoDato tipo)
+{
+    switch (tipo)
+    {
+    case INT:
+    case BOOLEAN:
+    case CHAR:
+        return sizeof(int);
+    case FLOAT:
+        return sizeof(float);
+    case DOUBLE:
+        return sizeof(double);
+    default:
+        return 0; // STRING es un puntero; se maneja diferente
     }
 }
 
-Result interpretLlamadaFuncion(AbstractExpresion* self, Context* context) {
-    LlamadaFuncionNode* nodo = (LlamadaFuncionNode*)self;
-    char* nombre_func = nodo->nombre;
-    AbstractExpresion* argumentos_nodo = (self->numHijos > 0) ? self->hijos[0] : NULL;
+// Función de interpretación para el nodo LlamadaFuncion
+Result interpretLlamadaFuncion(AbstractExpresion *self, Context *context)
+{
+    LlamadaFuncionNode *nodo = (LlamadaFuncionNode *)self;
+    char *nombre_func = nodo->nombre;
+    // El primer hijo (si existe) es la lista de argumentos
+    AbstractExpresion *argumentos_nodo = (self->numHijos > 0) ? self->hijos[0] : NULL;
 
-    Symbol* func_symbol = buscarTablaSimbolos(context, nombre_func);
-    if (!func_symbol || func_symbol->clase != FUNCION) {
-        char desc[100]; sprintf(desc, "La función '%s' no ha sido declarada.", nombre_func);
+    // Buscar la función en la tabla de símbolos
+    Symbol *func_symbol = buscarTablaSimbolos(context, nombre_func);
+
+    // Si no es función o no existe, error
+    if (!func_symbol || func_symbol->clase != FUNCION)
+    {
+        char desc[100];
+        sprintf(desc, "La función '%s' no ha sido declarada.", nombre_func);
         add_error_to_report("Semantico", nombre_func, desc, self->line, self->column, context->nombre_completo);
         return nuevoValorResultadoVacio();
     }
-    
+
+    // Validar número de argumentos
     size_t num_args = argumentos_nodo ? argumentos_nodo->numHijos : 0;
-    if (num_args != func_symbol->info.func.num_parametros) {
+    if (num_args != func_symbol->info.func.num_parametros)
+    {
         char desc[160];
         sprintf(desc, "La funcion '%s' esperaba %zu argumentos, pero recibio %zu.",
                 nombre_func, func_symbol->info.func.num_parametros, num_args);
@@ -53,41 +56,61 @@ Result interpretLlamadaFuncion(AbstractExpresion* self, Context* context) {
         return nuevoValorResultadoVacio();
     }
 
-    Result* argumentos_evaluados = malloc(sizeof(Result) * num_args);
-    for(size_t i = 0; i < num_args; i++) {
+    // Evaluar los argumentos
+    Result *argumentos_evaluados = malloc(sizeof(Result) * num_args);
+    for (size_t i = 0; i < num_args; i++)
+    {
         argumentos_evaluados[i] = argumentos_nodo->hijos[i]->interpret(argumentos_nodo->hijos[i], context);
     }
 
-    Context* func_context = nuevoContext(context, nombre_func);
+    // Crear un nuevo contexto para la función
+    Context *func_context = nuevoContext(context, nombre_func);
     int has_param_error = 0;
-    for(size_t i = 0; i < num_args; i++) {
+
+    // Enlazar argumentos a parámetros en el contexto de la función
+    for (size_t i = 0; i < num_args; i++)
+    {
+        // Obtener el parámetro correspondiente
         Parametro param = func_symbol->info.func.parametros[i];
         Result arg = argumentos_evaluados[i];
 
         // Validacion de tipos de parametro
-        if (param.dimensiones == 0) {
-            // Parametro escalar: el tipo debe coincidir exactamente
-            if (param.tipo != arg.tipo) {
+        if (param.dimensiones == 0) // Si no tiene dimensiones, es escalar (primitivo o string)
+        {
+            // Si no coincide el parametro, error
+            if (param.tipo != arg.tipo)
+            {
                 char desc[200];
                 sprintf(desc, "Tipo de argumento %zu incompatible: se esperaba %s y se recibio %s.",
-                        i+1, labelTipoDato[param.tipo], labelTipoDato[arg.tipo]);
+                        i + 1, labelTipoDato[param.tipo], labelTipoDato[arg.tipo]);
                 add_error_to_report("Semantico", nombre_func, desc, self->line, self->column, context->nombre_completo);
                 has_param_error = 1;
             }
-        } else {
-            // Parametro de tipo arreglo: el argumento debe ser ARRAY y coincidir en base/dimensiones
-            if (arg.tipo != ARRAY) {
+        }
+        // Ahora si el parámetro es arreglo
+        else
+        {
+            // Si el argumento no es un arreglo, error
+            if (arg.tipo != ARRAY)
+            {
                 char desc[200];
                 sprintf(desc, "Tipo de argumento %zu incompatible: se esperaba arreglo de %s y se recibio %s.",
-                        i+1, labelTipoDato[param.tipo], labelTipoDato[arg.tipo]);
+                        i + 1, labelTipoDato[param.tipo], labelTipoDato[arg.tipo]);
                 add_error_to_report("Semantico", nombre_func, desc, self->line, self->column, context->nombre_completo);
                 has_param_error = 1;
-            } else {
-                ArrayValue* av = (ArrayValue*)arg.valor;
-                if (av->tipo_elemento_base != param.tipo || av->dimensiones_total != param.dimensiones) {
+            }
+            // Ahora si sí es arreglo, validar tipo base y dimensiones
+            else
+            {
+                // Extraer info del arreglo
+                ArrayValue *av = (ArrayValue *)arg.valor;
+
+                // Si no coincide tipo base o dimensiones, error
+                if (av->tipo_elemento_base != param.tipo || av->dimensiones_total != param.dimensiones)
+                {
                     char desc[240];
                     sprintf(desc, "Dimensiones/tipo base incompatibles en argumento %zu: esperado %s[%dD], recibido %s[%dD].",
-                            i+1, labelTipoDato[param.tipo], param.dimensiones,
+                            i + 1, labelTipoDato[param.tipo], param.dimensiones,
                             labelTipoDato[av->tipo_elemento_base], av->dimensiones_total);
                     add_error_to_report("Semantico", nombre_func, desc, self->line, self->column, context->nombre_completo);
                     has_param_error = 1;
@@ -96,52 +119,72 @@ Result interpretLlamadaFuncion(AbstractExpresion* self, Context* context) {
         }
 
         // Enlace del argumento al contexto de la funcion
-        // - Escalares y STRING: copia (copy-in)
-        // - Arreglos: por referencia (borrowed), para permitir modificaciones in-place
-        void* valor_bind = NULL;
+        void *valor_bind = NULL;
         TipoDato tipo_variable = (param.dimensiones == 0) ? param.tipo : ARRAY;
-        Symbol* sym_param = NULL;
-        if (tipo_variable == STRING) {
-            valor_bind = strdup((char*)arg.valor);
+        Symbol *sym_param = NULL;
+
+        // Strings se duplican
+        if (tipo_variable == STRING)
+        {
+            valor_bind = strdup((char *)arg.valor);
             sym_param = nuevoVariable(param.nombre, valor_bind, tipo_variable, 0);
-        } else if (tipo_variable == ARRAY) {
+        }
+        // Arreglos se pasan por referencia
+        else if (tipo_variable == ARRAY)
+        {
             valor_bind = arg.valor; // por referencia
             sym_param = nuevoVariable(param.nombre, valor_bind, tipo_variable, 0);
             sym_param->info.var.borrowed = 1; // no liberar en el contexto de la funcion
-        } else {
+        }
+        // Primitivos se copian
+        else
+        {
             size_t size = get_type_size(param.tipo);
             valor_bind = malloc(size);
             memcpy(valor_bind, arg.valor, size);
             sym_param = nuevoVariable(param.nombre, valor_bind, tipo_variable, 0);
         }
+        // Agregar el símbolo al contexto de la función
         agregarSymbol(func_context, sym_param, 0, 0);
     }
-    
-    for(size_t i = 0; i < num_args; i++) {
-        if (argumentos_evaluados[i].tipo != ARRAY) {
+
+    // Liberar los resultados de los argumentos (si no son arreglos, que se pasan por referencia)
+    for (size_t i = 0; i < num_args; i++)
+    {
+        // Si no es arreglo, liberar
+        if (argumentos_evaluados[i].tipo != ARRAY)
+        {
             free(argumentos_evaluados[i].valor);
         }
     }
     free(argumentos_evaluados);
 
     // Si se detectaron errores en los parametros, abortar la llamada
-    if (has_param_error) {
+    if (has_param_error)
+    {
         liberarContext(func_context);
         return nuevoValorResultadoVacio();
     }
 
+    // Ejecutar el cuerpo de la función
     Result res_cuerpo = func_symbol->info.func.cuerpo->interpret(func_symbol->info.func.cuerpo, func_context);
 
-    if (res_cuerpo.tipo == RETURN_T) {
-        Result* res_final_ptr = (Result*)res_cuerpo.valor;
+    // Si la función retornó algo, validar tipo de retorno
+    if (res_cuerpo.tipo == RETURN_T)
+    {
+        // Extraer el resultado real del puntero
+        Result *res_final_ptr = (Result *)res_cuerpo.valor;
         Result res_final = *res_final_ptr;
         free(res_final_ptr);
 
-    if (func_symbol->info.func.tipo_retorno == NULO) {
-        // Funcion void: no debe devolver valor
-            if (res_final.tipo != NULO) {
+        // Validar tipo de retorno
+        if (func_symbol->info.func.tipo_retorno == NULO)
+        {
+            // Funcion void
+            if (res_final.tipo != NULO)
+            {
                 char desc[160];
-        sprintf(desc, "La funcion void '%s' no debe retornar un valor.", nombre_func);
+                sprintf(desc, "La funcion void '%s' no debe retornar un valor.", nombre_func);
                 add_error_to_report("Semantico", nombre_func, desc, self->line, self->column, context->nombre_completo);
                 // descartamos el valor retornado para mantener consistencia
                 free(res_final.valor);
@@ -150,75 +193,111 @@ Result interpretLlamadaFuncion(AbstractExpresion* self, Context* context) {
             }
             liberarContext(func_context);
             return nuevoValorResultadoVacio();
-        } else {
+        }
+        else
+        {
             // Verificación de tipo de retorno considerando arreglos
             int ret_dims = func_symbol->info.func.retorno_dimensiones;
-            if (ret_dims == 0) {
+            if (ret_dims == 0)
+            {
                 // Esperamos escalar del tipo exacto
-                if (res_final.tipo != func_symbol->info.func.tipo_retorno) {
+                if (res_final.tipo != func_symbol->info.func.tipo_retorno)
+                {
                     char desc[200];
-            sprintf(desc, "Tipo de retorno incompatible en '%s': se esperaba %s y se recibio %s.",
-                nombre_func,
-                labelTipoDato[func_symbol->info.func.tipo_retorno],
-                labelTipoDato[res_final.tipo]);
+                    sprintf(desc, "Tipo de retorno incompatible en '%s': se esperaba %s y se recibio %s.",
+                            nombre_func,
+                            labelTipoDato[func_symbol->info.func.tipo_retorno],
+                            labelTipoDato[res_final.tipo]);
                     add_error_to_report("Semantico", nombre_func, desc, self->line, self->column, context->nombre_completo);
-                    if (res_final.valor) { free(res_final.valor); }
+                    if (res_final.valor)
+                    {
+                        free(res_final.valor);
+                    }
                     liberarContext(func_context);
                     return nuevoValorResultadoVacio();
                 }
                 liberarContext(func_context);
                 return res_final;
-            } else {
+            }
+            else
+            {
                 // Esperamos un arreglo de base 'tipo_retorno' y dimensiones 'ret_dims'
-                if (res_final.tipo != ARRAY) {
+                if (res_final.tipo != ARRAY)
+                {
                     char desc[200];
-            sprintf(desc, "Tipo de retorno incompatible en '%s': se esperaba arreglo de %s y se recibio %s.",
-                nombre_func, labelTipoDato[func_symbol->info.func.tipo_retorno], labelTipoDato[res_final.tipo]);
+                    sprintf(desc, "Tipo de retorno incompatible en '%s': se esperaba arreglo de %s y se recibio %s.",
+                            nombre_func, labelTipoDato[func_symbol->info.func.tipo_retorno], labelTipoDato[res_final.tipo]);
                     add_error_to_report("Semantico", nombre_func, desc, self->line, self->column, context->nombre_completo);
+
                     // liberar si corresponde
-                    if (res_final.tipo != ARRAY && res_final.valor) free(res_final.valor);
+                    if (res_final.tipo != ARRAY && res_final.valor)
+                        free(res_final.valor);
                     liberarContext(func_context);
                     return nuevoValorResultadoVacio();
                 }
-                ArrayValue* av = (ArrayValue*)res_final.valor;
-                if (!av || av->tipo_elemento_base != func_symbol->info.func.tipo_retorno || av->dimensiones_total != ret_dims) {
+
+                // Validar tipo base y dimensiones del arreglo retornado
+                ArrayValue *av = (ArrayValue *)res_final.valor;
+                // Si no coincide tipo base o dimensiones, error
+                if (!av || av->tipo_elemento_base != func_symbol->info.func.tipo_retorno || av->dimensiones_total != ret_dims)
+                {
                     char desc[240];
                     sprintf(desc, "Tipo de retorno incompatible en '%s': esperado %s[%dD], recibido %s[%dD].",
                             nombre_func,
                             labelTipoDato[func_symbol->info.func.tipo_retorno], ret_dims,
                             av ? labelTipoDato[av->tipo_elemento_base] : "?",
                             av ? av->dimensiones_total : -1);
+
+                    // Reportar error
                     add_error_to_report("Semantico", nombre_func, desc, self->line, self->column, context->nombre_completo);
                     int owned_by_context_err = 0;
-                    if (res_final.valor != NULL) {
-                        for (Symbol* s = func_context->ultimoSymbol; s != NULL; s = s->anterior) {
-                            if (s->clase == VARIABLE && s->tipo == ARRAY && s->info.var.valor == res_final.valor) {
-                                owned_by_context_err = 1; break;
+
+                    // Ver si el arreglo pertenece a una variable del contexto de la función
+                    if (res_final.valor != NULL)
+                    {
+                        for (Symbol *s = func_context->ultimoSymbol; s != NULL; s = s->anterior)
+                        {
+                            if (s->clase == VARIABLE && s->tipo == ARRAY && s->info.var.valor == res_final.valor)
+                            {
+                                owned_by_context_err = 1;
+                                break;
                             }
                         }
                     }
-                    if (!owned_by_context_err && av) {
+                    // Liberar si no pertenece al contexto de la función
+                    if (!owned_by_context_err && av)
+                    {
                         liberarArray(av);
                     }
                     liberarContext(func_context);
                     return nuevoValorResultadoVacio();
                 }
-                // Si el arreglo retornado pertenece a una variable del contexto de la función,
-        // debemos devolver una copia profunda para evitar use-after-free.
+                // Si el arreglo retornado es una variable del contexto de la función toca devolver una copia profunda para evitar use-after-free
                 int owned_by_context = 0;
-                if (res_final.valor != NULL) {
-                    for (Symbol* s = func_context->ultimoSymbol; s != NULL; s = s->anterior) {
-                        if (s->clase == VARIABLE && s->tipo == ARRAY && s->info.var.valor == res_final.valor) {
-                            owned_by_context = 1; break;
+                if (res_final.valor != NULL)
+                {
+                    // Ver si el arreglo pertenece a una variable del contexto de la función
+                    for (Symbol *s = func_context->ultimoSymbol; s != NULL; s = s->anterior)
+                    {
+                        // Si encontramos el símbolo y su valor es el arreglo retornado
+                        if (s->clase == VARIABLE && s->tipo == ARRAY && s->info.var.valor == res_final.valor)
+                        {
+                            owned_by_context = 1;
+                            break;
                         }
                     }
                 }
-                if (owned_by_context) {
-                    ArrayValue* copia = copiarArray(av);
+
+                // Si pertenece al contexto de la función, hacemos una copia profunda para devolver
+                if (owned_by_context)
+                {
+                    ArrayValue *copia = copiarArray(av);
                     // El original será liberado al liberar el contexto de la función
                     liberarContext(func_context);
                     return nuevoValorResultado(copia, ARRAY);
-                } else {
+                }
+                else
+                {
                     // Transferimos ownership del temporal al llamador
                     liberarContext(func_context);
                     return res_final;
@@ -226,14 +305,17 @@ Result interpretLlamadaFuncion(AbstractExpresion* self, Context* context) {
             }
         }
     }
-    
+
     // Si la funcion no tuvo return:
-    // - si es void (NULO), esta bien y devuelve vacio;
-    // - si no es void, reportamos error de falta de retorno.
-    if (func_symbol->info.func.tipo_retorno == NULO) {
+    // Si es void (NULO), esta bien y devuelve vacio;
+    if (func_symbol->info.func.tipo_retorno == NULO)
+    {
         liberarContext(func_context);
         return nuevoValorResultadoVacio();
-    } else {
+    }
+    // Si no es void, reportamos error de falta de retorno.
+    else
+    {
         char desc[160];
         sprintf(desc, "La funcion '%s' debe retornar un valor de tipo %s.", nombre_func, labelTipoDato[func_symbol->info.func.tipo_retorno]);
         add_error_to_report("Semantico", nombre_func, desc, self->line, self->column, context->nombre_completo);
@@ -242,12 +324,15 @@ Result interpretLlamadaFuncion(AbstractExpresion* self, Context* context) {
     }
 }
 
-AbstractExpresion* nuevoLlamadaFuncion(char* nombre, AbstractExpresion* args, int line, int column) {
-    LlamadaFuncionNode* nodo = malloc(sizeof(LlamadaFuncionNode));
+// Constructor del nodo LlamadaFuncion
+AbstractExpresion *nuevoLlamadaFuncion(char *nombre, AbstractExpresion *args, int line, int column)
+{
+    LlamadaFuncionNode *nodo = malloc(sizeof(LlamadaFuncionNode));
     buildAbstractExpresion(&nodo->base, interpretLlamadaFuncion, "FunctionCall", line, column);
     nodo->nombre = nombre;
-    if (args) {
-        agregarHijo((AbstractExpresion*)nodo, args);
+    if (args)
+    {
+        agregarHijo((AbstractExpresion *)nodo, args);
     }
-    return (AbstractExpresion*)nodo;
+    return (AbstractExpresion *)nodo;
 }

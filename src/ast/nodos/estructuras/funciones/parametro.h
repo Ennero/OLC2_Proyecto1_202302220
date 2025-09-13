@@ -1,10 +1,14 @@
 #ifndef PARAMETRO_H
 #define PARAMETRO_H
+
 #include "ast/AbstractExpresion.h"
-typedef struct {
+
+typedef struct
+{
     AbstractExpresion base;
     TipoDato tipo;
     int dimensiones;
-    char* nombre;
+    char *nombre;
 } ParametroNode;
-#endif
+
+#endif // PARAMETRO_H

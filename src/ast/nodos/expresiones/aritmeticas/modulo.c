@@ -4,8 +4,9 @@
 #include "context/result.h"
 #include "error_reporter.h"
 #include <stdlib.h>
-#include <math.h> // <<<< IMPORTANTE: Se necesita para fmod y fmodf
+#include <math.h>
 
+// Funciones de Módulo Numérico -----------------
 Result moduloIntInt(ExpresionLenguaje* self) {
     int divisor = *((int*)self->derecha.valor);
     if (divisor == 0) {
@@ -16,7 +17,6 @@ Result moduloIntInt(ExpresionLenguaje* self) {
     *res = *((int*)self->izquierda.valor) % divisor;
     return nuevoValorResultado(res, INT);
 }
-
 Result moduloFloatFloat(ExpresionLenguaje* self) {
     float divisor = *((float*)self->derecha.valor);
     if (divisor == 0.0f) {
@@ -27,7 +27,6 @@ Result moduloFloatFloat(ExpresionLenguaje* self) {
     *res = fmodf(*((float*)self->izquierda.valor), divisor);
     return nuevoValorResultado(res, FLOAT);
 }
-
 Result moduloDoubleDouble(ExpresionLenguaje* self) {
     double divisor = *((double*)self->derecha.valor);
     if (divisor == 0.0) {
@@ -38,7 +37,6 @@ Result moduloDoubleDouble(ExpresionLenguaje* self) {
     *res = fmod(*((double*)self->izquierda.valor), divisor);
     return nuevoValorResultado(res, DOUBLE);
 }
-
 Result moduloIntFloat(ExpresionLenguaje* self) {
     float divisor = *((float*)self->derecha.valor);
     if (divisor == 0.0f) { add_error_to_report("Semántico", "%", "Módulo por cero.", self->base.line, self->base.column, NULL); return nuevoValorResultadoVacio(); }
@@ -46,7 +44,6 @@ Result moduloIntFloat(ExpresionLenguaje* self) {
     *res = fmodf((float)(*((int*)self->izquierda.valor)), divisor);
     return nuevoValorResultado(res, FLOAT);
 }
-
 Result moduloFloatInt(ExpresionLenguaje* self) {
     int divisor = *((int*)self->derecha.valor);
     if (divisor == 0) { add_error_to_report("Semántico", "%", "Módulo por cero.", self->base.line, self->base.column, NULL); return nuevoValorResultadoVacio(); }
@@ -54,7 +51,6 @@ Result moduloFloatInt(ExpresionLenguaje* self) {
     *res = fmodf(*((float*)self->izquierda.valor), (float)divisor);
     return nuevoValorResultado(res, FLOAT);
 }
-
 Result moduloIntDouble(ExpresionLenguaje* self) {
     double divisor = *((double*)self->derecha.valor);
     if (divisor == 0.0) { add_error_to_report("Semántico", "%", "Módulo por cero.", self->base.line, self->base.column, NULL); return nuevoValorResultadoVacio(); }
@@ -62,7 +58,6 @@ Result moduloIntDouble(ExpresionLenguaje* self) {
     *res = fmod((double)(*((int*)self->izquierda.valor)), divisor);
     return nuevoValorResultado(res, DOUBLE);
 }
-
 Result moduloDoubleInt(ExpresionLenguaje* self) {
     int divisor = *((int*)self->derecha.valor);
     if (divisor == 0) { add_error_to_report("Semántico", "%", "Módulo por cero.", self->base.line, self->base.column, NULL); return nuevoValorResultadoVacio(); }
@@ -70,7 +65,6 @@ Result moduloDoubleInt(ExpresionLenguaje* self) {
     *res = fmod(*((double*)self->izquierda.valor), (double)divisor);
     return nuevoValorResultado(res, DOUBLE);
 }
-
 Result moduloFloatDouble(ExpresionLenguaje* self) {
     double divisor = *((double*)self->derecha.valor);
     if (divisor == 0.0) { add_error_to_report("Semántico", "%", "Módulo por cero.", self->base.line, self->base.column, NULL); return nuevoValorResultadoVacio(); }
@@ -78,7 +72,6 @@ Result moduloFloatDouble(ExpresionLenguaje* self) {
     *res = fmod((double)(*((float*)self->izquierda.valor)), divisor);
     return nuevoValorResultado(res, DOUBLE);
 }
-
 Result moduloDoubleFloat(ExpresionLenguaje* self) {
     float divisor = *((float*)self->derecha.valor);
     if (divisor == 0.0f) { add_error_to_report("Semántico", "%", "Módulo por cero.", self->base.line, self->base.column, NULL); return nuevoValorResultadoVacio(); }
@@ -87,6 +80,7 @@ Result moduloDoubleFloat(ExpresionLenguaje* self) {
     return nuevoValorResultado(res, DOUBLE);
 }
 
+// Tabla de Operaciones --------------------------
 Operacion tablaOperacionesModulo[TIPO_COUNT][TIPO_COUNT] = {
     [INT][INT] = moduloIntInt,
     [FLOAT][FLOAT] = moduloFloatFloat,
@@ -98,16 +92,16 @@ Operacion tablaOperacionesModulo[TIPO_COUNT][TIPO_COUNT] = {
     [FLOAT][DOUBLE] = moduloFloatDouble,
     [DOUBLE][FLOAT] = moduloDoubleFloat,
 
-    // Nuevas operaciones para CHAR
     [CHAR][CHAR] = moduloIntInt,
     [CHAR][INT] = moduloIntInt,
     [INT][CHAR] = moduloIntInt,
-    [CHAR][FLOAT] = moduloFloatInt, // Izquierda se promueve a float
+    [CHAR][FLOAT] = moduloFloatInt, 
     [FLOAT][CHAR] = moduloFloatInt,
-    [CHAR][DOUBLE] = moduloDoubleInt, // Izquierda se promueve a double
+    [CHAR][DOUBLE] = moduloDoubleInt,
     [DOUBLE][CHAR] = moduloDoubleInt
 };
 
+// Constructor del Nodo
 AbstractExpresion* nuevoModuloExpresion(AbstractExpresion* izquierda, AbstractExpresion* derecha, int line, int column) {
     ExpresionLenguaje* expr = nuevoExpresionLenguaje(interpretExpresionLenguaje, izquierda, derecha, line, column);
     expr->base.node_type = "Modulo";

@@ -1,4 +1,3 @@
-// en: src/ast/nodos/estructuras/arreglos/inicializador_arreglo.h
 #ifndef INICIALIZADOR_ARREGLO_H
 #define INICIALIZADOR_ARREGLO_H
 
@@ -6,13 +5,11 @@
 #include "context/array_value.h"
 #include "ast/nodos/instrucciones/instruccion/declaracion.h"
 
-// --- FIRMA CORREGIDA ---
-ArrayValue* construirDesdeInicializador(
-    DeclaracionVariable* decl_node, // <-- CAMBIO AQUÍ
-    Context* context, 
-    AbstractExpresion* current_list, 
-    TipoDato tipo_esperado, 
-    int dimension_esperada
-);
+ArrayValue *construirDesdeInicializador(
+    DeclaracionVariable *decl_node,
+    Context *context,
+    AbstractExpresion *current_list,
+    TipoDato tipo_esperado,
+    int dimension_esperada);
 
 #endif // INICIALIZADOR_ARREGLO_H
