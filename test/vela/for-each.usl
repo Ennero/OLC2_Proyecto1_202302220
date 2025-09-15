@@ -1,0 +1,62 @@
+  public static void main(String[] args) {
+// ===== PRUEBAS DE FOR-EACH =====
+
+// Test 1: For-each con vector
+int[] numeros = {1, 2, 3, 4, 5};
+
+System.out.println("=== FOR-EACH CON VECTOR ===");
+for (int n : numeros) {
+    System.out.println("Elemento: " + n);
+}
+
+// Test 2: For-each con matriz
+int[][] matriz = {
+    {10, 20, 30},
+    {40, 50, 60}
+};
+
+System.out.println("=== FOR-EACH CON MATRIZ ===");
+for (int elemento : matriz) {
+    System.out.println("Elemento de matriz: " + elemento);
+}
+
+// Test 3: For-each con array 3D
+int[][][] cubo = {
+    {{1, 2}, {3, 4}},
+    {{5, 6}, {7, 8}}
+};
+
+System.out.println("=== FOR-EACH CON ARRAY 3D ===");
+for (int valor : cubo) {
+    System.out.println("Valor del cubo: " + valor);
+}
+
+// Test 4: For-each con diferentes tipos
+float[] decimales = {1.5f, 2.7f, 3.14f};
+
+System.out.println("=== FOR-EACH CON FLOATS ===");
+for (float f : decimales) {
+    System.out.println("Decimal: " + f);
+}
+
+// Test 5: For-each con break
+System.out.println("=== FOR-EACH CON BREAK ===");
+for (int num : numeros) {
+    if (num == 3) {
+        System.out.println("Encontrado 3, saliendo...");
+        break;
+    }
+    System.out.println("Procesando: " + num);
+}
+
+// Test 6: For-each con continue
+System.out.println("=== FOR-EACH CON CONTINUE ===");
+for (int num : numeros) {
+    if (num % 2 == 0) {
+        continue;  // Saltar números pares
+    }
+    System.out.println("Número impar: " + num);
+}
+
+System.out.println("=== PRUEBAS FOR-EACH COMPLETADAS ===");
+  }
