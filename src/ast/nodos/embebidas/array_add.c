@@ -5,7 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-// Implementa la función Array.add
+// Implementa el método de instancia .add (arreglo.add(valor))
 Result interpretArrayAdd(AbstractExpresion *self, Context *context)
 {
     // Hijo 0: arreglo, Hijo 1: nuevo elemento
@@ -114,7 +114,7 @@ Result interpretArrayAdd(AbstractExpresion *self, Context *context)
     return nuevoValorResultado(arr_nuevo, ARRAY);
 }
 
-// Constructor para nodo de Array.add
+// Constructor para nodo de .add (ArrayAdd)
 AbstractExpresion *nuevoArrayAddExpresion(AbstractExpresion *arr_expr, AbstractExpresion *elem_expr, int line, int column)
 {
     AbstractExpresion *nodo = malloc(sizeof(AbstractExpresion));

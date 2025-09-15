@@ -169,7 +169,7 @@ primary_expr: '(' expr ')'
             | TOKEN_STRING_JOIN '(' expr ',' lista_Expr ')' 
             | TOKEN_ARRAYS_INDEXOF '(' expr ',' expr ')'   
             | primary_expr TOKEN_DOT TOKEN_LENGTH           
-            | TOKEN_ARRAY_ADD '(' expr ',' expr ')'         
+            /* soporte de método de instancia: primary_expr . IDENT '(' expr ')' para add/equals */        
             | TOKEN_IDENTIFIER '(' lista_argumentos_opt ')' 
             | TOKEN_PRINT '(' lista_Expr ')'                
             | primitivo                                     
@@ -447,8 +447,8 @@ public static void main(String[] args) {
     int[] numeros = {10, 20, 30, 20, 40};
     System.out.println("Arrays.indexOf(20): " + Arrays.indexOf(numeros, 20));
     
-    numeros = Array.add(numeros, 50);
-    System.out.println("Array.add: Nuevo tamaño: " + numeros.length);
+    numeros = numeros.add(50);
+    System.out.println(".add(): Nuevo tamaño: " + numeros.length);
 
     // --- 6. CASTEO Y STRINGS ---
     imprimirSeparador();

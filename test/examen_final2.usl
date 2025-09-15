@@ -57,9 +57,9 @@ void generarReporte(String[] items, int[][] datos) {
         // Uso de casteo y operaciones
         double promedio = (double)totalVentas / ventas.length;
         
-        // Uso de Array.add y String.join
+    // Uso de add y String.join
         String lineaReporte = String.join(": ", item, "Total=" + totalVentas, "Promedio=" + promedio);
-        reportes = Array.add(reportes, lineaReporte);
+    reportes = reportes.add(lineaReporte);
     }
     
     for (String reporte : reportes) {

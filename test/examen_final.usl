@@ -49,7 +49,7 @@ void procesarReporte(String[] nombres, int[][] notas) {
         }
 
         String reporte = String.join(" - ", nombre, "Prom: " + promedio, "Min: " + notaMinima, "Estado: " + estado);
-        resumenGeneral = Array.add(resumenGeneral, reporte);
+    resumenGeneral = resumenGeneral.add(reporte);
     }
     
     System.out.println("--- Reporte Final de Estudiantes ---");
@@ -97,9 +97,9 @@ public static void main(String[] args) {
         {100, 95, 98}  // Notas de Eva
     };
 
-    estudiantes = Array.add(estudiantes, "Carlos");
+    estudiantes = estudiantes.add("Carlos");
     int[] notasCarlos = {Integer.parseInt("88"), 92, 79};
-    notasPorEstudiante = Array.add(notasPorEstudiante, notasCarlos);
+    notasPorEstudiante = notasPorEstudiante.add(notasCarlos);
     
     System.out.println("Numero total de estudiantes: " + estudiantes.length);
 

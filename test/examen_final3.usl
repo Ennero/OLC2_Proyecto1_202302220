@@ -38,8 +38,8 @@ int fibonacci(int n) {
 String[] generarReporteFibonacci(int terminos) {
     String[] reporteFinal = {}; // Arreglo vacío
     
-    reporteFinal = Array.add(reporteFinal, "Reporte de Secuencia Fibonacci");
-    reporteFinal = Array.add(reporteFinal, "--------------------------------");
+    reporteFinal = reporteFinal.add("Reporte de Secuencia Fibonacci");
+    reporteFinal = reporteFinal.add("--------------------------------");
 
     for (int i = 0; i < terminos; i = i + 1) {
         int resultado = fibonacci(i);
@@ -50,14 +50,14 @@ String[] generarReporteFibonacci(int terminos) {
             linea = linea + " (Par)";
         }
         
-        reporteFinal = Array.add(reporteFinal, linea);
+    reporteFinal = reporteFinal.add(linea);
     }
     
     // Añadimos una línea final usando String.join
     String[] footerItems = {"Calculo", "finalizado"};
     String footer = String.join(" ", footerItems);
-    reporteFinal = Array.add(reporteFinal, "--------------------------------");
-    reporteFinal = Array.add(reporteFinal, footer);
+    reporteFinal = reporteFinal.add("--------------------------------");
+    reporteFinal = reporteFinal.add(footer);
 
     return reporteFinal;
 }
