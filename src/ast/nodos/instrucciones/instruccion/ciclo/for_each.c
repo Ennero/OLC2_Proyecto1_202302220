@@ -103,12 +103,19 @@ Result interpretForEach(AbstractExpresion *self, Context *context)
             agregarSymbol(for_context, nuevoVariable(nodo->nombre_var, valor_copiado, tipo_variable_en_scope, 0), nodo->line, nodo->column);
         }
 
-        // Ejecutar el bloque
+        // Antes de ejecutar el cuerpo, marcar el contexto como breakable/continuable
+        for_context->breakable_depth++;
+        for_context->continuable_depth++;
+
+        // Ejecutar el bloque del cuerpo
         result_bloque = self->hijos[1]->interpret(self->hijos[1], for_context);
 
         // Manejo de continue
         if (result_bloque.tipo == CONTINUE_T)
         {
+            // Salir del contexto de control del bucle
+            for_context->breakable_depth--;
+            for_context->continuable_depth--;
             free(result_bloque.valor);
             result_bloque = nuevoValorResultadoVacio();
             continue;
@@ -116,8 +123,15 @@ Result interpretForEach(AbstractExpresion *self, Context *context)
         // Manejo de break y return
         if (result_bloque.tipo == BREAK_T || result_bloque.tipo == RETURN_T)
         {
+            // Salir del contexto de control del bucle
+            for_context->breakable_depth--;
+            for_context->continuable_depth--;
             break;
         }
+
+        // Salir del contexto de control del bucle
+    for_context->breakable_depth--;
+    for_context->continuable_depth--;
 
         free(result_bloque.valor);
         result_bloque = nuevoValorResultadoVacio();
