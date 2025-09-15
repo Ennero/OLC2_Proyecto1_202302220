@@ -85,7 +85,6 @@ newline           \n
 "String.join"           return TOKEN_STRING_JOIN;
 "Arrays.indexOf"        return TOKEN_ARRAYS_INDEXOF;
 "length"                return TOKEN_LENGTH;
-"Array.add"             return TOKEN_ARRAY_ADD;
 
 
 "public"                return TOKEN_PUBLIC;   

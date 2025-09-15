@@ -15,7 +15,7 @@ Result interpretArrayAdd(AbstractExpresion *self, Context *context)
     // Validar que el primer argumento sea un arreglo
     if (arr_res.tipo != ARRAY)
     {
-        add_error_to_report("Semantico", "Array.add", "El primer argumento debe ser un arreglo.", self->line, self->column, context->nombre_completo);
+        add_error_to_report("Semantico", ".add", "El primer argumento debe ser un arreglo.", self->line, self->column, context->nombre_completo);
         free(arr_res.valor);
         free(elem_res.valor);
         return nuevoValorResultadoVacio();
@@ -51,7 +51,7 @@ Result interpretArrayAdd(AbstractExpresion *self, Context *context)
     // Si no son compatibles, reportar error
     if (!tipos_compatibles)
     {
-        add_error_to_report("Semantico", "Array.add", "El tipo del nuevo elemento es incompatible con el tipo del arreglo.", self->line, self->column, context->nombre_completo);
+        add_error_to_report("Semantico", ".add", "El tipo del nuevo elemento es incompatible con el tipo del arreglo.", self->line, self->column, context->nombre_completo);
         if (elem_res.tipo != ARRAY)
             free(elem_res.valor); // liberar solo temporales primitivos
         return nuevoValorResultadoVacio();

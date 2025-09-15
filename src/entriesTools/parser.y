@@ -93,7 +93,7 @@
 %token TOKEN_NEW
 %token TOKEN_PARSE_INT TOKEN_PARSE_FLOAT
 %token TOKEN_PARSE_DOUBLE TOKEN_STRING_VALUEOF TOKEN_STRING_JOIN
-%token TOKEN_ARRAYS_INDEXOF TOKEN_LENGTH TOKEN_ARRAY_ADD
+%token TOKEN_ARRAYS_INDEXOF TOKEN_LENGTH
 
 
 
@@ -284,7 +284,6 @@ primary_expr: '(' expr ')'                                  { $$ = $2; }
             | TOKEN_STRING_JOIN '(' expr ',' lista_Expr ')' { $$ = nuevoStringJoinExpresion($3, $5, @1.first_line, @1.first_column); }
             | TOKEN_ARRAYS_INDEXOF '(' expr ',' expr ')'    { $$ = nuevoArraysIndexofExpresion($3, $5, @1.first_line, @1.first_column); }
             | primary_expr TOKEN_DOT TOKEN_LENGTH           { $$ = nuevoArrayLengthExpresion($1, @2.first_line, @2.first_column); }
-            | TOKEN_ARRAY_ADD '(' expr ',' expr ')'         { $$ = nuevoArrayAddExpresion($3, $5, @1.first_line, @1.first_column); }
             | TOKEN_IDENTIFIER '(' lista_argumentos_opt ')' { $$ = nuevoLlamadaFuncion($1, $3, @1.first_line, @1.first_column); }
             | TOKEN_PRINT '(' lista_Expr ')'                { $$ = nuevoPrintExpresion($3, @1.first_line, @1.first_column); }
             | primitivo                                     { $$ = $1; }
@@ -296,12 +295,18 @@ primary_expr: '(' expr ')'                                  { $$ = $2; }
             | primary_expr TOKEN_DOT TOKEN_IDENTIFIER '(' expr ')' {
                 if (strcmp($3, "equals") == 0) {
                     $$ = nuevoEqualsExpresion($1, $5, @2.first_line, @2.first_column);
+                    free($3);
+                } else if (strcmp($3, "add") == 0) {
+                    // Soporta sintaxis estilo Java para arreglos: arr.add(valor)
+                    $$ = nuevoArrayAddExpresion($1, $5, @2.first_line, @2.first_column);
+                    free($3);
                 } else {
                     char desc[100];
                     sprintf(desc, "El método '%s' no está definido.", $3);
                     yyerror(desc);
                     $$ = NULL;
-                } free($3);
+                    free($3);
+                }
             }
             ;
 
