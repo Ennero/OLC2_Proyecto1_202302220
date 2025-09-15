@@ -43,12 +43,12 @@ public static void main(String[] args) {
     // dependiendo de cómo tu intérprete maneje el valor de retorno de una expresión fallida.
     
     // Intentar parsear un texto no numérico
-    int error1 = Integer.parseInt("Hola Mundo");
-    System.out.println("Si ves este mensaje, el programa continuo despues de un error de parseo de entero.");
+    //int error1 = Integer.parseInt("Hola Mundo");
+    //System.out.println("Si ves este mensaje, el programa continuo despues de un error de parseo de entero.");
 
     // Intentar parsear un flotante con formato incorrecto
-    float error2 = Float.parseFloat("99.99.99");
-    System.out.println("Si ves este mensaje, el programa continuo despues de un error de parseo de flotante.");
+    //float error2 = Float.parseFloat("99.99.99");
+    //System.out.println("Si ves este mensaje, el programa continuo despues de un error de parseo de flotante.");
     
     // Intentar pasar un tipo de dato incorrecto (un entero en lugar de un string)
     // int error3 = Integer.parseInt(123); // Esto debería generar un error semántico

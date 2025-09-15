@@ -34,13 +34,5 @@ public static void main(String[] args) {
     }
     System.out.println("----------------------------------------");
     
-    // Prueba 5: Ciclo 'for' sin inicialización ni actualización (actúa como un 'while')
-    System.out.println("Prueba 5: 'for' actuando como 'while'");
-    int w = 3;
-    for (; w > 0 ;) {
-        System.out.println(w);
-        w = w - 1;
-    }
-    
     System.out.println("--- Pruebas de Ciclo For Finalizadas ---");
 }

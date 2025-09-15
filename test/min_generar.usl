@@ -10,8 +10,10 @@ void generarReporte(String[] items, int[][] datos) {
         String lineaReporte = String.join(": ", item, "Total=" + totalVentas, "Promedio=" + promedio);
     reportes = reportes.add(lineaReporte);
     }
-
-    // No imprimir reportes para aislar crash
+    
+    for (String reporte : reportes){
+    	System.out.println(reporte);
+    }
 }
 
 public static void main(String[] args) {
