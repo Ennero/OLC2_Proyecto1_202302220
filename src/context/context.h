@@ -67,6 +67,9 @@ struct Context
     Symbol *ultimoSymbol;
     Context *raiz;         // Puntero al contexto raíz (global)
     int proximo_id_bloque; // Contador utilizado por la raíz (si se requiere)
+    // Profundidad de regiones que permiten 'break' y 'continue'
+    int breakable_depth;    // >0 cuando estamos dentro de while/for/switch
+    int continuable_depth;  // >0 cuando estamos dentro de while/for
 };
 
 // Se actualizan las firmas

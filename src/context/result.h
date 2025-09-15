@@ -33,4 +33,12 @@ TipoDato tipoResultante(Result, Result);
 Result nuevoValorResultado(void *valor, TipoDato tipo);
 Result nuevoValorResultadoVacio(void);
 
+// Utilidades de conversión (widening casting implícito)
+// Retorna 1 si es permitido convertir implícitamente 'from' -> 'to' sin pérdida
+int can_widen(TipoDato from, TipoDato to);
+
+// Convierte (promueve) un Result primitivo a 'to'. Asume can_widen(from,to) o tipos iguales.
+// Libera el valor anterior de 'src' si se crea uno nuevo. Devuelve un Result con el nuevo tipo.
+Result widen_to(Result src, TipoDato to);
+
 #endif

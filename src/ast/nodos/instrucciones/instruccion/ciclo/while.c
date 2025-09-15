@@ -65,6 +65,13 @@ Result interpretWhileExpresion(AbstractExpresion *self, Context *context)
             break;
         }
 
+        // Marcar que estamos en un contexto que permite break/continue
+        if (context)
+        {
+            context->breakable_depth++;
+            context->continuable_depth++;
+        }
+
         // Ejecutar el bloque
         Result res_bloque = bloque_nodo->interpret(bloque_nodo, context);
 
@@ -72,6 +79,13 @@ Result interpretWhileExpresion(AbstractExpresion *self, Context *context)
         {
             free(res_bloque.valor);
             return nuevoValorResultadoVacio();
+        }
+
+        // Salimos del contexto break/continue
+        if (context)
+        {
+            context->breakable_depth--;
+            context->continuable_depth--;
         }
 
         // Si hay un return, lo propagamos hacia arriba inmediatamente.

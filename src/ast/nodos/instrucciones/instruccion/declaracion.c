@@ -68,16 +68,23 @@ Result interpretDeclaracionVariable(AbstractExpresion *nodo, Context *context)
             // Inicialización por expresión
             if (self->dimensiones == 0)
             {
-                // Si el tipo no coincide, error
+                // Intentar permitir widening implícito si los tipos difieren
                 if (resultado.tipo != self->tipo)
                 {
-                    char desc[256];
-                    snprintf(desc, sizeof(desc), "Error de tipos: no se puede asignar un valor de tipo '%s' a la nueva variable '%s' de tipo '%s'.",
-                             labelTipoDato[resultado.tipo], self->nombre, labelTipoDato[self->tipo]);
-                    add_error_to_report("Semantico", self->nombre, desc, self->line, self->column, context->nombre_completo);
-                    return nuevoValorResultadoVacio();
+                    if (can_widen(resultado.tipo, self->tipo))
+                    {
+                        resultado = widen_to(resultado, self->tipo);
+                    }
+                    else
+                    {
+                        char desc[256];
+                        snprintf(desc, sizeof(desc), "Error de tipos: no se puede asignar un valor de tipo '%s' a la nueva variable '%s' de tipo '%s'.",
+                                 labelTipoDato[resultado.tipo], self->nombre, labelTipoDato[self->tipo]);
+                        add_error_to_report("Semantico", self->nombre, desc, self->line, self->column, context->nombre_completo);
+                        return nuevoValorResultadoVacio();
+                    }
                 }
-                // Guardar el puntero tal cual
+                // Guardar el puntero (ya convertido si aplicó widening)
                 void *valor_a_guardar = resultado.valor;
                 agregarSymbol(context, nuevoVariable(self->nombre, valor_a_guardar, self->tipo, self->es_constante), self->line, self->column);
             }

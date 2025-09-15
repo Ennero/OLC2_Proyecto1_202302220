@@ -41,12 +41,11 @@ Result interpretReasignacion(AbstractExpresion *self, Context *context)
         return nuevoValorResultadoVacio();
     }
 
-    // Comprobar si los tipos son compatibles para la asignación.
+    // Comprobar compatibilidad de tipos; permitir widening implícito
     bool es_compatible = (simbolo->tipo == nuevo_valor.tipo);
-
-    // Se permite asignar un valor INT a una variable CHAR.
-    if (simbolo->tipo == CHAR && nuevo_valor.tipo == INT)
+    if (!es_compatible && can_widen(nuevo_valor.tipo, simbolo->tipo))
     {
+        nuevo_valor = widen_to(nuevo_valor, simbolo->tipo);
         es_compatible = true;
     }
 

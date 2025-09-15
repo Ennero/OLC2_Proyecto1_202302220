@@ -77,14 +77,23 @@ Result interpretLlamadaFuncion(AbstractExpresion *self, Context *context)
         // Validacion de tipos de parametro
         if (param.dimensiones == 0) // Si no tiene dimensiones, es escalar (primitivo o string)
         {
-            // Si no coincide el parametro, error
+            // Permitir widening implícito en escalares numéricos
             if (param.tipo != arg.tipo)
             {
-                char desc[200];
-                sprintf(desc, "Tipo de argumento %zu incompatible: se esperaba %s y se recibio %s.",
-                        i + 1, labelTipoDato[param.tipo], labelTipoDato[arg.tipo]);
-                add_error_to_report("Semantico", nombre_func, desc, self->line, self->column, context->nombre_completo);
-                has_param_error = 1;
+                if (can_widen(arg.tipo, param.tipo))
+                {
+                    // Convertir el argumento al tipo del parámetro
+                    argumentos_evaluados[i] = widen_to(arg, param.tipo);
+                    arg = argumentos_evaluados[i];
+                }
+                else
+                {
+                    char desc[200];
+                    sprintf(desc, "Tipo de argumento %zu incompatible: se esperaba %s y se recibio %s.",
+                            i + 1, labelTipoDato[param.tipo], labelTipoDato[arg.tipo]);
+                    add_error_to_report("Semantico", nombre_func, desc, self->line, self->column, context->nombre_completo);
+                    has_param_error = 1;
+                }
             }
         }
         // Ahora si el parámetro es arreglo
@@ -200,21 +209,29 @@ Result interpretLlamadaFuncion(AbstractExpresion *self, Context *context)
             int ret_dims = func_symbol->info.func.retorno_dimensiones;
             if (ret_dims == 0)
             {
-                // Esperamos escalar del tipo exacto
-                if (res_final.tipo != func_symbol->info.func.tipo_retorno)
+                // Permitir widening implícito del retorno escalar
+                TipoDato esperado = func_symbol->info.func.tipo_retorno;
+                if (res_final.tipo != esperado)
                 {
-                    char desc[200];
-                    sprintf(desc, "Tipo de retorno incompatible en '%s': se esperaba %s y se recibio %s.",
-                            nombre_func,
-                            labelTipoDato[func_symbol->info.func.tipo_retorno],
-                            labelTipoDato[res_final.tipo]);
-                    add_error_to_report("Semantico", nombre_func, desc, self->line, self->column, context->nombre_completo);
-                    if (res_final.valor)
+                    if (can_widen(res_final.tipo, esperado))
                     {
-                        free(res_final.valor);
+                        res_final = widen_to(res_final, esperado);
                     }
-                    liberarContext(func_context);
-                    return nuevoValorResultadoVacio();
+                    else
+                    {
+                        char desc[200];
+                        sprintf(desc, "Tipo de retorno incompatible en '%s': se esperaba %s y se recibio %s.",
+                                nombre_func,
+                                labelTipoDato[esperado],
+                                labelTipoDato[res_final.tipo]);
+                        add_error_to_report("Semantico", nombre_func, desc, self->line, self->column, context->nombre_completo);
+                        if (res_final.valor)
+                        {
+                            free(res_final.valor);
+                        }
+                        liberarContext(func_context);
+                        return nuevoValorResultadoVacio();
+                    }
                 }
                 liberarContext(func_context);
                 return res_final;

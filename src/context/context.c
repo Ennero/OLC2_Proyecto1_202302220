@@ -22,11 +22,17 @@ Context *nuevoContext(Context *anterior, const char *nombre_contexto)
     if (anterior)
     {
         nuevo->raiz = anterior->raiz;
+        // Heredar contadores de control
+        nuevo->breakable_depth = anterior->breakable_depth;
+        nuevo->continuable_depth = anterior->continuable_depth;
     }
     else
     {
         nuevo->raiz = nuevo;
         nuevo->proximo_id_bloque = 1;
+        // Inicializar contadores de control
+        nuevo->breakable_depth = 0;
+        nuevo->continuable_depth = 0;
     }
     // Construir nombre completo del contexto
     if (anterior && anterior->nombre_completo)
