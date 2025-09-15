@@ -8,9 +8,47 @@
 static Result compararNumeros(ExpresionLenguaje *self, int negate)
 {
     int *res = malloc(sizeof(int));
-    // Convertimos ambos valores a double para la comparación
-    double v1 = (self->izquierda.tipo == INT) ? (double)(*(int *)self->izquierda.valor) : *((double *)self->izquierda.valor);
-    double v2 = (self->derecha.tipo == INT) ? (double)(*(int *)self->derecha.valor) : *((double *)self->derecha.valor);
+    // Promoción numérica estilo Java: comparamos como double para INT/CHAR/FLOAT/DOUBLE
+    double v1 = 0.0;
+    double v2 = 0.0;
+
+    switch (self->izquierda.tipo)
+    {
+    case INT:
+        v1 = (double)(*(int *)self->izquierda.valor);
+        break;
+    case CHAR:
+        v1 = (double)(*(int *)self->izquierda.valor);
+        break;
+    case FLOAT:
+        v1 = (double)(*(float *)self->izquierda.valor);
+        break;
+    case DOUBLE:
+        v1 = *((double *)self->izquierda.valor);
+        break;
+    default:
+        v1 = 0.0;
+        break;
+    }
+
+    switch (self->derecha.tipo)
+    {
+    case INT:
+        v2 = (double)(*(int *)self->derecha.valor);
+        break;
+    case CHAR:
+        v2 = (double)(*(int *)self->derecha.valor);
+        break;
+    case FLOAT:
+        v2 = (double)(*(float *)self->derecha.valor);
+        break;
+    case DOUBLE:
+        v2 = *((double *)self->derecha.valor);
+        break;
+    default:
+        v2 = 0.0;
+        break;
+    }
     *res = (v1 == v2);
     if (negate)
         *res = !(*res);
@@ -18,7 +56,7 @@ static Result compararNumeros(ExpresionLenguaje *self, int negate)
 }
 
 // Comparador de cadenas
-__attribute__((unused)) static Result compararStrings(ExpresionLenguaje *self, int negate)
+static Result compararStrings(ExpresionLenguaje *self, int negate)
 {
     // El resultado es siempre un booleano
     int *res = malloc(sizeof(int));
@@ -42,24 +80,26 @@ static Result compararBooleanos(ExpresionLenguaje *self, int negate)
 static Result compararIgual(ExpresionLenguaje *self) { return compararNumeros(self, 0); }
 static Result compararBooleanosIgual(ExpresionLenguaje *self) { return compararBooleanos(self, 0); }
 
-// No implementado: comparación de strings (descomentar para habilitar)
-// static Result compararStringsIgual(ExpresionLenguaje *self) { return compararStrings(self, 0); }
+static Result compararStringsIgual(ExpresionLenguaje *self) { return compararStrings(self, 0); }
 
 static Result compararDiferente(ExpresionLenguaje *self) { return compararNumeros(self, 1); }
 static Result compararBooleanosDiferente(ExpresionLenguaje *self) { return compararBooleanos(self, 1); }
+static Result compararStringsDiferente(ExpresionLenguaje *self) { return compararStrings(self, 1); }
 
 Operacion tablaOperacionesIgual[TIPO_COUNT][TIPO_COUNT] = {
-    [INT] = {[INT] = compararIgual, [DOUBLE] = compararIgual, [CHAR] = compararIgual},
-    [DOUBLE] = {[INT] = compararIgual, [DOUBLE] = compararIgual, [CHAR] = compararIgual},
-    [CHAR] = {[INT] = compararIgual, [DOUBLE] = compararIgual, [CHAR] = compararIgual},
-    // [STRING] = { [STRING]=compararStringsIgual },
+    [INT] = {[INT] = compararIgual, [DOUBLE] = compararIgual, [CHAR] = compararIgual, [FLOAT] = compararIgual},
+    [DOUBLE] = {[INT] = compararIgual, [DOUBLE] = compararIgual, [CHAR] = compararIgual, [FLOAT] = compararIgual},
+    [CHAR] = {[INT] = compararIgual, [DOUBLE] = compararIgual, [CHAR] = compararIgual, [FLOAT] = compararIgual},
+    [FLOAT] = {[INT] = compararIgual, [DOUBLE] = compararIgual, [CHAR] = compararIgual, [FLOAT] = compararIgual},
+    [STRING] = {[STRING] = compararStringsIgual},
     [BOOLEAN] = {[BOOLEAN] = compararBooleanosIgual}};
 
 Operacion tablaOperacionesDiferente[TIPO_COUNT][TIPO_COUNT] = {
-    [INT] = {[INT] = compararDiferente, [DOUBLE] = compararDiferente, [CHAR] = compararDiferente},
-    [DOUBLE] = {[INT] = compararDiferente, [DOUBLE] = compararDiferente, [CHAR] = compararDiferente},
-    [CHAR] = {[INT] = compararDiferente, [DOUBLE] = compararDiferente, [CHAR] = compararDiferente},
-    // [STRING] = { [STRING]=compararStringsDiferente },
+    [INT] = {[INT] = compararDiferente, [DOUBLE] = compararDiferente, [CHAR] = compararDiferente, [FLOAT] = compararDiferente},
+    [DOUBLE] = {[INT] = compararDiferente, [DOUBLE] = compararDiferente, [CHAR] = compararDiferente, [FLOAT] = compararDiferente},
+    [CHAR] = {[INT] = compararDiferente, [DOUBLE] = compararDiferente, [CHAR] = compararDiferente, [FLOAT] = compararDiferente},
+    [FLOAT] = {[INT] = compararDiferente, [DOUBLE] = compararDiferente, [CHAR] = compararDiferente, [FLOAT] = compararDiferente},
+    [STRING] = {[STRING] = compararStringsDiferente},
     [BOOLEAN] = {[BOOLEAN] = compararBooleanosDiferente}};
 
 // Constructores de Nodos ------

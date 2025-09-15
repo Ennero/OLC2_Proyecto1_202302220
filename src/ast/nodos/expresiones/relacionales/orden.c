@@ -7,8 +7,47 @@
 static Result compararOrden(ExpresionLenguaje *self, int op_type)
 {
     int *res = malloc(sizeof(int));
-    double v1 = (self->izquierda.tipo == INT) ? (double)(*(int *)self->izquierda.valor) : *((double *)self->izquierda.valor);
-    double v2 = (self->derecha.tipo == INT) ? (double)(*(int *)self->derecha.valor) : *((double *)self->derecha.valor);
+    // Promoción numérica estilo Java: comparamos como double para INT/CHAR/FLOAT/DOUBLE
+    double v1 = 0.0;
+    double v2 = 0.0;
+
+    switch (self->izquierda.tipo)
+    {
+    case INT:
+        v1 = (double)(*(int *)self->izquierda.valor);
+        break;
+    case CHAR:
+        v1 = (double)(*(int *)self->izquierda.valor);
+        break;
+    case FLOAT:
+        v1 = (double)(*(float *)self->izquierda.valor);
+        break;
+    case DOUBLE:
+        v1 = *((double *)self->izquierda.valor);
+        break;
+    default:
+        v1 = 0.0;
+        break;
+    }
+
+    switch (self->derecha.tipo)
+    {
+    case INT:
+        v2 = (double)(*(int *)self->derecha.valor);
+        break;
+    case CHAR:
+        v2 = (double)(*(int *)self->derecha.valor);
+        break;
+    case FLOAT:
+        v2 = (double)(*(float *)self->derecha.valor);
+        break;
+    case DOUBLE:
+        v2 = *((double *)self->derecha.valor);
+        break;
+    default:
+        v2 = 0.0;
+        break;
+    }
 
     switch (op_type)
     {
@@ -36,21 +75,25 @@ static Result compararMenorIgual(ExpresionLenguaje *self) { return compararOrden
 
 // Tablas de operaciones
 Operacion tablaOperacionesMayorQue[TIPO_COUNT][TIPO_COUNT] = {
-    [INT] = {[INT] = compararMayorQue, [DOUBLE] = compararMayorQue, [CHAR] = compararMayorQue},
-    [DOUBLE] = {[INT] = compararMayorQue, [DOUBLE] = compararMayorQue, [CHAR] = compararMayorQue},
-    [CHAR] = {[INT] = compararMayorQue, [DOUBLE] = compararMayorQue, [CHAR] = compararMayorQue}};
+    [INT] = {[INT] = compararMayorQue, [DOUBLE] = compararMayorQue, [CHAR] = compararMayorQue, [FLOAT] = compararMayorQue},
+    [DOUBLE] = {[INT] = compararMayorQue, [DOUBLE] = compararMayorQue, [CHAR] = compararMayorQue, [FLOAT] = compararMayorQue},
+    [CHAR] = {[INT] = compararMayorQue, [DOUBLE] = compararMayorQue, [CHAR] = compararMayorQue, [FLOAT] = compararMayorQue},
+    [FLOAT] = {[INT] = compararMayorQue, [DOUBLE] = compararMayorQue, [CHAR] = compararMayorQue, [FLOAT] = compararMayorQue}};
 Operacion tablaOperacionesMenorQue[TIPO_COUNT][TIPO_COUNT] = {
-    [INT] = {[INT] = compararMenorQue, [DOUBLE] = compararMenorQue, [CHAR] = compararMenorQue},
-    [DOUBLE] = {[INT] = compararMenorQue, [DOUBLE] = compararMenorQue, [CHAR] = compararMenorQue},
-    [CHAR] = {[INT] = compararMenorQue, [DOUBLE] = compararMenorQue, [CHAR] = compararMenorQue}};
+    [INT] = {[INT] = compararMenorQue, [DOUBLE] = compararMenorQue, [CHAR] = compararMenorQue, [FLOAT] = compararMenorQue},
+    [DOUBLE] = {[INT] = compararMenorQue, [DOUBLE] = compararMenorQue, [CHAR] = compararMenorQue, [FLOAT] = compararMenorQue},
+    [CHAR] = {[INT] = compararMenorQue, [DOUBLE] = compararMenorQue, [CHAR] = compararMenorQue, [FLOAT] = compararMenorQue},
+    [FLOAT] = {[INT] = compararMenorQue, [DOUBLE] = compararMenorQue, [CHAR] = compararMenorQue, [FLOAT] = compararMenorQue}};
 Operacion tablaOperacionesMayorIgual[TIPO_COUNT][TIPO_COUNT] = {
-    [INT] = {[INT] = compararMayorIgual, [DOUBLE] = compararMayorIgual, [CHAR] = compararMayorIgual},
-    [DOUBLE] = {[INT] = compararMayorIgual, [DOUBLE] = compararMayorIgual, [CHAR] = compararMayorIgual},
-    [CHAR] = {[INT] = compararMayorIgual, [DOUBLE] = compararMayorIgual, [CHAR] = compararMayorIgual}};
+    [INT] = {[INT] = compararMayorIgual, [DOUBLE] = compararMayorIgual, [CHAR] = compararMayorIgual, [FLOAT] = compararMayorIgual},
+    [DOUBLE] = {[INT] = compararMayorIgual, [DOUBLE] = compararMayorIgual, [CHAR] = compararMayorIgual, [FLOAT] = compararMayorIgual},
+    [CHAR] = {[INT] = compararMayorIgual, [DOUBLE] = compararMayorIgual, [CHAR] = compararMayorIgual, [FLOAT] = compararMayorIgual},
+    [FLOAT] = {[INT] = compararMayorIgual, [DOUBLE] = compararMayorIgual, [CHAR] = compararMayorIgual, [FLOAT] = compararMayorIgual}};
 Operacion tablaOperacionesMenorIgual[TIPO_COUNT][TIPO_COUNT] = {
-    [INT] = {[INT] = compararMenorIgual, [DOUBLE] = compararMenorIgual, [CHAR] = compararMenorIgual},
-    [DOUBLE] = {[INT] = compararMenorIgual, [DOUBLE] = compararMenorIgual, [CHAR] = compararMenorIgual},
-    [CHAR] = {[INT] = compararMenorIgual, [DOUBLE] = compararMenorIgual, [CHAR] = compararMenorIgual}};
+    [INT] = {[INT] = compararMenorIgual, [DOUBLE] = compararMenorIgual, [CHAR] = compararMenorIgual, [FLOAT] = compararMenorIgual},
+    [DOUBLE] = {[INT] = compararMenorIgual, [DOUBLE] = compararMenorIgual, [CHAR] = compararMenorIgual, [FLOAT] = compararMenorIgual},
+    [CHAR] = {[INT] = compararMenorIgual, [DOUBLE] = compararMenorIgual, [CHAR] = compararMenorIgual, [FLOAT] = compararMenorIgual},
+    [FLOAT] = {[INT] = compararMenorIgual, [DOUBLE] = compararMenorIgual, [CHAR] = compararMenorIgual, [FLOAT] = compararMenorIgual}};
 
 // Constructores de Nodos ------
 AbstractExpresion *nuevoMayorQueExpresion(AbstractExpresion *i, AbstractExpresion *d, int line, int column)
