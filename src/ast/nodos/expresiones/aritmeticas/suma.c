@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "utils/java_num_format.h"
+#include "context/array_value.h"
 
 // Funciones de Suma Numérica -----------------
 Result sumarIntInt(ExpresionLenguaje *self)
@@ -66,8 +67,12 @@ Result sumarDoubleFloat(ExpresionLenguaje *self)
 // FUNCIONES DE CONCATENACIÓN
 Result concatenarStringString(ExpresionLenguaje *self)
 {
-    char *s1 = (char *)self->izquierda.valor;
-    char *s2 = (char *)self->derecha.valor;
+    const char *s1 = (const char *)self->izquierda.valor;
+    const char *s2 = (const char *)self->derecha.valor;
+    if (!s1)
+        s1 = "null";
+    if (!s2)
+        s2 = "null";
     char *res = malloc(strlen(s1) + strlen(s2) + 1);
     strcpy(res, s1);
     strcat(res, s2);
@@ -77,7 +82,9 @@ Result concatenarStringInt(ExpresionLenguaje *self)
 {
     char s2_buffer[64];
     sprintf(s2_buffer, "%d", *(int *)self->derecha.valor);
-    char *s1 = (char *)self->izquierda.valor;
+    const char *s1 = (const char *)self->izquierda.valor;
+    if (!s1)
+        s1 = "null";
     char *res = malloc(strlen(s1) + strlen(s2_buffer) + 1);
     strcpy(res, s1);
     strcat(res, s2_buffer);
@@ -89,7 +96,9 @@ Result concatenarStringDouble(ExpresionLenguaje *self)
 
     // Java-like Double.toString
     java_format_double(*(double *)self->derecha.valor, s2_buffer, sizeof(s2_buffer));
-    char *s1 = (char *)self->izquierda.valor;
+    const char *s1 = (const char *)self->izquierda.valor;
+    if (!s1)
+        s1 = "null";
     char *res = malloc(strlen(s1) + strlen(s2_buffer) + 1);
     strcpy(res, s1);
     strcat(res, s2_buffer);
@@ -101,7 +110,9 @@ Result concatenarStringFloat(ExpresionLenguaje *self)
 
     // Java-like Float.toString
     java_format_float(*(float *)self->derecha.valor, s2_buffer, sizeof(s2_buffer));
-    char *s1 = (char *)self->izquierda.valor;
+    const char *s1 = (const char *)self->izquierda.valor;
+    if (!s1)
+        s1 = "null";
     char *res = malloc(strlen(s1) + strlen(s2_buffer) + 1);
     strcpy(res, s1);
     strcat(res, s2_buffer);
@@ -109,7 +120,9 @@ Result concatenarStringFloat(ExpresionLenguaje *self)
 }
 Result concatenarStringChar(ExpresionLenguaje *self)
 {
-    char *s1 = (char *)self->izquierda.valor;
+    const char *s1 = (const char *)self->izquierda.valor;
+    if (!s1)
+        s1 = "null";
     char c2 = (char)(*(int *)self->derecha.valor);
     char *res = malloc(strlen(s1) + 2);
     sprintf(res, "%s%c", s1, c2);
@@ -131,7 +144,9 @@ Result concatenarStringBoolean(ExpresionLenguaje *self)
     }
     // Para debuguear ---
 
-    char *s1 = (char *)self->izquierda.valor;
+    const char *s1 = (const char *)self->izquierda.valor;
+    if (!s1)
+        s1 = "null";
     const char *s2_texto = (*(int *)self->derecha.valor) ? "true" : "false";
     char *res = malloc(strlen(s1) + strlen(s2_texto) + 1);
     strcpy(res, s1);
@@ -142,7 +157,9 @@ Result concatenarIntString(ExpresionLenguaje *self)
 {
     char s1_buffer[64];
     sprintf(s1_buffer, "%d", *(int *)self->izquierda.valor);
-    char *s2 = (char *)self->derecha.valor;
+    const char *s2 = (const char *)self->derecha.valor;
+    if (!s2)
+        s2 = "null";
     char *res = malloc(strlen(s1_buffer) + strlen(s2) + 1);
     strcpy(res, s1_buffer);
     strcat(res, s2);
@@ -154,7 +171,9 @@ Result concatenarDoubleString(ExpresionLenguaje *self)
 
     // Java-like Double.toString
     java_format_double(*(double *)self->izquierda.valor, s1_buffer, sizeof(s1_buffer));
-    char *s2 = (char *)self->derecha.valor;
+    const char *s2 = (const char *)self->derecha.valor;
+    if (!s2)
+        s2 = "null";
     char *res = malloc(strlen(s1_buffer) + strlen(s2) + 1);
     strcpy(res, s1_buffer);
     strcat(res, s2);
@@ -166,7 +185,9 @@ Result concatenarFloatString(ExpresionLenguaje *self)
 
     // Java-like Float.toString
     java_format_float(*(float *)self->izquierda.valor, s1_buffer, sizeof(s1_buffer));
-    char *s2 = (char *)self->derecha.valor;
+    const char *s2 = (const char *)self->derecha.valor;
+    if (!s2)
+        s2 = "null";
     char *res = malloc(strlen(s1_buffer) + strlen(s2) + 1);
     strcpy(res, s1_buffer);
     strcat(res, s2);
@@ -174,7 +195,9 @@ Result concatenarFloatString(ExpresionLenguaje *self)
 }
 Result concatenarCharString(ExpresionLenguaje *self)
 {
-    char *s2 = (char *)self->derecha.valor;
+    const char *s2 = (const char *)self->derecha.valor;
+    if (!s2)
+        s2 = "null";
     char c1 = (char)(*(int *)self->izquierda.valor);
     char *res = malloc(strlen(s2) + 2);
     sprintf(res, "%c%s", c1, s2);
@@ -183,9 +206,55 @@ Result concatenarCharString(ExpresionLenguaje *self)
 Result concatenarBooleanString(ExpresionLenguaje *self)
 {
     const char *s1_texto = (*(int *)self->izquierda.valor) ? "true" : "false";
-    char *s2 = (char *)self->derecha.valor;
+    const char *s2 = (const char *)self->derecha.valor;
+    if (!s2)
+        s2 = "null";
     char *res = malloc(strlen(s1_texto) + strlen(s2) + 1);
     strcpy(res, s1_texto);
+    strcat(res, s2);
+    return nuevoValorResultado(res, STRING);
+}
+
+// String + Array
+Result concatenarStringArray(ExpresionLenguaje *self)
+{
+    const char *s1 = (const char *)self->izquierda.valor;
+    if (!s1)
+        s1 = "null";
+    ArrayValue *av = (ArrayValue *)self->derecha.valor;
+    char arrbuf[96];
+    if (!av)
+    {
+        snprintf(arrbuf, sizeof(arrbuf), "null");
+    }
+    else
+    {
+        snprintf(arrbuf, sizeof(arrbuf), "[array %s,%dD]", labelTipoDato[av->tipo_elemento_base], av->dimensiones_total);
+    }
+    char *res = malloc(strlen(s1) + strlen(arrbuf) + 1);
+    strcpy(res, s1);
+    strcat(res, arrbuf);
+    return nuevoValorResultado(res, STRING);
+}
+
+// Array + String
+Result concatenarArrayString(ExpresionLenguaje *self)
+{
+    ArrayValue *av = (ArrayValue *)self->izquierda.valor;
+    const char *s2 = (const char *)self->derecha.valor;
+    if (!s2)
+        s2 = "null";
+    char arrbuf[96];
+    if (!av)
+    {
+        snprintf(arrbuf, sizeof(arrbuf), "null");
+    }
+    else
+    {
+        snprintf(arrbuf, sizeof(arrbuf), "[array %s,%dD]", labelTipoDato[av->tipo_elemento_base], av->dimensiones_total);
+    }
+    char *res = malloc(strlen(arrbuf) + strlen(s2) + 1);
+    strcpy(res, arrbuf);
     strcat(res, s2);
     return nuevoValorResultado(res, STRING);
 }
@@ -197,7 +266,8 @@ Operacion tablaOperacionesSuma[TIPO_COUNT][TIPO_COUNT] = {
     [INT] = {[CHAR] = sumarIntInt, [INT] = sumarIntInt, [FLOAT] = sumarIntFloat, [DOUBLE] = sumarIntDouble, [STRING] = concatenarIntString},
     [FLOAT] = {[CHAR] = sumarFloatInt, [INT] = sumarFloatInt, [FLOAT] = sumarFloatFloat, [DOUBLE] = sumarFloatDouble, [STRING] = concatenarFloatString},
     [DOUBLE] = {[CHAR] = sumarDoubleInt, [INT] = sumarDoubleInt, [FLOAT] = sumarDoubleFloat, [DOUBLE] = sumarDoubleDouble, [STRING] = concatenarDoubleString},
-    [STRING] = {[BOOLEAN] = concatenarStringBoolean, [CHAR] = concatenarStringChar, [INT] = concatenarStringInt, [FLOAT] = concatenarStringFloat, [DOUBLE] = concatenarStringDouble, [STRING] = concatenarStringString}};
+    [STRING] = {[BOOLEAN] = concatenarStringBoolean, [CHAR] = concatenarStringChar, [INT] = concatenarStringInt, [FLOAT] = concatenarStringFloat, [DOUBLE] = concatenarStringDouble, [STRING] = concatenarStringString, [ARRAY] = concatenarStringArray},
+    [ARRAY] = {[STRING] = concatenarArrayString}};
 
 // Constructor
 AbstractExpresion *nuevoSumaExpresion(AbstractExpresion *izquierda, AbstractExpresion *derecha, int line, int column)

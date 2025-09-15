@@ -86,6 +86,10 @@ Result interpretPrimitivoExpresion(AbstractExpresion *self, Context *context)
     // Dependiendo del tipo, convertimos el valor almacenado en cadena al tipo adecuado
     switch (nodo->tipo)
     {
+    case NULO:
+    {
+        return nuevoValorResultado(NULL, NULO);
+    }
     case INT:
     {
         int *valor = malloc(sizeof(int));

@@ -41,8 +41,14 @@ Result interpretReasignacion(AbstractExpresion *self, Context *context)
         return nuevoValorResultadoVacio();
     }
 
-    // Comprobar compatibilidad de tipos; permitir widening implícito
+    // Comprobar compatibilidad de tipos; permitir widening implícito y null para String/Array
     bool es_compatible = (simbolo->tipo == nuevo_valor.tipo);
+
+    // Permitir asignación de null para String y Arreglo
+    if (nuevo_valor.tipo == NULO && (simbolo->tipo == STRING || simbolo->tipo == ARRAY))
+    {
+        es_compatible = true;
+    }
     if (!es_compatible && can_widen(nuevo_valor.tipo, simbolo->tipo))
     {
         nuevo_valor = widen_to(nuevo_valor, simbolo->tipo);
@@ -74,7 +80,7 @@ Result interpretReasignacion(AbstractExpresion *self, Context *context)
         }
     }
 
-    // Si es un arreglo, hacer una copia profunda del nuevo valor
+    // Si es un arreglo, hacer una copia profunda del nuevo valor cuando no es NULL
     if (simbolo->tipo == ARRAY && nuevo_valor.valor != NULL)
     {
         simbolo->info.var.valor = copiarArray((ArrayValue *)nuevo_valor.valor);

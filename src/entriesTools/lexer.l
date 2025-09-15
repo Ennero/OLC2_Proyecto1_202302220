@@ -86,6 +86,8 @@ newline           \n
 "Arrays.indexOf"        return TOKEN_ARRAYS_INDEXOF;
 "length"                return TOKEN_LENGTH;
 
+"null"                  return TOKEN_NULL;
+
 
 "public"                return TOKEN_PUBLIC;   
 "static"                return TOKEN_STATIC;   

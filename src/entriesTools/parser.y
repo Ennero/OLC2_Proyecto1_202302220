@@ -94,6 +94,7 @@
 %token TOKEN_PARSE_INT TOKEN_PARSE_FLOAT
 %token TOKEN_PARSE_DOUBLE TOKEN_STRING_VALUEOF TOKEN_STRING_JOIN
 %token TOKEN_ARRAYS_INDEXOF TOKEN_LENGTH
+%token TOKEN_NULL
 
 
 
@@ -330,6 +331,7 @@ primitivo: TOKEN_INTEGER   { $$ = nuevoPrimitivoExpresion($1, INT, @1.first_line
     | TOKEN_CHAR_LITERAL   { $$ = nuevoPrimitivoExpresion($1, CHAR, @1.first_line, @1.first_column); }
     | TOKEN_TRUE           { $$ = nuevoPrimitivoExpresion($1, BOOLEAN, @1.first_line, @1.first_column); }
     | TOKEN_FALSE          { $$ = nuevoPrimitivoExpresion($1, BOOLEAN, @1.first_line, @1.first_column); }
+    | TOKEN_NULL           { $$ = nuevoPrimitivoExpresion(NULL, NULO, @1.first_line, @1.first_column); }
     ;
 
 

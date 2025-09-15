@@ -18,8 +18,11 @@ Result interpretExpresionLenguaje(AbstractExpresion *self, Context *context)
     // Si hubo error en alguno de los lados, no continuar
     if (has_semantic_error_been_found())
     {
-        free(izquierda.valor);
-        free(derecha.valor);
+        // No liberar arreglos: normalmente son referencias prestadas desde la tabla de símbolos
+        if (izquierda.tipo != ARRAY)
+            free(izquierda.valor);
+        if (derecha.tipo != ARRAY)
+            free(derecha.valor);
         return nuevoValorResultadoVacio();
     }
 
@@ -43,8 +46,11 @@ Result interpretExpresionLenguaje(AbstractExpresion *self, Context *context)
 
     Result resultado_final = op(nodo);
 
-    free(izquierda.valor);
-    free(derecha.valor);
+    // No liberar arreglos: normalmente son referencias prestadas desde la tabla de símbolos
+    if (izquierda.tipo != ARRAY)
+        free(izquierda.valor);
+    if (derecha.tipo != ARRAY)
+        free(derecha.valor);
 
     return resultado_final;
 }

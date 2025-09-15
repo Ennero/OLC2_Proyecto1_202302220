@@ -68,29 +68,45 @@ Result interpretDeclaracionVariable(AbstractExpresion *nodo, Context *context)
             // Inicialización por expresión
             if (self->dimensiones == 0)
             {
-                // Intentar permitir widening implícito si los tipos difieren
-                if (resultado.tipo != self->tipo)
+                // Permitir asignación de null para String
+                if (resultado.tipo == NULO && self->tipo == STRING)
                 {
-                    if (can_widen(resultado.tipo, self->tipo))
-                    {
-                        resultado = widen_to(resultado, self->tipo);
-                    }
-                    else
-                    {
-                        char desc[256];
-                        snprintf(desc, sizeof(desc), "Error de tipos: no se puede asignar un valor de tipo '%s' a la nueva variable '%s' de tipo '%s'.",
-                                 labelTipoDato[resultado.tipo], self->nombre, labelTipoDato[self->tipo]);
-                        add_error_to_report("Semantico", self->nombre, desc, self->line, self->column, context->nombre_completo);
-                        return nuevoValorResultadoVacio();
-                    }
+                    agregarSymbol(context, nuevoVariable(self->nombre, NULL, self->tipo, self->es_constante), self->line, self->column);
                 }
-                // Guardar el puntero (ya convertido si aplicó widening)
-                void *valor_a_guardar = resultado.valor;
-                agregarSymbol(context, nuevoVariable(self->nombre, valor_a_guardar, self->tipo, self->es_constante), self->line, self->column);
+                else
+                {
+                    // Intentar permitir widening implícito si los tipos difieren
+                    if (resultado.tipo != self->tipo)
+                    {
+                        if (can_widen(resultado.tipo, self->tipo))
+                        {
+                            resultado = widen_to(resultado, self->tipo);
+                        }
+                        else
+                        {
+                            char desc[256];
+                            snprintf(desc, sizeof(desc), "Error de tipos: no se puede asignar un valor de tipo '%s' a la nueva variable '%s' de tipo '%s'.",
+                                     labelTipoDato[resultado.tipo], self->nombre, labelTipoDato[self->tipo]);
+                            add_error_to_report("Semantico", self->nombre, desc, self->line, self->column, context->nombre_completo);
+                            return nuevoValorResultadoVacio();
+                        }
+                    }
+
+                    // Guardar el puntero (ya convertido si aplicó widening)
+                    void *valor_a_guardar = resultado.valor;
+                    agregarSymbol(context, nuevoVariable(self->nombre, valor_a_guardar, self->tipo, self->es_constante), self->line, self->column);
+                }
             }
             // Si es un arreglo
             else
             {
+                // Permitir asignación de null para arreglos
+                if (resultado.tipo == NULO)
+                {
+                    agregarSymbol(context, nuevoVariable(self->nombre, NULL, ARRAY, self->es_constante), self->line, self->column);
+                    return nuevoValorResultadoVacio();
+                }
+
                 // Si no es de tipo arreglo, error
                 if (resultado.tipo != ARRAY)
                 {
@@ -102,13 +118,6 @@ Result interpretDeclaracionVariable(AbstractExpresion *nodo, Context *context)
                 }
                 // Verificar que el arreglo recibido tenga el tipo y dimensiones esperadas
                 ArrayValue *av = (ArrayValue *)resultado.valor;
-
-                // Si el arreglo es NULL, error
-                if (!av)
-                {
-                    add_error_to_report("Semantico", self->nombre, "Inicialización de arreglo con valor nulo.", self->line, self->column, context->nombre_completo);
-                    return nuevoValorResultadoVacio();
-                }
 
                 // Si el tipo base o dimensiones no coinciden, error
                 if (av->tipo_elemento_base != self->tipo || av->dimensiones_total != self->dimensiones)
