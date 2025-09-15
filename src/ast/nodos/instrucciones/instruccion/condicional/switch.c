@@ -99,9 +99,10 @@ Result interpretSwitchExpresion(AbstractExpresion *self, Context *context)
     // Si hay un punto de inicio, ejecutamos desde ahí hasta el final
     if (inicio_ejecucion != -1)
     {
-        // Marcar región 'breakable' (pero no 'continuable')
+        // Marcar región 'breakable' (pero no 'continuable') y recordar nivel inicial
+        int before_depth = context ? context->breakable_depth : 0;
         if (context)
-            context->breakable_depth++;
+            context->breakable_depth = before_depth + 1;
 
         for (size_t i = inicio_ejecucion; i < case_list->numHijos; i++)
         {
@@ -126,25 +127,25 @@ Result interpretSwitchExpresion(AbstractExpresion *self, Context *context)
                 Result res_sentencia = sentencias->interpret(sentencias, context);
                 if (res_sentencia.tipo == BREAK_T)
                 {
-                    // Salir del switch: desmarcar y romper
+                    // Salir del switch: restaurar nivel de profundidad a como estaba antes de entrar
                     if (context)
-                        context->breakable_depth--;
+                        context->breakable_depth = before_depth;
                     break;
                 }
                 if (res_sentencia.tipo == CONTINUE_T || res_sentencia.tipo == RETURN_T)
                 {
                     resultado_final = res_sentencia;
                     if (context)
-                        context->breakable_depth--;
+                        context->breakable_depth = before_depth;
                     break;
                 }
             }
             // Si 'sentencias' es NULL continuamos al siguiente case.
         }
 
-        // Si terminamos sin break/return/continue explícito, desmarcar
-        if (context && context->breakable_depth > 0)
-            context->breakable_depth--;
+        // Si terminamos sin break/return/continue explícito, restaurar al nivel previo
+        if (context)
+            context->breakable_depth = before_depth;
     }
     return resultado_final;
 }
