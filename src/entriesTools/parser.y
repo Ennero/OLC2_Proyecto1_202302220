@@ -285,7 +285,14 @@ primary_expr: '(' expr ')'                                  { $$ = $2; }
             | TOKEN_ARRAYS_INDEXOF '(' expr ',' expr ')'    { $$ = nuevoArraysIndexofExpresion($3, $5, @1.first_line, @1.first_column); }
             | primary_expr TOKEN_DOT TOKEN_LENGTH           { $$ = nuevoArrayLengthExpresion($1, @2.first_line, @2.first_column); }
             | TOKEN_IDENTIFIER '(' lista_argumentos_opt ')' { $$ = nuevoLlamadaFuncion($1, $3, @1.first_line, @1.first_column); }
-            | TOKEN_PRINT '(' lista_Expr ')'                { $$ = nuevoPrintExpresion($3, @1.first_line, @1.first_column); }
+            | TOKEN_PRINT '(' expr ')'                      {
+                // En Java println recibe una sola expresión; se deshabilita la concatenación por comas.
+                // Para reutilizar el intérprete actual de Print (que espera una lista),
+                // envolvemos la expresión en una lista de un solo elemento.
+                AbstractExpresion* lista = nuevoListaExpresiones();
+                agregarHijo(lista, $3);
+                $$ = nuevoPrintExpresion(lista, @1.first_line, @1.first_column);
+            }
             | primitivo                                     { $$ = $1; }
             | '-' primary_expr %prec NEG                    { $$ = nuevoUnarioExpresion($2, @1.first_line, @1.first_column); }
             | '!' primary_expr                              { $$ = nuevoNotExpresion($2, @1.first_line, @1.first_column); }
