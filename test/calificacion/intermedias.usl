@@ -28,7 +28,7 @@ Examen 1: 85 puntos
 Examen 2: 92 puntos
 Examen 3: 78 puntos
 Promedio: 85.0
-Resultado: Aprobado con honores
+Resultado: Aprobado con honores // Tendria que ser sin honores
 
 --- CONTROL DE ACCESO POR HORARIOS ---
 Día de la semana: 2 (Martes)
@@ -160,7 +160,7 @@ Lab-C:
 === FIN SISTEMA ESTUDIANTIL ===
 */
 
-public static void main() {
+public static void main(String[] args) {
     System.out.println("=== SISTEMA DE GESTIÓN ESTUDIANTIL ===");
     
     // Variables globales del sistema
