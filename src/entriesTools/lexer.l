@@ -38,10 +38,11 @@ exponent          [eE][+-]?{digit}+
 float_lit         ({digit}+\.{digit}*[fF])|(\.{digit}+[fF])|({digit}+[fF])
 double_lit        ({digit}+\.{digit}*({exponent})?|\.{digit}+({exponent})?|{digit}+{exponent})
 
-unicode_escape    \\u{hex_digit}{4}
+/* Unicode decimal escape: \u followed by 1 to 5 decimal digits (0-65535) */
+unicode_escape_dec \\u{digit}{1,5}
 
-char_lit          \'([^'\\]|\\.|{unicode_escape})\'
-string_lit        \"([^"\\]|\\.|{unicode_escape})*\"
+char_lit          \'([^'\\]|\\.|{unicode_escape_dec})\'
+string_lit        \"([^"\\]|\\.|{unicode_escape_dec})*\"
 
 line_comment      "//".*
 block_comment     "/*"

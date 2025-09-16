@@ -34,8 +34,35 @@ Result interpretStringValueof(AbstractExpresion *self, Context *context)
             snprintf(buffer, sizeof(buffer), "%s", (*(int *)arg.valor) ? "true" : "false");
             break;
         case CHAR:
-            snprintf(buffer, sizeof(buffer), "%c", *(int *)arg.valor);
+        {
+            // Convertir code point (int) a UTF-8
+            int cp = *(int *)arg.valor;
+            char utf8[5] = {0};
+            if (cp <= 0x7F)
+            {
+                utf8[0] = (char)cp;
+            }
+            else if (cp <= 0x7FF)
+            {
+                utf8[0] = (char)(0xC0 | ((cp >> 6) & 0x1F));
+                utf8[1] = (char)(0x80 | (cp & 0x3F));
+            }
+            else if (cp <= 0xFFFF)
+            {
+                utf8[0] = (char)(0xE0 | ((cp >> 12) & 0x0F));
+                utf8[1] = (char)(0x80 | ((cp >> 6) & 0x3F));
+                utf8[2] = (char)(0x80 | (cp & 0x3F));
+            }
+            else
+            {
+                utf8[0] = (char)(0xF0 | ((cp >> 18) & 0x07));
+                utf8[1] = (char)(0x80 | ((cp >> 12) & 0x3F));
+                utf8[2] = (char)(0x80 | ((cp >> 6) & 0x3F));
+                utf8[3] = (char)(0x80 | (cp & 0x3F));
+            }
+            snprintf(buffer, sizeof(buffer), "%s", utf8);
             break;
+        }
         case STRING:
             snprintf(buffer, sizeof(buffer), "%s", (char *)arg.valor);
             break;

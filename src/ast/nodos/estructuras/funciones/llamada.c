@@ -80,7 +80,17 @@ Result interpretLlamadaFuncion(AbstractExpresion *self, Context *context)
             // Permitir widening implícito en escalares numéricos
             if (param.tipo != arg.tipo)
             {
-                if (can_widen(arg.tipo, param.tipo))
+                // Caso especial: permitir int -> char
+                if (param.tipo == CHAR && arg.tipo == INT)
+                {
+                    int *p = malloc(sizeof(int));
+                    *p = (int)((unsigned char)(*(int *)arg.valor));
+                    free(arg.valor);
+                    arg.valor = p;
+                    arg.tipo = CHAR;
+                    argumentos_evaluados[i] = arg;
+                }
+                else if (can_widen(arg.tipo, param.tipo))
                 {
                     // Convertir el argumento al tipo del parámetro
                     argumentos_evaluados[i] = widen_to(arg, param.tipo);
@@ -213,7 +223,16 @@ Result interpretLlamadaFuncion(AbstractExpresion *self, Context *context)
                 TipoDato esperado = func_symbol->info.func.tipo_retorno;
                 if (res_final.tipo != esperado)
                 {
-                    if (can_widen(res_final.tipo, esperado))
+                    // Caso especial: permitir int -> char en retorno
+                    if (esperado == CHAR && res_final.tipo == INT)
+                    {
+                        int *p = malloc(sizeof(int));
+                        *p = (int)((unsigned char)(*(int *)res_final.valor));
+                        free(res_final.valor);
+                        res_final.valor = p;
+                        res_final.tipo = CHAR;
+                    }
+                    else if (can_widen(res_final.tipo, esperado))
                     {
                         res_final = widen_to(res_final, esperado);
                     }

@@ -78,7 +78,17 @@ Result interpretDeclaracionVariable(AbstractExpresion *nodo, Context *context)
                     // Intentar permitir widening implícito si los tipos difieren
                     if (resultado.tipo != self->tipo)
                     {
-                        if (can_widen(resultado.tipo, self->tipo))
+                        // Caso especial: permitir int -> char (narrowing implícito estilo Java para char)
+                        if (self->tipo == CHAR && resultado.tipo == INT)
+                        {
+                            // Convertir el int a un byte sin signo y almacenarlo como int (contrato interno)
+                            int *p = malloc(sizeof(int));
+                            *p = (int)((unsigned char)(*(int *)resultado.valor));
+                            free(resultado.valor);
+                            resultado.valor = p;
+                            resultado.tipo = CHAR;
+                        }
+                        else if (can_widen(resultado.tipo, self->tipo))
                         {
                             resultado = widen_to(resultado, self->tipo);
                         }

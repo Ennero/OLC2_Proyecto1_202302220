@@ -49,10 +49,23 @@ Result interpretReasignacion(AbstractExpresion *self, Context *context)
     {
         es_compatible = true;
     }
-    if (!es_compatible && can_widen(nuevo_valor.tipo, simbolo->tipo))
+    if (!es_compatible)
     {
-        nuevo_valor = widen_to(nuevo_valor, simbolo->tipo);
-        es_compatible = true;
+        // Caso especial: permitir int -> char (narrowing implícito estilo Java para char)
+        if (simbolo->tipo == CHAR && nuevo_valor.tipo == INT)
+        {
+            int *p = malloc(sizeof(int));
+            *p = (int)((unsigned char)(*(int *)nuevo_valor.valor));
+            free(nuevo_valor.valor);
+            nuevo_valor.valor = p;
+            nuevo_valor.tipo = CHAR;
+            es_compatible = true;
+        }
+        else if (can_widen(nuevo_valor.tipo, simbolo->tipo))
+        {
+            nuevo_valor = widen_to(nuevo_valor, simbolo->tipo);
+            es_compatible = true;
+        }
     }
 
     // Si no son compatibles, se reporta un error.
