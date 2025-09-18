@@ -12,7 +12,7 @@ void agregarHijo(AbstractExpresion *padre, AbstractExpresion *hijo)
 
     // Realizar realloc para aumentar el tamaño del arreglo de hijos
     AbstractExpresion **newarr = realloc(padre->hijos, sizeof(AbstractExpresion *) * (padre->numHijos + 1));
-    
+
     // Manejar error de realloc
     if (!newarr)
     {

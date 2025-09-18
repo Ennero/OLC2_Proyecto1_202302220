@@ -5,7 +5,7 @@
 #include "context/array_value.h"
 #include <stdlib.h>
 #include <string.h>
-#include <stdio.h> 
+#include <stdio.h>
 
 // Función auxiliar para obtener el tamaño en bytes de nuestros tipos de datos
 static size_t get_type_size(TipoDato tipo)

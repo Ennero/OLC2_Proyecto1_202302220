@@ -226,7 +226,7 @@ inicializador_arreglo : '{' lista_Expr '}' { $$ = nuevoInicializadorArreglo($2, 
                         | '{' '}' { $$ = nuevoInicializadorArreglo(NULL, @1.first_line, @1.first_column); }
                         ;
 
-// Cola de declarador para nivel superior (dimensiones derechas y opcional inicializador)
+
 var_tail: corchetes_lista '=' inicializador_arreglo { $$ = nuevoDeclaradorNode(NULL, $1, $3); }
         | corchetes_lista '=' expr { $$ = nuevoDeclaradorNode(NULL, $1, $3); }
         | corchetes_lista { $$ = nuevoDeclaradorNode(NULL, $1, NULL); }
@@ -287,14 +287,10 @@ primary_expr: '(' expr ')'                                  { $$ = $2; }
             | primary_expr TOKEN_DOT TOKEN_LENGTH           { $$ = nuevoArrayLengthExpresion($1, @2.first_line, @2.first_column); }
             | TOKEN_IDENTIFIER '(' lista_argumentos_opt ')' { $$ = nuevoLlamadaFuncion($1, $3, @1.first_line, @1.first_column); }
             | TOKEN_PRINT '(' ')'                       {
-                // println() sin argumentos: imprime solo un salto de línea
                 AbstractExpresion* lista = nuevoListaExpresiones();
                 $$ = nuevoPrintExpresion(lista, @1.first_line, @1.first_column);
             }
             | TOKEN_PRINT '(' expr ')'                      {
-                // En Java println recibe una sola expresión; se deshabilita la concatenación por comas.
-                // Para reutilizar el intérprete actual de Print (que espera una lista),
-                // envolvemos la expresión en una lista de un solo elemento.
                 AbstractExpresion* lista = nuevoListaExpresiones();
                 agregarHijo(lista, $3);
                 $$ = nuevoPrintExpresion(lista, @1.first_line, @1.first_column);
@@ -310,7 +306,6 @@ primary_expr: '(' expr ')'                                  { $$ = $2; }
                     $$ = nuevoEqualsExpresion($1, $5, @2.first_line, @2.first_column);
                     free($3);
                 } else if (strcmp($3, "add") == 0) {
-                    // Soporta sintaxis estilo Java para arreglos: arr.add(valor)
                     $$ = nuevoArrayAddExpresion($1, $5, @2.first_line, @2.first_column);
                     free($3);
                 } else {

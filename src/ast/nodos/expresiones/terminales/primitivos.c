@@ -7,20 +7,26 @@
 #include <string.h>
 #include <stdbool.h>
 
-// Codifica un code point Unicode (0..0x10FFFF) en UTF-8. Devuelve bytes escritos (1..4).
+// Codifica un code point Unicode en UTF-8
 static size_t utf8_encode_cp(int cp, char *out)
 {
+
+    // Si el code point es inválido, devolvemos el carácter de reemplazo U+FFFD
     if (cp <= 0x7F)
     {
         out[0] = (char)cp;
         return 1;
     }
+
+    // Codificación UTF-8 de 2 bytes
     else if (cp <= 0x7FF)
     {
         out[0] = (char)(0xC0 | ((cp >> 6) & 0x1F));
         out[1] = (char)(0x80 | (cp & 0x3F));
         return 2;
     }
+
+    // Codificación UTF-8 de 3 bytes
     else if (cp <= 0xFFFF)
     {
         out[0] = (char)(0xE0 | ((cp >> 12) & 0x0F));
@@ -28,6 +34,8 @@ static size_t utf8_encode_cp(int cp, char *out)
         out[2] = (char)(0x80 | (cp & 0x3F));
         return 3;
     }
+
+    // Codificación UTF-8 de 4 bytes
     else
     {
         out[0] = (char)(0xF0 | ((cp >> 18) & 0x07));
@@ -38,8 +46,7 @@ static size_t utf8_encode_cp(int cp, char *out)
     }
 }
 
-// Función auxiliar para convertir secuencias de escape Unicode decimal \uDDDD a su valor entero
-// Acepta de 1 a 5 dígitos decimales (0-65535)
+// Función auxiliar para convertir secuencias de escape Unicode decimal
 static int parse_unicode_escape_decimal(const char *digits, size_t maxlen)
 {
     // Copiar hasta 5 dígitos o hasta maxlen disponible
@@ -55,7 +62,7 @@ static int parse_unicode_escape_decimal(const char *digits, size_t maxlen)
     if (val < 0)
         val = 0;
     if (val > 0x10FFFF)
-        val = 0x10FFFF; // clamp por seguridad, aunque luego reducimos a char
+        val = 0x10FFFF;
     return (int)val;
 }
 
@@ -63,7 +70,7 @@ static int parse_unicode_escape_decimal(const char *digits, size_t maxlen)
 static char *process_string_escapes(const char *input)
 {
     size_t len = strlen(input);
-    // Reservamos len*4 + 1 (peor caso UTF-8) para evitar múltiples realocaciones
+    // Reservamos len*4 + 1 (peor caso UTF-8
     char *output = malloc(len * 4 + 1);
     if (!output)
         return NULL;
@@ -75,7 +82,7 @@ static char *process_string_escapes(const char *input)
     {
         if (input[i] == '\\' && i + 1 < len)
         {
-            i++; 
+            i++;
             switch (input[i])
             {
             case 'n':
@@ -97,22 +104,22 @@ static char *process_string_escapes(const char *input)
                 output[j++] = '\'';
                 break;
             case 'u':
-                {
-                    // Leer de 1 a 5 dígitos decimales
-                    size_t remain = len - (i + 1);
-                    int unicode_val = parse_unicode_escape_decimal(&input[i + 1], remain);
-                    // Codificar como UTF-8 válido
-                    char tmp[4];
-                    size_t n = utf8_encode_cp(unicode_val, tmp);
-                    for (size_t k = 0; k < n; k++)
-                        output[j++] = tmp[k];
-                    // Avanzar i por la cantidad de dígitos consumidos
-                    size_t consumed = 0;
-                    while (consumed < remain && consumed < 5 && input[i + 1 + consumed] >= '0' && input[i + 1 + consumed] <= '9')
-                        consumed++;
-                    i += consumed;
-                }
-                break;
+            {
+                // Leer de 1 a 5 dígitos decimales
+                size_t remain = len - (i + 1);
+                int unicode_val = parse_unicode_escape_decimal(&input[i + 1], remain);
+                // Codificar como UTF-8 válido
+                char tmp[4];
+                size_t n = utf8_encode_cp(unicode_val, tmp);
+                for (size_t k = 0; k < n; k++)
+                    output[j++] = tmp[k];
+                // Avanzar i por la cantidad de dígitos consumidos
+                size_t consumed = 0;
+                while (consumed < remain && consumed < 5 && input[i + 1 + consumed] >= '0' && input[i + 1 + consumed] <= '9')
+                    consumed++;
+                i += consumed;
+            }
+            break;
             default:
                 output[j++] = '\\';
                 output[j++] = input[i];
@@ -184,17 +191,31 @@ Result interpretPrimitivoExpresion(AbstractExpresion *self, Context *context)
         {
             switch (s[1])
             {
-            case 'n': cp = '\n'; break;
-            case 't': cp = '\t'; break;
-            case 'r': cp = '\r'; break;
-            case '\\': cp = '\\'; break;
-            case '"': cp = '"'; break;
-            case '\'': cp = '\''; break;
+            case 'n':
+                cp = '\n';
+                break;
+            case 't':
+                cp = '\t';
+                break;
+            case 'r':
+                cp = '\r';
+                break;
+            case '\\':
+                cp = '\\';
+                break;
+            case '"':
+                cp = '"';
+                break;
+            case '\'':
+                cp = '\'';
+                break;
             case 'u':
             {
                 int val = parse_unicode_escape_decimal(s + 2, n - 2);
-                if (val < 0) val = 0;
-                if (val > 0x10FFFF) val = 0x10FFFF;
+                if (val < 0)
+                    val = 0;
+                if (val > 0x10FFFF)
+                    val = 0x10FFFF;
                 cp = val;
                 break;
             }

@@ -7,76 +7,112 @@
 #include <math.h>
 
 // Funciones de Módulo Numérico -----------------
-Result moduloIntInt(ExpresionLenguaje* self) {
-    int divisor = *((int*)self->derecha.valor);
-    if (divisor == 0) {
+Result moduloIntInt(ExpresionLenguaje *self)
+{
+    int divisor = *((int *)self->derecha.valor);
+    if (divisor == 0)
+    {
         add_error_to_report("Semántico", "%", "Módulo por cero.", self->base.line, self->base.column, NULL);
         return nuevoValorResultadoVacio();
     }
-    int* res = malloc(sizeof(int));
-    *res = *((int*)self->izquierda.valor) % divisor;
+    int *res = malloc(sizeof(int));
+    *res = *((int *)self->izquierda.valor) % divisor;
     return nuevoValorResultado(res, INT);
 }
-Result moduloFloatFloat(ExpresionLenguaje* self) {
-    float divisor = *((float*)self->derecha.valor);
-    if (divisor == 0.0f) {
+Result moduloFloatFloat(ExpresionLenguaje *self)
+{
+    float divisor = *((float *)self->derecha.valor);
+    if (divisor == 0.0f)
+    {
         add_error_to_report("Semántico", "%", "Módulo por cero.", self->base.line, self->base.column, NULL);
         return nuevoValorResultadoVacio();
     }
-    float* res = malloc(sizeof(float));
-    *res = fmodf(*((float*)self->izquierda.valor), divisor);
+    float *res = malloc(sizeof(float));
+    *res = fmodf(*((float *)self->izquierda.valor), divisor);
     return nuevoValorResultado(res, FLOAT);
 }
-Result moduloDoubleDouble(ExpresionLenguaje* self) {
-    double divisor = *((double*)self->derecha.valor);
-    if (divisor == 0.0) {
+Result moduloDoubleDouble(ExpresionLenguaje *self)
+{
+    double divisor = *((double *)self->derecha.valor);
+    if (divisor == 0.0)
+    {
         add_error_to_report("Semántico", "%", "Módulo por cero.", self->base.line, self->base.column, NULL);
         return nuevoValorResultadoVacio();
     }
-    double* res = malloc(sizeof(double));
-    *res = fmod(*((double*)self->izquierda.valor), divisor);
+    double *res = malloc(sizeof(double));
+    *res = fmod(*((double *)self->izquierda.valor), divisor);
     return nuevoValorResultado(res, DOUBLE);
 }
-Result moduloIntFloat(ExpresionLenguaje* self) {
-    float divisor = *((float*)self->derecha.valor);
-    if (divisor == 0.0f) { add_error_to_report("Semántico", "%", "Módulo por cero.", self->base.line, self->base.column, NULL); return nuevoValorResultadoVacio(); }
-    float* res = malloc(sizeof(float));
-    *res = fmodf((float)(*((int*)self->izquierda.valor)), divisor);
+Result moduloIntFloat(ExpresionLenguaje *self)
+{
+    float divisor = *((float *)self->derecha.valor);
+    if (divisor == 0.0f)
+    {
+        add_error_to_report("Semántico", "%", "Módulo por cero.", self->base.line, self->base.column, NULL);
+        return nuevoValorResultadoVacio();
+    }
+    float *res = malloc(sizeof(float));
+    *res = fmodf((float)(*((int *)self->izquierda.valor)), divisor);
     return nuevoValorResultado(res, FLOAT);
 }
-Result moduloFloatInt(ExpresionLenguaje* self) {
-    int divisor = *((int*)self->derecha.valor);
-    if (divisor == 0) { add_error_to_report("Semántico", "%", "Módulo por cero.", self->base.line, self->base.column, NULL); return nuevoValorResultadoVacio(); }
-    float* res = malloc(sizeof(float));
-    *res = fmodf(*((float*)self->izquierda.valor), (float)divisor);
+Result moduloFloatInt(ExpresionLenguaje *self)
+{
+    int divisor = *((int *)self->derecha.valor);
+    if (divisor == 0)
+    {
+        add_error_to_report("Semántico", "%", "Módulo por cero.", self->base.line, self->base.column, NULL);
+        return nuevoValorResultadoVacio();
+    }
+    float *res = malloc(sizeof(float));
+    *res = fmodf(*((float *)self->izquierda.valor), (float)divisor);
     return nuevoValorResultado(res, FLOAT);
 }
-Result moduloIntDouble(ExpresionLenguaje* self) {
-    double divisor = *((double*)self->derecha.valor);
-    if (divisor == 0.0) { add_error_to_report("Semántico", "%", "Módulo por cero.", self->base.line, self->base.column, NULL); return nuevoValorResultadoVacio(); }
-    double* res = malloc(sizeof(double));
-    *res = fmod((double)(*((int*)self->izquierda.valor)), divisor);
+Result moduloIntDouble(ExpresionLenguaje *self)
+{
+    double divisor = *((double *)self->derecha.valor);
+    if (divisor == 0.0)
+    {
+        add_error_to_report("Semántico", "%", "Módulo por cero.", self->base.line, self->base.column, NULL);
+        return nuevoValorResultadoVacio();
+    }
+    double *res = malloc(sizeof(double));
+    *res = fmod((double)(*((int *)self->izquierda.valor)), divisor);
     return nuevoValorResultado(res, DOUBLE);
 }
-Result moduloDoubleInt(ExpresionLenguaje* self) {
-    int divisor = *((int*)self->derecha.valor);
-    if (divisor == 0) { add_error_to_report("Semántico", "%", "Módulo por cero.", self->base.line, self->base.column, NULL); return nuevoValorResultadoVacio(); }
-    double* res = malloc(sizeof(double));
-    *res = fmod(*((double*)self->izquierda.valor), (double)divisor);
+Result moduloDoubleInt(ExpresionLenguaje *self)
+{
+    int divisor = *((int *)self->derecha.valor);
+    if (divisor == 0)
+    {
+        add_error_to_report("Semántico", "%", "Módulo por cero.", self->base.line, self->base.column, NULL);
+        return nuevoValorResultadoVacio();
+    }
+    double *res = malloc(sizeof(double));
+    *res = fmod(*((double *)self->izquierda.valor), (double)divisor);
     return nuevoValorResultado(res, DOUBLE);
 }
-Result moduloFloatDouble(ExpresionLenguaje* self) {
-    double divisor = *((double*)self->derecha.valor);
-    if (divisor == 0.0) { add_error_to_report("Semántico", "%", "Módulo por cero.", self->base.line, self->base.column, NULL); return nuevoValorResultadoVacio(); }
-    double* res = malloc(sizeof(double));
-    *res = fmod((double)(*((float*)self->izquierda.valor)), divisor);
+Result moduloFloatDouble(ExpresionLenguaje *self)
+{
+    double divisor = *((double *)self->derecha.valor);
+    if (divisor == 0.0)
+    {
+        add_error_to_report("Semántico", "%", "Módulo por cero.", self->base.line, self->base.column, NULL);
+        return nuevoValorResultadoVacio();
+    }
+    double *res = malloc(sizeof(double));
+    *res = fmod((double)(*((float *)self->izquierda.valor)), divisor);
     return nuevoValorResultado(res, DOUBLE);
 }
-Result moduloDoubleFloat(ExpresionLenguaje* self) {
-    float divisor = *((float*)self->derecha.valor);
-    if (divisor == 0.0f) { add_error_to_report("Semántico", "%", "Módulo por cero.", self->base.line, self->base.column, NULL); return nuevoValorResultadoVacio(); }
-    double* res = malloc(sizeof(double));
-    *res = fmod(*((double*)self->izquierda.valor), (double)divisor);
+Result moduloDoubleFloat(ExpresionLenguaje *self)
+{
+    float divisor = *((float *)self->derecha.valor);
+    if (divisor == 0.0f)
+    {
+        add_error_to_report("Semántico", "%", "Módulo por cero.", self->base.line, self->base.column, NULL);
+        return nuevoValorResultadoVacio();
+    }
+    double *res = malloc(sizeof(double));
+    *res = fmod(*((double *)self->izquierda.valor), (double)divisor);
     return nuevoValorResultado(res, DOUBLE);
 }
 
@@ -95,16 +131,16 @@ Operacion tablaOperacionesModulo[TIPO_COUNT][TIPO_COUNT] = {
     [CHAR][CHAR] = moduloIntInt,
     [CHAR][INT] = moduloIntInt,
     [INT][CHAR] = moduloIntInt,
-    [CHAR][FLOAT] = moduloFloatInt, 
+    [CHAR][FLOAT] = moduloFloatInt,
     [FLOAT][CHAR] = moduloFloatInt,
     [CHAR][DOUBLE] = moduloDoubleInt,
-    [DOUBLE][CHAR] = moduloDoubleInt
-};
+    [DOUBLE][CHAR] = moduloDoubleInt};
 
 // Constructor del Nodo
-AbstractExpresion* nuevoModuloExpresion(AbstractExpresion* izquierda, AbstractExpresion* derecha, int line, int column) {
-    ExpresionLenguaje* expr = nuevoExpresionLenguaje(interpretExpresionLenguaje, izquierda, derecha, line, column);
+AbstractExpresion *nuevoModuloExpresion(AbstractExpresion *izquierda, AbstractExpresion *derecha, int line, int column)
+{
+    ExpresionLenguaje *expr = nuevoExpresionLenguaje(interpretExpresionLenguaje, izquierda, derecha, line, column);
     expr->base.node_type = "Modulo";
     expr->tablaOperaciones = &tablaOperacionesModulo;
-    return (AbstractExpresion*) expr;
+    return (AbstractExpresion *)expr;
 }

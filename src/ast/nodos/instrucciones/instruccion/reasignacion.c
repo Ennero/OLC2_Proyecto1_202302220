@@ -73,7 +73,7 @@ Result interpretReasignacion(AbstractExpresion *self, Context *context)
     {
         char description[256];
         snprintf(description, sizeof(description), "Error de tipos: no se puede asignar un valor de tipo '%s' a la variable '%s' de tipo '%s'.",
-                labelTipoDato[nuevo_valor.tipo], nodo->nombre, labelTipoDato[simbolo->tipo]);
+                 labelTipoDato[nuevo_valor.tipo], nodo->nombre, labelTipoDato[simbolo->tipo]);
         add_error_to_report("Semántico", nodo->nombre, description, nodo->line, nodo->column, context->nombre_completo);
         return nuevoValorResultadoVacio();
     }

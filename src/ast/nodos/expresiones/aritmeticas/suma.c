@@ -108,7 +108,7 @@ Result concatenarStringFloat(ExpresionLenguaje *self)
 {
     char s2_buffer[64];
 
-    // Java-like Float.toString
+    // Parecido a como es en java
     java_format_float(*(float *)self->derecha.valor, s2_buffer, sizeof(s2_buffer));
     const char *s1 = (const char *)self->izquierda.valor;
     if (!s1)

@@ -7,10 +7,12 @@
 static Result compararOrden(ExpresionLenguaje *self, int op_type)
 {
     int *res = malloc(sizeof(int));
-    // Promoción numérica estilo Java: comparamos como double para INT/CHAR/FLOAT/DOUBLE
+
+    // Se compara con double para evitar duplicar código
     double v1 = 0.0;
     double v2 = 0.0;
 
+    // Obtener valores numéricos
     switch (self->izquierda.tipo)
     {
     case INT:
@@ -30,6 +32,7 @@ static Result compararOrden(ExpresionLenguaje *self, int op_type)
         break;
     }
 
+    // Obtener valores numéricos
     switch (self->derecha.tipo)
     {
     case INT:
@@ -49,6 +52,7 @@ static Result compararOrden(ExpresionLenguaje *self, int op_type)
         break;
     }
 
+    // Realizar la comparación según el tipo de operación
     switch (op_type)
     {
     case 0:

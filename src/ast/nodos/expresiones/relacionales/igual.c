@@ -9,10 +9,12 @@
 static Result compararNumeros(ExpresionLenguaje *self, int negate)
 {
     int *res = malloc(sizeof(int));
-    // Promoción numérica estilo Java: comparamos como double para INT/CHAR/FLOAT/DOUBLE
+
+    // Se compara con double para evitar duplicar código
     double v1 = 0.0;
     double v2 = 0.0;
 
+    // Obtener valores numéricos
     switch (self->izquierda.tipo)
     {
     case INT:
@@ -32,6 +34,7 @@ static Result compararNumeros(ExpresionLenguaje *self, int negate)
         break;
     }
 
+    // Obtener valores numéricos
     switch (self->derecha.tipo)
     {
     case INT:

@@ -49,13 +49,13 @@ TipoDato tipoResultante(Result valor1, Result valor2)
     }
 }
 
-// Widening rules: boolean and string do not participate; arrays excluded
+// REGLAS DE WIDENING
 int can_widen(TipoDato from, TipoDato to)
 {
     if (from == to)
         return 1;
 
-    // No se permite widening hacia/desde STRING, ARRAY, control signals, NULO
+    // No se permite widening hacia/desde STRING, ARRAY
     if (from == STRING || to == STRING || from == ARRAY || to == ARRAY ||
         from == BREAK_T || from == CONTINUE_T || from == RETURN_T ||
         to == BREAK_T || to == CONTINUE_T || to == RETURN_T ||
@@ -66,12 +66,11 @@ int can_widen(TipoDato from, TipoDato to)
     if (from == BOOLEAN || to == BOOLEAN)
         return 0;
 
-    // char e int comparten almacenamiento (int), permitir char->int
+    // char e int comparten almacenamiento (int)
     if (from == CHAR && to == INT)
         return 1;
 
-    // Cadena de widening numérico según Java: byte->short->int->long->float->double
-    // Aquí manejamos: char/int -> float -> double, y float -> double, int -> double, char -> float/double
+    // Cadena de widening numérico
     if ((from == INT || from == CHAR) && (to == FLOAT || to == DOUBLE))
         return 1;
     if (from == FLOAT && to == DOUBLE)
@@ -104,7 +103,7 @@ Result widen_to(Result src, TipoDato to)
         return src;
 
     if (!can_widen(src.tipo, to))
-        return src; // no-op si no es permitido; el llamador debe validar compatibilidad antes
+        return src; // no-op si no es permitido
 
     // Extraer como double para precisión, luego asignar
     double val = 0.0;

@@ -16,7 +16,6 @@ typedef struct
     int column;
 } ForEachExpresion;
 
-
 // Prototipo de la función de interpretación
 Result interpretForEach(AbstractExpresion *self, Context *context)
 {
@@ -130,8 +129,8 @@ Result interpretForEach(AbstractExpresion *self, Context *context)
         }
 
         // Salir del contexto de control del bucle
-    for_context->breakable_depth--;
-    for_context->continuable_depth--;
+        for_context->breakable_depth--;
+        for_context->continuable_depth--;
 
         free(result_bloque.valor);
         result_bloque = nuevoValorResultadoVacio();

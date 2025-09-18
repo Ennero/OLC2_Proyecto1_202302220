@@ -3,6 +3,9 @@
 
 #include "ast/AbstractExpresion.h"
 
-typedef struct { AbstractExpresion base; } SwitchExpresion;
+typedef struct
+{
+    AbstractExpresion base;
+} SwitchExpresion;
 
 #endif // SWITCH_H

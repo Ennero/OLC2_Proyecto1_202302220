@@ -7,12 +7,12 @@
 // Representa una instancia de un arreglo en memoria.
 typedef struct ArrayValue
 {
-    TipoDato tipo_elemento_base; // El tipo primitivo final (INT, STRING, etc.)
-    int dimensiones_total;       // Número total de dimensiones. ej. para int[][][] es 3
+    TipoDato tipo_elemento_base; // El tipo primitivo final
+    int dimensiones_total;       // Número total de dimensiones
 
     // Info de esta dimensión específica
-    int tamano;      // El tamaño de esta dimensión del arreglo.
-    Result *valores; // Punteros a los 'Result' de los elementos.
+    int tamano;      
+    Result *valores; // Punteros a los 'Result'
     // Si es un arreglo multidimensional, el Result.tipo será ARRAY y Result.valor será otro struct ArrayValue.
 
 } ArrayValue;
@@ -22,7 +22,6 @@ ArrayValue *nuevoArray(TipoDato tipo_base, int dimensiones, int tamano);
 
 // Realiza una copia profunda del arreglo y sus elementos
 ArrayValue *copiarArray(ArrayValue *original);
-
 
 // Libera la memoria ocupada por un arreglo
 void liberarArray(ArrayValue *arr);

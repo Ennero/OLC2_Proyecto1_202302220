@@ -2,11 +2,10 @@
 #define CONTEXT_H
 
 #include "result.h"
-#include <stddef.h> // Define el tipo 'size_t'
+#include <stddef.h> 
 
 typedef struct AbstractExpresion AbstractExpresion;
 
-// Clase del símbolo: variable o función
 typedef enum
 {
     VARIABLE,
@@ -17,22 +16,22 @@ typedef enum
 // Información sobre un parámetro de función
 typedef struct
 {
-    TipoDato tipo;   // Tipo base (INT, STRING, ...)
-    int dimensiones; // 0 si escalar; >0 si arreglo (total de dimensiones)
+    TipoDato tipo;   // Tipo base
+    int dimensiones; // 0 si escalar; >0 si arreglo
     char *nombre;
 } Parametro;
 
 // Información sobre una variable
 typedef struct
 {
-    void *valor;  // Puntero al valor (int*, float*, char**, etc.)
-    int borrowed; // 1 si es una referencia a un arreglo existente (no se libera)
+    void *valor;  // Puntero al valor 
+    int borrowed; // 1 si es una referencia a un arreglo existente
 } VariableInfo;
 
 // Información sobre una función
 typedef struct
 {
-    TipoDato tipo_retorno;     // Tipo base de retorno (INT, STRING, ...)
+    TipoDato tipo_retorno;     // Tipo base de retorno 
     int retorno_dimensiones;   // 0 si escalar; >0 si retorna arreglo
     Parametro *parametros;     // Array dinámico de parámetros
     size_t num_parametros;     // Número de parámetros
@@ -42,7 +41,7 @@ typedef struct
 typedef struct Symbol Symbol;
 typedef struct Context Context;
 
-// Estructura para un símbolo (individuo en la tabla de símbolos)
+// Estructura para un símbolo 
 struct Symbol
 {
     char *nombre;
@@ -65,14 +64,14 @@ struct Context
     char *nombre_completo;
     Context *anterior;
     Symbol *ultimoSymbol;
-    Context *raiz;         // Puntero al contexto raíz (global)
-    int proximo_id_bloque; // Contador utilizado por la raíz (si se requiere)
+    Context *raiz;         // Puntero al contexto raíz 
+    int proximo_id_bloque; // Contador utilizado por la raíz 
+
     // Profundidad de regiones que permiten 'break' y 'continue'
-    int breakable_depth;    // >0 cuando estamos dentro de while/for/switch
-    int continuable_depth;  // >0 cuando estamos dentro de while/for
+    int breakable_depth;   // >0 cuando estamos dentro de while/for/switch
+    int continuable_depth; // >0 cuando estamos dentro de while/for
 };
 
-// Se actualizan las firmas
 Context *nuevoContext(Context *anterior, const char *tipo_contexto);
 void liberarContext(Context *context); // Libera el contexto y sus símbolos
 Symbol *nuevoVariable(char *nombre, void *valor, TipoDato tipo, int es_constante);

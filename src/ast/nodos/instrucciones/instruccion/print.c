@@ -85,7 +85,7 @@ Result interpretPrintExpresion(AbstractExpresion *self, Context *context)
 
         // --- DEBUGGING PRINT ---
         printf("DEBUG [print]: Recibido para imprimir -> Tipo: %s, Puntero a Valor: %p\n", labelTipoDato[res.tipo], res.valor);
-        
+
         // Imprimir el valor para depuración
         if (res.valor)
         {

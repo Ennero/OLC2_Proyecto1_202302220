@@ -3,7 +3,6 @@
 
 #include "ast/AbstractExpresion.h"
 
-
 typedef struct
 {
     AbstractExpresion base;

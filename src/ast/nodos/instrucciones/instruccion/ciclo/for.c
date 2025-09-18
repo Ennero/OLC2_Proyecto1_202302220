@@ -69,11 +69,11 @@ Result interpretForExpresion(AbstractExpresion *self, Context *context)
             break; // Salir del bucle
         }
 
-    // Marcar que estamos en un contexto que permite break/continue
-    for_context->breakable_depth++;
-    for_context->continuable_depth++;
+        // Marcar que estamos en un contexto que permite break/continue
+        for_context->breakable_depth++;
+        for_context->continuable_depth++;
 
-    // Ejecuta el bloque del cuerpo
+        // Ejecuta el bloque del cuerpo
         Result res_bloque = bloque_nodo->interpret(bloque_nodo, for_context);
 
         // Si se encuentra un return, se propaga inmediatamente
@@ -83,11 +83,11 @@ Result interpretForExpresion(AbstractExpresion *self, Context *context)
             return res_bloque;
         }
 
-    // Salir del contexto de control
-    for_context->breakable_depth--;
-    for_context->continuable_depth--;
+        // Salir del contexto de control
+        for_context->breakable_depth--;
+        for_context->continuable_depth--;
 
-    // Se guarda el tipo de señal que se recibió
+        // Se guarda el tipo de señal que se recibió
         TipoDato tipo_señal = res_bloque.tipo;
         free(res_bloque.valor);
 

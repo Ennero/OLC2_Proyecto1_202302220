@@ -49,6 +49,7 @@ Result interpretBloqueExpresion(AbstractExpresion *self, Context *context)
             if (owned_by_block)
             {
                 ArrayValue *copia = copiarArray((ArrayValue *)wrapped->valor);
+                
                 // El original será liberado al liberar el contexto del bloque
                 wrapped->valor = copia;
             }
@@ -59,7 +60,6 @@ Result interpretBloqueExpresion(AbstractExpresion *self, Context *context)
     liberarContext(nuevo_contexto);
 
     // Devolver el resultado capturado del bloque.
-    // Si hubo un return, res_bloque contendrá la señal RETURN_T.
     return res_bloque;
 }
 

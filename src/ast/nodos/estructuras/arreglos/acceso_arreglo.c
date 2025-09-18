@@ -14,7 +14,7 @@ Result interpretAccesoArreglo(AbstractExpresion* self, Context* context) {
     }
     AbstractExpresion* base_expr = it; // Debe producir un ARRAY
 
-    
+    // Recolectar nodos de índices
     AbstractExpresion** idx_nodes = malloc(sizeof(AbstractExpresion*) * (size_t)depth);
     if (!idx_nodes) return nuevoValorResultadoVacio();
     it = self;

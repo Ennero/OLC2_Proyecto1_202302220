@@ -149,7 +149,7 @@ Result interpretAsignacionCompuesta(AbstractExpresion *self, Context *context)
         }
         // Alocar memoria y copiar el valor
         valor_izquierdo_copiado = malloc(size);
-        
+
         memcpy(valor_izquierdo_copiado, simbolo->info.var.valor, size);
     }
 
@@ -179,9 +179,9 @@ Result interpretAsignacionCompuesta(AbstractExpresion *self, Context *context)
     {
         char description[256];
         snprintf(description, sizeof(description), "No se puede aplicar el operador '%s' entre tipos '%s' y '%s'.",
-                get_op_string(nodo->op_type),
-                labelTipoDato[expr_simulada.izquierda.tipo],
-                labelTipoDato[expr_simulada.derecha.tipo]);
+                 get_op_string(nodo->op_type),
+                 labelTipoDato[expr_simulada.izquierda.tipo],
+                 labelTipoDato[expr_simulada.derecha.tipo]);
         add_error_to_report("Semantico", get_op_string(nodo->op_type), description, self->line, self->column, context->nombre_completo);
         free(expr_simulada.izquierda.valor);
         free(expr_simulada.derecha.valor);
