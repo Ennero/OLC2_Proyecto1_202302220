@@ -246,6 +246,17 @@ asignacion_expr: TOKEN_IDENTIFIER '=' expr { $$ = nuevoReasignacionExpresion($1,
                 | TOKEN_IDENTIFIER TOKEN_LSHIFT_ASSIGN expr  { $$ = nuevoAsignacionCompuestaExpresion($1, TOKEN_LSHIFT, $3, @1.first_line, @1.first_column); }
                 | TOKEN_IDENTIFIER TOKEN_RSHIFT_ASSIGN expr  { $$ = nuevoAsignacionCompuestaExpresion($1, TOKEN_RSHIFT, $3, @1.first_line, @1.first_column); }
                 | TOKEN_IDENTIFIER TOKEN_URSHIFT_ASSIGN expr { $$ = nuevoAsignacionCompuestaExpresion($1, TOKEN_URSHIFT, $3, @1.first_line, @1.first_column); }
+                | primary_expr '[' expr ']' TOKEN_PLUS_ASSIGN expr  { $$ = nuevoAsignacionArreglo($1, $3, nuevoSumaExpresion(nuevoAccesoArreglo($1, $3, @2.first_line, @2.first_column), $6, @5.first_line, @5.first_column), @5.first_line, @5.first_column); }
+                | primary_expr '[' expr ']' TOKEN_MINUS_ASSIGN expr { $$ = nuevoAsignacionArreglo($1, $3, nuevoRestaExpresion(nuevoAccesoArreglo($1, $3, @2.first_line, @2.first_column), $6, @5.first_line, @5.first_column), @5.first_line, @5.first_column); }
+                | primary_expr '[' expr ']' TOKEN_MULT_ASSIGN expr  { $$ = nuevoAsignacionArreglo($1, $3, nuevoMultiplicacionExpresion(nuevoAccesoArreglo($1, $3, @2.first_line, @2.first_column), $6, @5.first_line, @5.first_column), @5.first_line, @5.first_column); }
+                | primary_expr '[' expr ']' TOKEN_DIV_ASSIGN expr   { $$ = nuevoAsignacionArreglo($1, $3, nuevoDivisionExpresion(nuevoAccesoArreglo($1, $3, @2.first_line, @2.first_column), $6, @5.first_line, @5.first_column), @5.first_line, @5.first_column); }
+                | primary_expr '[' expr ']' TOKEN_MOD_ASSIGN expr   { $$ = nuevoAsignacionArreglo($1, $3, nuevoModuloExpresion(nuevoAccesoArreglo($1, $3, @2.first_line, @2.first_column), $6, @5.first_line, @5.first_column), @5.first_line, @5.first_column); }
+                | primary_expr '[' expr ']' TOKEN_AND_ASSIGN expr   { $$ = nuevoAsignacionArreglo($1, $3, nuevoBitwiseAndExpresion(nuevoAccesoArreglo($1, $3, @2.first_line, @2.first_column), $6, @5.first_line, @5.first_column), @5.first_line, @5.first_column); }
+                | primary_expr '[' expr ']' TOKEN_OR_ASSIGN expr    { $$ = nuevoAsignacionArreglo($1, $3, nuevoBitwiseOrExpresion(nuevoAccesoArreglo($1, $3, @2.first_line, @2.first_column), $6, @5.first_line, @5.first_column), @5.first_line, @5.first_column); }
+                | primary_expr '[' expr ']' TOKEN_XOR_ASSIGN expr   { $$ = nuevoAsignacionArreglo($1, $3, nuevoBitwiseXorExpresion(nuevoAccesoArreglo($1, $3, @2.first_line, @2.first_column), $6, @5.first_line, @5.first_column), @5.first_line, @5.first_column); }
+                | primary_expr '[' expr ']' TOKEN_LSHIFT_ASSIGN expr { $$ = nuevoAsignacionArreglo($1, $3, nuevoLeftShiftExpresion(nuevoAccesoArreglo($1, $3, @2.first_line, @2.first_column), $6, @5.first_line, @5.first_column), @5.first_line, @5.first_column); }
+                | primary_expr '[' expr ']' TOKEN_RSHIFT_ASSIGN expr { $$ = nuevoAsignacionArreglo($1, $3, nuevoRightShiftExpresion(nuevoAccesoArreglo($1, $3, @2.first_line, @2.first_column), $6, @5.first_line, @5.first_column), @5.first_line, @5.first_column); }
+                | primary_expr '[' expr ']' TOKEN_URSHIFT_ASSIGN expr { $$ = nuevoAsignacionArreglo($1, $3, nuevoUnsignedRightShiftExpresion(nuevoAccesoArreglo($1, $3, @2.first_line, @2.first_column), $6, @5.first_line, @5.first_column), @5.first_line, @5.first_column); }
                 ;
 
 
