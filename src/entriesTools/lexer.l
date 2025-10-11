@@ -35,8 +35,8 @@ integer           {digit}+
 hex_integer       0[xX]{hex_digit}+
 exponent          [eE][+-]?{digit}+
 
-float_lit         ({digit}+\.{digit}*[fF])|(\.{digit}+[fF])|({digit}+[fF])
-double_lit        ({digit}+\.{digit}*({exponent})?|\.{digit}+({exponent})?|{digit}+{exponent})
+float_lit         ({digit}+\.{digit}+[fF])|(\.{digit}+[fF])|({digit}+[fF])
+double_lit        ({digit}+\.{digit}+({exponent})?|\.{digit}+({exponent})?|{digit}+{exponent})
 
 /* Unicode decimal escape: \u followed by 1 to 5 decimal digits (0-65535) */
 unicode_escape_dec \\u{digit}{1,5}
@@ -88,7 +88,8 @@ newline           \n
 "length"                return TOKEN_LENGTH;
 
 "null"                  return TOKEN_NULL;
-
+".."                    return TOKEN_DOTS;
+"in"                    return TOKEN_IN;
 
 "public"                return TOKEN_PUBLIC;   
 "static"                return TOKEN_STATIC;   

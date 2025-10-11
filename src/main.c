@@ -469,6 +469,7 @@ static void on_generate_ast_clicked(GtkToolButton *button, gpointer user_data)
         generate_ast_graph(ast_root, "ast-graph/ast.dot");
         system("dot -Tsvg ast-graph/ast.dot -o ast-graph/ast.svg");
         system("dot -Tpdf ast-graph/ast.dot -o ast-graph/ast.pdf");
+        system("dot -Tpng ast-graph/ast.dot -o ast-graph/ast.png");
 
         GtkWidget *ast_window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
         gtk_window_set_title(GTK_WINDOW(ast_window), "Visor del Árbol de Sintaxis Abstracta (AST)");
@@ -483,7 +484,8 @@ static void on_generate_ast_clicked(GtkToolButton *button, gpointer user_data)
         gtk_widget_set_vexpand(scrolled_window, TRUE);
         gtk_box_pack_start(GTK_BOX(vbox), scrolled_window, TRUE, TRUE, 0);
 
-        GtkWidget *image = gtk_image_new_from_file("ast-graph/ast.svg");
+    // Mostrar PNG para evitar problemas de render con SVG dentro de GtkImage
+    GtkWidget *image = gtk_image_new_from_file("ast-graph/ast.png");
         gtk_container_add(GTK_CONTAINER(scrolled_window), image);
 
         GtkWidget *button_box = gtk_button_box_new(GTK_ORIENTATION_HORIZONTAL);
