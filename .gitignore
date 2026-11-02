@@ -1,2 +1,17 @@
-build
-
+# C / C++
+*.o
+*.obj
+*.exe
+*.out
+*.app
+build/
+bin/
+*.tab.c
+*.tab.h
+lex.yy.c
+ast-graph/*.svg
+ast-graph/*.pdf
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
