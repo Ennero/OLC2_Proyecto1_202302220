@@ -1,68 +1,48 @@
-<div align="center">
+# JavaLang: intérprete en C con IDE GTK y reportes AST
 
-# ⚙️ 3-Address Code (3AC) Intermediate Representation Compiler (OLC2)
+Intérprete de un lenguaje similar a Java, con lexer Flex, parser Bison, nodos AST, entornos y reportes de símbolos/errores. Incluye interfaz GTK y modo CLI para interpretar archivos .usl.
 
-**Generador de código intermedio de tres direcciones (C3D) y optimizador en C con Flex & Bison.**
+## Requisitos
 
-[![Language](https://img.shields.io/badge/Language-C-blue?style=for-the-badge)](https://github.com/Ennero/OLC2_Proyecto1_202302220)
-[![Course](https://img.shields.io/badge/Course-Organización%20de%20Lenguajes%20y%20Compiladores%202-003366?style=for-the-badge)](https://ingenieria.usac.edu.gt/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](LICENSE)
+Linux con GCC, make, Flex, Bison, pkg-config, GTK3, GtkSourceView 3 y Graphviz. La construcción se basa en el Makefile incluido.
 
-</div>
+## Ejecución
 
----
+Los comandos parten de la raíz del repositorio, salvo donde se indica otra terminal.
 
+```bash
+# Debian/Ubuntu: instalar las dependencias necesarias
+sudo apt install build-essential flex bison pkg-config libgtk-3-dev libgtksourceview-3.0-dev graphviz
+make
 
-## 📌 Descripción General
+# Ejecutar un ejemplo en CLI
+./build/javalang --run calificacion/basicos.usl
 
-Este repositorio contiene la implementación y entrega de **⚙️ 3-Address Code (3AC) Intermediate Representation Compiler (OLC2)**, desarrollado en el curso de **Organización de Lenguajes y Compiladores 2** en la Universidad de San Carlos de Guatemala.
-
-- **Objetivo:** Generador de código intermedio de tres direcciones (C3D) y optimizador en C con Flex & Bison.
-- **Stack Principal:** `C`.
-- **Área:** Ciencias de la Computación, Algoritmos y Desarrollo de Software.
-
----
-
-## 🚀 Características y Componentes
-
-- Implementación modular y buenas prácticas de codificación.
-- Manejo estructurado de datos, control de flujo y validaciones.
-- Documentación y scripts de soporte para compilación o ejecución.
-
----
-
-## 📦 Estructura del Proyecto
-
-```
-OLC2_Proyecto1_202302220/
-├── src/ o archivos de código fuente
-├── docs/ (si aplica)
-├── .gitignore
-├── LICENSE
-└── README.md
+# Abrir el IDE
+./compile.sh
 ```
 
----
+## Recorrido de demostración
 
-## ⚙️ Requisitos y Ejecución
+Interpretar un archivo de calificacion/ o test/ y comparar consola, tabla de símbolos y errores. Desde el IDE también puede generarse el gráfico del AST.
 
-1. Clonar el repositorio:
-   ```bash
-   git clone https://github.com/Ennero/OLC2_Proyecto1_202302220.git
-   cd OLC2_Proyecto1_202302220
-   ```
-2. Ejecutar según el entorno (`C`):
-   - Consultar los scripts o archivos principales del proyecto para parámetros específicos.
+## Organización
 
----
+Carpetas de la entrega: [`ast-graph/`](ast-graph/), [`calificacion/`](calificacion/), [`docs/`](docs/), [`src/`](src/), [`test/`](test/).
 
-## 📄 Licencia
+## Documentación
 
-Este proyecto está bajo la Licencia **MIT**. Consulta el archivo [LICENSE](LICENSE) para más detalles.
+- [informe_tecnico](docs/informe_tecnico.md)
+- [manual_usuario](docs/manual_usuario.md)
 
----
+## Alcance y límites
 
-## 👨‍💻 Autor
+Esta entrega interpreta el AST; no se anuncia como generador/optimizador de código de tres direcciones. Para ensamblador ARM64, consultar la entrega OLC2_Proyecto2. Los binarios se generan con make.
 
-- **Enner Mendizabal** - [@Ennero](https://github.com/Ennero)  
-- *Facultad de Ingeniería, Universidad de San Carlos de Guatemala.*
+La documentación anterior a la actualización se conserva en [README-anterior.md](README-anterior.md) como referencia histórica; para iniciar el proyecto, seguir esta guía.
+
+## Contexto y licencia
+
+Trabajo académico o de aprendizaje conservado en el portafolio de [Enner Mendizabal](https://github.com/Ennero). Los créditos de los trabajos en grupo se conservan en sus entregas y manuales.
+
+Consultar [LICENSE](LICENSE) para la licencia de la raíz. Las dependencias y los componentes con avisos o licencias propios conservan sus condiciones.
